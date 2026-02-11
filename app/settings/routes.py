@@ -268,40 +268,6 @@ def add_user():
         )
         user.set_password(password)
 
-        # Automatically assign current tenant's license
-        from flask import session as flask_session
-        tenant_license_key = flask_session.get('tenant_license_key')
-
-        if tenant_license_key:
-            # Get license ID from master database
-            from app.models_license import License
-            from app.tenant_manager import TenantManager
-
-            # Save current database URI
-            current_db_uri = current_app.config['SQLALCHEMY_DATABASE_URI']
-
-            try:
-                # Switch to master database temporarily
-                master_db_uri = f'sqlite:///{TenantManager.get_master_db_path()}'
-                current_app.config['SQLALCHEMY_DATABASE_URI'] = master_db_uri
-                db.engine.dispose()
-
-                # Get license
-                license = License.query.filter_by(license_key=tenant_license_key).first()
-
-                if license:
-                    license_id = license.id
-                else:
-                    license_id = None
-
-            finally:
-                # Switch back to tenant database
-                current_app.config['SQLALCHEMY_DATABASE_URI'] = current_db_uri
-                db.engine.dispose()
-
-            if license_id:
-                user.license_id = license_id
-
         db.session.add(user)
         db.session.commit()
 
