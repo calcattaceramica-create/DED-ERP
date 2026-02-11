@@ -10,8 +10,20 @@ import uuid
 def get_client_ip():
     """Get client IP address"""
     if request.headers.get('X-Forwarded-For'):
-        return request.headers.get('X-Forwarded-For').split(',')[0]
-    return request.remote_addr
+        ip = request.headers.get('X-Forwarded-For')
+        # Ensure it's a string, not bytes
+        if isinstance(ip, bytes):
+            ip = ip.decode('utf-8', errors='ignore')
+        return ip.split(',')[0].strip()
+    return request.remote_addr or '0.0.0.0'
+
+def get_user_agent():
+    """Get user agent string safely"""
+    user_agent = request.headers.get('User-Agent', '')
+    # Ensure it's a string, not bytes
+    if isinstance(user_agent, bytes):
+        user_agent = user_agent.decode('utf-8', errors='ignore')
+    return user_agent[:256]
 
 def log_security_event(user_id, event_type, details=None, severity='info'):
     """Log security event"""
@@ -20,7 +32,7 @@ def log_security_event(user_id, event_type, details=None, severity='info'):
             user_id=user_id,
             event_type=event_type,
             ip_address=get_client_ip(),
-            user_agent=request.headers.get('User-Agent', '')[:256],
+            user_agent=get_user_agent(),
             details=details,
             severity=severity
         )
@@ -63,7 +75,7 @@ def login():
             user_id=user.id,
             session_id=session_id,
             ip_address=get_client_ip(),
-            user_agent=request.headers.get('User-Agent', '')[:256],
+            user_agent=get_user_agent(),
             is_active=True
         )
         db.session.add(session_log)
