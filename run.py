@@ -120,9 +120,8 @@ def init_database():
             traceback.print_exc()
             # Don't exit - let the app start anyway
 
-# Only initialize database when running with gunicorn or directly
-if __name__ != '__main__' or os.getenv('FLASK_ENV') == 'production':
-    init_database()
+# Initialize database on startup
+init_database()
 
 @app.shell_context_processor
 def make_shell_context():

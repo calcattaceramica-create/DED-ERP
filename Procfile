@@ -1,2 +1,2 @@
-web: gunicorn run:app -c gunicorn_config.py
+web: gunicorn run:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level info
 
