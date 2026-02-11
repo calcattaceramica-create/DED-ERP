@@ -61,11 +61,6 @@ migrations/versions/*.pyc
 .env
 .env.local
 
-# Batch files (Windows specific)
-*.bat
-*.vbs
-*.pyw
-
 # Backups
 *.backup
 *.bak

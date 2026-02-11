@@ -1,248 +1,0 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خطوات النشر على Render بعد إزالة نظام التراخيص</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-        }
-        .success-box {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .step {
-            background: #f8f9fa;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #3498db;
-        }
-        .step h2 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 10px 0;
-        }
-        .warning {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .info {
-            background: #d1ecf1;
-            border: 2px solid #17a2b8;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        ul {
-            line-height: 1.8;
-        }
-        .icon {
-            font-size: 24px;
-            margin-left: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 خطوات النشر على Render</h1>
-        <p class="subtitle">بعد إزالة نظام التراخيص بنجاح</p>
-
-        <div class="success-box">
-            <h3 style="margin-top: 0;">✅ تم إزالة نظام التراخيص بنجاح!</h3>
-            <p style="margin-bottom: 0;">
-                ✅ تم حذف 9 ملفات<br>
-                ✅ تم حذف مجلد tenant_databases<br>
-                ✅ تم تحديث auth/routes.py<br>
-                ✅ تم تحديث login.html
-            </p>
-        </div>
-
-        <div class="step">
-            <h2><span class="icon">🧪</span>الخطوة 1: اختبار التطبيق محلياً</h2>
-            <p><strong>قبل النشر، يجب اختبار التطبيق للتأكد من عمله بدون نظام التراخيص:</strong></p>
-            
-            <ol>
-                <li>أعد تشغيل التطبيق:</li>
-                <div class="code-block">cd C:\Users\DELL\Desktop\DED_Portable_App<br>python run.py</div>
-                
-                <li>افتح المتصفح واذهب إلى: <code>http://127.0.0.1:5000</code></li>
-                
-                <li>سجل الدخول بدون license_key:</li>
-                <ul>
-                    <li>اسم المستخدم: <strong>admin</strong></li>
-                    <li>كلمة المرور: <strong>admin123</strong></li>
-                </ul>
-                
-                <li>تأكد من:</li>
-                <ul>
-                    <li>✅ تسجيل الدخول يعمل بدون حقل license_key</li>
-                    <li>✅ الوصول إلى لوحة التحكم</li>
-                    <li>✅ تسجيل الخروج يعمل بشكل صحيح</li>
-                </ul>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h2><span class="icon">📤</span>الخطوة 2: رفع التغييرات إلى GitHub</h2>
-            <p><strong>بعد التأكد من عمل التطبيق، ارفع التغييرات:</strong></p>
-            
-            <div class="code-block">
-cd C:\Users\DELL\Desktop\DED_Portable_App<br><br>
-git add .<br><br>
-git commit -m "Remove license system and add Render deployment files"<br><br>
-git push origin main
-            </div>
-
-            <div class="warning">
-                <strong>⚠️ ملاحظة:</strong> تأكد من أن جميع الملفات التالية موجودة قبل الرفع:
-                <ul>
-                    <li>✅ render.yaml</li>
-                    <li>✅ Procfile</li>
-                    <li>✅ runtime.txt</li>
-                    <li>✅ init_db.py</li>
-                    <li>✅ requirements.txt</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h2><span class="icon">🌐</span>الخطوة 3: النشر على Render</h2>
-            
-            <ol>
-                <li>اذهب إلى: <a href="https://dashboard.render.com/" target="_blank">https://dashboard.render.com/</a></li>
-                
-                <li>سجل دخول بحساب GitHub: <strong>calcattaceramica-create</strong></li>
-                
-                <li>انقر على: <strong>"New +"</strong> → <strong>"Blueprint"</strong></li>
-                
-                <li>اختر repository: <strong>miniature-fiesta</strong></li>
-                
-                <li>Render سيقرأ ملف <code>render.yaml</code> تلقائياً</li>
-                
-                <li>انقر على: <strong>"Apply"</strong></li>
-                
-                <li>انتظر اكتمال النشر (5-10 دقائق)</li>
-            </ol>
-
-            <div class="info">
-                <strong>ℹ️ معلومة:</strong> Render سينشئ:
-                <ul>
-                    <li>🗄️ قاعدة بيانات PostgreSQL (ded-erp-db)</li>
-                    <li>🌐 Web Service (ded-erp-system)</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h2><span class="icon">🗄️</span>الخطوة 4: تهيئة قاعدة البيانات</h2>
-            <p><strong>بعد اكتمال النشر:</strong></p>
-            
-            <ol>
-                <li>اذهب إلى: <strong>Web Service (ded-erp-system)</strong></li>
-                
-                <li>انقر على: <strong>"Shell"</strong></li>
-                
-                <li>شغّل الأمر التالي:</li>
-                <div class="code-block">python init_db.py</div>
-                
-                <li>تأكد من ظهور رسالة النجاح</li>
-            </ol>
-
-            <div class="info">
-                <strong>ℹ️ ماذا يفعل init_db.py؟</strong>
-                <ul>
-                    <li>✅ ينشئ جميع الجداول في قاعدة البيانات</li>
-                    <li>✅ ينشئ مستخدم admin (username: admin, password: admin123)</li>
-                    <li>✅ ينشئ دور admin مع جميع الصلاحيات</li>
-                    <li>✅ ينشئ فرع رئيسي</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="step">
-            <h2><span class="icon">🎉</span>الخطوة 5: اختبار التطبيق المنشور</h2>
-            
-            <ol>
-                <li>افتح رابط التطبيق:</li>
-                <div class="code-block">https://ded-erp-system.onrender.com</div>
-                
-                <li>سجل الدخول:</li>
-                <ul>
-                    <li>اسم المستخدم: <strong>admin</strong></li>
-                    <li>كلمة المرور: <strong>admin123</strong></li>
-                </ul>
-                
-                <li>اختبر:</li>
-                <ul>
-                    <li>✅ تسجيل الدخول</li>
-                    <li>✅ الوصول إلى لوحة التحكم</li>
-                    <li>✅ تسجيل الخروج</li>
-                    <li>✅ إضافة بيانات تجريبية</li>
-                </ul>
-                
-                <li><strong>⚠️ مهم جداً:</strong> غيّر كلمة مرور admin فوراً!</li>
-            </ol>
-        </div>
-
-        <div class="warning">
-            <h3 style="margin-top: 0;">⚠️ ملاحظات مهمة:</h3>
-            <ul>
-                <li><strong>Free Tier Limitations:</strong> التطبيق سينام بعد 15 دقيقة من عدم النشاط</li>
-                <li><strong>Wake-up Time:</strong> أول طلب بعد النوم قد يستغرق 30-60 ثانية</li>
-                <li><strong>Database:</strong> قاعدة البيانات PostgreSQL تبقى نشطة</li>
-                <li><strong>HTTPS:</strong> يتم تفعيله تلقائياً</li>
-                <li><strong>Logs:</strong> يمكنك مراقبة السجلات من لوحة Render</li>
-            </ul>
-        </div>
-
-        <div class="info">
-            <h3 style="margin-top: 0;">📋 ملخص التغييرات:</h3>
-            <ul>
-                <li>✅ تم إزالة نظام التراخيص بالكامل</li>
-                <li>✅ تم تبسيط تسجيل الدخول (username + password فقط)</li>
-                <li>✅ تم إضافة ملفات النشر على Render</li>
-                <li>✅ التطبيق جاهز للنشر على Render</li>
-            </ul>
-        </div>
-    </div>
-</body>
-</html>
-

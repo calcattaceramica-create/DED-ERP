@@ -1,188 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حل مشكلة عدم ظهور نافذة تسجيل الدخول</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            min-height: 100vh;
-            padding: 30px 15px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .solution-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .problem-box {
-            background: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-        .solution-box {
-            background: #d1ecf1;
-            border-left: 5px solid #0dcaf0;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-        .step {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            border-left: 4px solid #0d6efd;
-        }
-        .step h4 {
-            color: #0d6efd;
-            margin-bottom: 15px;
-        }
-        .btn-action {
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 10px;
-            margin: 10px 5px;
-        }
-        .warning-box {
-            background: #f8d7da;
-            border-left: 5px solid #dc3545;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-        kbd {
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="solution-card">
-        <h1 class="text-center mb-3">🔧 حل مشكلة عدم ظهور نافذة تسجيل الدخول</h1>
-        <h3 class="text-center text-muted mb-5">Fix: Login Page Not Showing</h3>
-
-        <div class="problem-box">
-            <h3><i class="fas fa-exclamation-triangle text-warning"></i> المشكلة:</h3>
-            <p class="mb-0"><strong>عند النقر على "تسجيل الخروج"، التطبيق يفتح مباشرة بدون طلب تسجيل دخول!</strong></p>
-            <p class="mb-0 text-muted">When clicking "Logout", the app opens directly without asking for login!</p>
-        </div>
-
-        <div class="solution-box">
-            <h3><i class="fas fa-lightbulb text-info"></i> السبب:</h3>
-            <p class="mb-0"><strong>المتصفح يحفظ الكوكيز (Cookies) والجلسة (Session) القديمة!</strong></p>
-            <p class="mb-0 text-muted">The browser is caching old cookies and session data!</p>
-        </div>
-
-        <hr class="my-4">
-
-        <h2 class="text-center mb-4">✅ الحل الكامل (اتبع الخطوات بالترتيب)</h2>
-
-        <div class="step">
-            <h4><i class="fas fa-play-circle"></i> الخطوة 1: مسح الكوكيز من المتصفح</h4>
-            <p><strong>هذه الخطوة الأهم!</strong></p>
-            
-            <ol>
-                <li>اضغط على لوحة المفاتيح: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Delete</kbd></li>
-                <li>ستظهر نافذة "Clear browsing data"</li>
-                <li>اختر:
-                    <ul>
-                        <li>✅ <strong>Cookies and other site data</strong></li>
-                        <li>✅ <strong>Cached images and files</strong></li>
-                    </ul>
-                </li>
-                <li>من القائمة المنسدلة "Time range"، اختر: <strong>All time</strong></li>
-                <li>انقر على زر: <strong>Clear data</strong></li>
-            </ol>
-
-            <div class="alert alert-warning mt-3">
-                <i class="fas fa-exclamation-circle"></i> <strong>مهم جداً:</strong> يجب اختيار "All time" وليس "Last hour" أو "Last 24 hours"
-            </div>
-        </div>
-
-        <div class="step">
-            <h4><i class="fas fa-times-circle"></i> الخطوة 2: إغلاق المتصفح تماماً</h4>
-            <ol>
-                <li>أغلق <strong>جميع</strong> نوافذ المتصفح</li>
-                <li>افتح Task Manager: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Esc</kbd></li>
-                <li>ابحث عن عملية المتصفح (Chrome / Firefox / Edge)</li>
-                <li>انقر بزر الماوس الأيمن واختر: <strong>End task</strong></li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h4><i class="fas fa-redo"></i> الخطوة 3: إعادة تشغيل المتصفح</h4>
-            <ol>
-                <li>افتح المتصفح من جديد</li>
-                <li>لا تستخدم زر "Restore tabs" إذا ظهر</li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h4><i class="fas fa-sign-in-alt"></i> الخطوة 4: الذهاب لصفحة تسجيل الدخول</h4>
-            <p>اكتب في شريط العنوان:</p>
-            <div class="alert alert-primary">
-                <code style="font-size: 18px;">http://127.0.0.1:5000/auth/login</code>
-            </div>
-            <a href="http://127.0.0.1:5000/auth/login" target="_blank" class="btn btn-primary btn-action">
-                <i class="fas fa-external-link-alt"></i> فتح صفحة تسجيل الدخول
-            </a>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="warning-box">
-            <h4><i class="fas fa-exclamation-triangle"></i> إذا لم ينجح الحل أعلاه:</h4>
-            <p><strong>جرب وضع التصفح الخاص (Incognito Mode):</strong></p>
-            <ol>
-                <li>اضغط: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> (Chrome) أو <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> (Firefox)</li>
-                <li>في النافذة الجديدة، اذهب إلى: <code>http://127.0.0.1:5000/auth/login</code></li>
-                <li>سجل الدخول</li>
-                <li>جرب تسجيل الخروج</li>
-            </ol>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="alert alert-success">
-            <h4><i class="fas fa-check-circle"></i> كيف تعرف أن المشكلة حُلّت؟</h4>
-            <ol>
-                <li>بعد مسح الكوكيز وإعادة فتح المتصفح</li>
-                <li>اذهب إلى: <code>http://127.0.0.1:5000</code></li>
-                <li><strong>إذا ظهرت لك صفحة تسجيل الدخول</strong> ← ✅ المشكلة حُلّت!</li>
-                <li><strong>إذا فتح التطبيق مباشرة</strong> ← ❌ لم يتم مسح الكوكيز بشكل صحيح</li>
-            </ol>
-        </div>
-
-        <div class="text-center mt-5">
-            <a href="http://127.0.0.1:5000/auth/logout" target="_blank" class="btn btn-danger btn-action">
-                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج الآن
-            </a>
-            <a href="http://127.0.0.1:5000/auth/login" target="_blank" class="btn btn-primary btn-action">
-                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-            </a>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="alert alert-info">
-            <h5><i class="fas fa-info-circle"></i> ملاحظة مهمة:</h5>
-            <p class="mb-0">المشكلة <strong>ليست في التطبيق</strong>، المشكلة في <strong>الكاش في المتصفح</strong>. التطبيق يعمل بشكل صحيح، لكن المتصفح يحفظ الجلسة القديمة ولا يطلب تسجيل دخول جديد.</p>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-

@@ -51,7 +51,6 @@ def login():
         password = request.form.get('password')
         remember = request.form.get('remember', False)
 
-        # Simple authentication without license
         user = User.query.filter_by(username=username).first()
 
         if user is None or not user.check_password(password):

@@ -15,7 +15,6 @@ class Config:
     if database_url and database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
-    # No license system - use single database
     SQLALCHEMY_DATABASE_URI = database_url or \
         'sqlite:///' + os.path.join(basedir, 'erp_system.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False

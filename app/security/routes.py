@@ -4,7 +4,6 @@ from flask_babel import gettext as _
 from app import db
 from app.security import bp
 from app.models import SecurityLog, IPWhitelist, SessionLog, User
-# License system removed - no longer needed
 from app.auth.decorators import admin_required, permission_required
 from datetime import datetime, timedelta
 from sqlalchemy import func, desc
@@ -159,6 +158,4 @@ def unlock_user(id):
     
     flash(f'تم فتح حساب {user.username}', 'success')
     return redirect(url_for('security.dashboard'))
-
-# All license routes removed - no license system
 

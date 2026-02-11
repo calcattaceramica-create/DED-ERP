@@ -114,10 +114,6 @@ def create_app(config_name='default'):
     from app.security import bp as security_bp
     app.register_blueprint(security_bp, url_prefix='/security')
 
-    # Initialize Multi-Tenancy middleware - DISABLED (No license system)
-    # from app.tenant_middleware import init_tenant_middleware
-    # init_tenant_middleware(app)
-
     # Add context processor for translations and currency
     @app.context_processor
     def inject_locale():
@@ -196,5 +192,4 @@ def create_app(config_name='default'):
     return app
 
 from app import models
-# models_license removed - no license system
 

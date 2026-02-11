@@ -12,7 +12,7 @@ from pathlib import Path
 
 @bp.after_request
 def add_cache_headers(response):
-    """Add cache-busting headers to all responses to prevent tenant data caching"""
+    """Add cache-busting headers to all responses"""
     if not response.cache_control.no_cache:
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'

@@ -1,181 +1,0 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✅ تم إصلاح صفحة تسجيل الدخول</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 36px;
-        }
-        .success-box {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .success-box h2 {
-            margin: 0 0 15px 0;
-            font-size: 28px;
-        }
-        .section {
-            background: #f8f9fa;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #3498db;
-        }
-        .section h2 {
-            color: #2c3e50;
-            margin-top: 0;
-            font-size: 22px;
-        }
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-        .icon {
-            font-size: 24px;
-            margin-left: 10px;
-        }
-        ol {
-            font-size: 18px;
-            line-height: 2;
-        }
-        .warning-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>✅ تم إصلاح صفحة تسجيل الدخول!</h1>
-
-        <div class="success-box">
-            <h2>🎉 المشكلة تم حلها!</h2>
-            <p style="font-size: 18px; margin: 0;">
-                تم إضافة حقل "مفتاح الترخيص" إلى صفحة تسجيل الدخول!<br>
-                الآن يمكنك تسجيل الدخول باستخدام نظام التراخيص.
-            </p>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🔧</span>ما تم إصلاحه</h2>
-            
-            <p style="font-size: 16px;">
-                <strong>المشكلة:</strong> صفحة تسجيل الدخول كانت تحتوي على حقلين فقط (اسم المستخدم + كلمة المرور)،
-                لكن الكود في <code>auth/routes.py</code> يطلب 3 حقول بما فيها <code>license_key</code>.
-            </p>
-
-            <p style="font-size: 16px;">
-                <strong>الحل:</strong> تم تحديث ملف <code>login.html</code> لإضافة حقل "مفتاح الترخيص".
-            </p>
-
-            <p style="font-size: 16px;">
-                <strong>الآن صفحة تسجيل الدخول تحتوي على:</strong>
-            </p>
-            <ol>
-                <li>🔑 <strong>مفتاح الترخيص</strong> (License Key) - الحقل الأول</li>
-                <li>👤 <strong>اسم المستخدم</strong> (Username)</li>
-                <li>🔒 <strong>كلمة المرور</strong> (Password)</li>
-            </ol>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🚀</span>كيفية تسجيل الدخول الآن</h2>
-            
-            <h3>الخطوة 1: أعد تشغيل التطبيق</h3>
-            <p style="font-size: 16px;">
-                إذا كان التطبيق يعمل، أوقفه (Ctrl + C) ثم أعد تشغيله:
-            </p>
-            <div class="code-block">
-cd C:\Users\DELL\Desktop\DED_Portable_App
-python run.py
-            </div>
-
-            <h3>الخطوة 2: افتح المتصفح</h3>
-            <p style="font-size: 16px;">
-                اذهب إلى: <code>http://127.0.0.1:5000</code>
-            </p>
-
-            <h3>الخطوة 3: سجل الدخول بالبيانات التالية</h3>
-            <div class="code-block">
-مفتاح الترخيص: CEC9-79EE-C42F-2DAD
-اسم المستخدم: admin
-كلمة المرور: admin123
-            </div>
-        </div>
-
-        <div class="warning-box">
-            <h3 style="margin-top: 0;">💡 ملاحظة مهمة:</h3>
-            <p style="font-size: 16px; margin-bottom: 0;">
-                <strong>يجب إعادة تشغيل التطبيق</strong> حتى يتم تحميل صفحة تسجيل الدخول الجديدة!<br>
-                إذا كان التطبيق يعمل حالياً، اضغط <code>Ctrl + C</code> في نافذة PowerShell ثم شغله مرة أخرى.
-            </p>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🔑</span>التراخيص المتاحة للاختبار</h2>
-            
-            <h3>1️⃣ الترخيص الرئيسي (موصى به):</h3>
-            <div class="code-block">
-License Key: CEC9-79EE-C42F-2DAD
-Username: admin
-Password: admin123
-Company: DED ERP System
-Expiry: 2027-07-05 ✅
-            </div>
-
-            <h3>2️⃣ ترخيص تجريبي 1:</h3>
-            <div class="code-block">
-License Key: 6356-6964-93AE-B60D
-Username: admin
-Password: admin123
-Company: Test Client 1
-Expiry: 2026-02-19 ✅
-            </div>
-
-            <h3>3️⃣ ترخيص تجريبي 2:</h3>
-            <div class="code-block">
-License Key: F730-BD34-0A48-A98B
-Username: admin
-Password: admin123
-Company: Test Client 2
-Expiry: 2026-02-19 ✅
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-

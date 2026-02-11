@@ -18,7 +18,6 @@ class User(UserMixin, db.Model):
     language = db.Column(db.String(5), default='ar')
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    # license_id removed - no license system
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
 
@@ -33,8 +32,7 @@ class User(UserMixin, db.Model):
     # Relationships
     branch = db.relationship('Branch', foreign_keys=[branch_id], backref='users')
     role = db.relationship('Role', backref='users', lazy='joined')
-    # license relationship removed - no license system
-    
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
@@ -102,16 +100,6 @@ class User(UserMixin, db.Model):
         if ip_address:
             self.last_ip_address = ip_address
         db.session.commit()
-
-    def has_valid_license(self):
-        """No license system - always return True for active users"""
-        return self.is_active
-
-    def get_license_status(self):
-        """No license system - return active if user is active"""
-        if self.is_admin:
-            return 'admin'
-        return 'active' if self.is_active else 'inactive'
 
     def __repr__(self):
         return f'<User {self.username}>'

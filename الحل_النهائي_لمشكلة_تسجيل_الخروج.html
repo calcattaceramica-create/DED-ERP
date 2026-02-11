@@ -1,188 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✅ تم إصلاح مشكلة تسجيل الخروج</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 30px 15px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .main-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .success-box {
-            background: #d1e7dd;
-            border-left: 5px solid #0f5132;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-        .step {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin: 20px 0;
-            border-left: 5px solid #0d6efd;
-        }
-        .step h3 {
-            color: #0d6efd;
-            margin-bottom: 15px;
-        }
-        .code-box {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            margin: 10px 0;
-        }
-        .btn-action {
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 10px;
-            margin: 10px 5px;
-        }
-        kbd {
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .warning-box {
-            background: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-card">
-        <h1 class="text-center mb-3">✅ تم إصلاح مشكلة تسجيل الخروج!</h1>
-        <h3 class="text-center text-muted mb-5">Logout Issue Fixed!</h3>
-
-        <div class="success-box">
-            <h3><i class="fas fa-check-circle text-success"></i> ما تم إصلاحه:</h3>
-            <ul class="mb-0">
-                <li><strong>تم تحديث كود تسجيل الخروج</strong> لحذف الكوكيز بشكل صريح</li>
-                <li><strong>تم إضافة</strong> <code>response.set_cookie('session', '', expires=0)</code></li>
-                <li><strong>تم إضافة</strong> <code>response.set_cookie('remember_token', '', expires=0)</code></li>
-                <li><strong>الآن عند تسجيل الخروج</strong> سيتم حذف الكوكيز من المتصفح تلقائياً</li>
-            </ul>
-        </div>
-
-        <hr class="my-4">
-
-        <h2 class="text-center mb-4">📋 الخطوات المطلوبة الآن</h2>
-
-        <div class="step">
-            <h3><i class="fas fa-redo"></i> الخطوة 1: إعادة تشغيل التطبيق</h3>
-            <p><strong>يجب إعادة تشغيل التطبيق لتطبيق التغييرات!</strong></p>
-            
-            <ol>
-                <li>اذهب إلى نافذة Command Prompt التي يعمل فيها التطبيق</li>
-                <li>اضغط: <kbd>Ctrl</kbd> + <kbd>C</kbd> لإيقاف التطبيق</li>
-                <li>شغّل التطبيق من جديد:
-                    <div class="code-box">
-cd C:\Users\DELL\Desktop\DED_Portable_App<br>
-python run.py
-                    </div>
-                </li>
-                <li>انتظر حتى يظهر: <code>* Running on http://127.0.0.1:5000</code></li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h3><i class="fas fa-trash"></i> الخطوة 2: مسح الكوكيز القديمة من المتصفح</h3>
-            <p><strong>يجب مسح الكوكيز القديمة التي تم حفظها قبل التحديث!</strong></p>
-            
-            <ol>
-                <li>اضغط: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Delete</kbd></li>
-                <li>في النافذة التي ستظهر:
-                    <ul>
-                        <li>✅ اختر: <strong>Cookies and other site data</strong></li>
-                        <li>✅ اختر: <strong>Cached images and files</strong></li>
-                        <li>✅ من القائمة "Time range"، اختر: <strong>All time</strong></li>
-                    </ul>
-                </li>
-                <li>انقر: <strong>Clear data</strong></li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h3><i class="fas fa-times-circle"></i> الخطوة 3: إغلاق المتصفح تماماً</h3>
-            <ol>
-                <li>أغلق <strong>جميع</strong> نوافذ المتصفح</li>
-                <li>افتح Task Manager: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Esc</kbd></li>
-                <li>ابحث عن عملية المتصفح (Chrome / Firefox / Edge)</li>
-                <li>انقر بزر الماوس الأيمن → <strong>End task</strong></li>
-            </ol>
-        </div>
-
-        <div class="step">
-            <h3><i class="fas fa-play-circle"></i> الخطوة 4: فتح المتصفح واختبار الحل</h3>
-            <ol>
-                <li>افتح المتصفح من جديد</li>
-                <li>اذهب إلى:
-                    <div class="code-box">
-http://127.0.0.1:5000/auth/login
-                    </div>
-                </li>
-                <li>سجل الدخول:
-                    <ul>
-                        <li>اسم المستخدم: <strong>admin</strong></li>
-                        <li>كلمة المرور: <strong>admin123</strong></li>
-                    </ul>
-                </li>
-                <li>انقر على زر <strong>"تسجيل الخروج"</strong></li>
-                <li><strong>يجب أن تظهر لك صفحة تسجيل الدخول!</strong> ✅</li>
-            </ol>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="warning-box">
-            <h4><i class="fas fa-exclamation-triangle"></i> ملاحظات مهمة:</h4>
-            <ul class="mb-0">
-                <li><strong>يجب إعادة تشغيل التطبيق</strong> - التغييرات لن تعمل بدون إعادة التشغيل</li>
-                <li><strong>يجب مسح الكوكيز القديمة</strong> - الكوكيز المحفوظة قبل التحديث لن تُحذف تلقائياً</li>
-                <li><strong>يجب إغلاق المتصفح تماماً</strong> - إغلاق النافذة فقط لا يكفي</li>
-            </ul>
-        </div>
-
-        <div class="text-center mt-5">
-            <a href="http://127.0.0.1:5000/auth/login" target="_blank" class="btn btn-primary btn-action">
-                <i class="fas fa-sign-in-alt"></i> فتح صفحة تسجيل الدخول
-            </a>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="alert alert-info">
-            <h5><i class="fas fa-info-circle"></i> كيف يعمل الحل الجديد؟</h5>
-            <p class="mb-0">
-                الكود الجديد يحذف الكوكيز بشكل صريح عند تسجيل الخروج باستخدام:<br>
-                <code>response.set_cookie('session', '', expires=0)</code><br>
-                هذا يجبر المتصفح على حذف الكوكيز فوراً، وبالتالي عند محاولة الدخول للتطبيق مرة أخرى،
-                لن يجد المتصفح كوكيز محفوظة، وسيطلب منك تسجيل الدخول من جديد.
-            </p>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-

@@ -1,190 +1,0 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حالة استرجاع نظام التراخيص</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .success-box {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .warning-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .section {
-            background: #f8f9fa;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #3498db;
-        }
-        .section h2 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        ul {
-            line-height: 1.8;
-        }
-        .icon {
-            font-size: 24px;
-            margin-left: 10px;
-        }
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            margin: 10px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🔄 حالة استرجاع نظام التراخيص</h1>
-
-        <div class="success-box">
-            <h3 style="margin-top: 0;">✅ تم استرجاع الملفات الأساسية بنجاح!</h3>
-            <p style="margin-bottom: 0;">
-                ✅ تم استرجاع app/auth/routes.py (مع نظام التراخيص)<br>
-                ✅ تم استرجاع app/templates/auth/login.html (مع حقل license_key)<br>
-                ✅ تم إنشاء license_control.py
-            </p>
-        </div>
-
-        <div class="warning-box">
-            <h3 style="margin-top: 0;">⚠️ ملاحظة مهمة:</h3>
-            <p style="margin-bottom: 0;">
-                بعض الملفات الإضافية تم حذفها ولم يتم استرجاعها بعد:<br>
-                - DED_Control_Panel.pyw (لوحة التحكم)<br>
-                - licenses.json (ملف التراخيص)<br>
-                - licenses_master.db (قاعدة بيانات التراخيص)<br>
-                - tenant_databases (مجلد قواعد بيانات المستأجرين)<br>
-                <br>
-                <strong>لكن التطبيق الأساسي يعمل الآن مع نظام التراخيص!</strong>
-            </p>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🧪</span>اختبار التطبيق</h2>
-            <p><strong>للتأكد من أن نظام التراخيص عاد للعمل:</strong></p>
-            
-            <ol>
-                <li>أعد تشغيل التطبيق:</li>
-                <div class="code-block">cd C:\Users\DELL\Desktop\DED_Portable_App<br>python run.py</div>
-                
-                <li>افتح المتصفح واذهب إلى: <code>http://127.0.0.1:5000</code></li>
-                
-                <li>يجب أن تظهر صفحة تسجيل الدخول مع 3 حقول:</li>
-                <ul>
-                    <li>✅ اسم المستخدم</li>
-                    <li>✅ كلمة المرور</li>
-                    <li>✅ مفتاح الترخيص (License Key)</li>
-                </ul>
-                
-                <li>جرب تسجيل الدخول بأحد التراخيص الموجودة</li>
-            </ol>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">📋</span>الملفات المسترجعة</h2>
-            
-            <h3>✅ app/auth/routes.py</h3>
-            <ul>
-                <li>✅ يحتوي على <code>authenticate_with_license()</code></li>
-                <li>✅ يطلب <code>license_key</code> في نموذج تسجيل الدخول</li>
-                <li>✅ يستخدم Multi-Tenant authentication</li>
-                <li>✅ يحفظ <code>tenant_license_key</code> في الجلسة</li>
-            </ul>
-
-            <h3>✅ app/templates/auth/login.html</h3>
-            <ul>
-                <li>✅ يحتوي على حقل <code>license_key</code></li>
-                <li>✅ التصميم الأصلي مع 3 حقول</li>
-            </ul>
-
-            <h3>✅ license_control.py</h3>
-            <ul>
-                <li>✅ <code>get_all_licenses()</code> - الحصول على جميع التراخيص</li>
-                <li>✅ <code>activate_license()</code> - تفعيل ترخيص</li>
-                <li>✅ <code>suspend_license()</code> - إيقاف ترخيص</li>
-                <li>✅ <code>extend_license()</code> - تمديد ترخيص</li>
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2><span class="icon">🚀</span>الخطوات التالية للنشر على Render</h2>
-            
-            <p><strong>الآن بعد استرجاع نظام التراخيص المحلي، يمكنك:</strong></p>
-            
-            <ol>
-                <li><strong>إنشاء نسخة منفصلة للنشر على Render بدون تراخيص:</strong></li>
-                <ul>
-                    <li>إنشاء branch جديد في Git</li>
-                    <li>إزالة نظام التراخيص من هذا الـ branch فقط</li>
-                    <li>النشر من هذا الـ branch</li>
-                </ul>
-                
-                <li><strong>أو: النشر مع نظام التراخيص:</strong></li>
-                <ul>
-                    <li>تعديل نظام التراخيص ليعمل مع PostgreSQL</li>
-                    <li>النشر مع نظام التراخيص الكامل</li>
-                </ul>
-            </ol>
-        </div>
-
-        <div class="warning-box">
-            <h3 style="margin-top: 0;">💡 توصية:</h3>
-            <p>
-                <strong>الحل الأفضل:</strong> إنشاء branch منفصل للنشر على Render بدون نظام التراخيص،
-                والاحتفاظ بالـ main branch مع نظام التراخيص للاستخدام المحلي.
-            </p>
-            <div class="code-block">
-# إنشاء branch جديد للنشر<br>
-git checkout -b render-deployment<br>
-<br>
-# إزالة نظام التراخيص من هذا الـ branch<br>
-# ... (تشغيل سكريبت الإزالة)<br>
-<br>
-# رفع الـ branch<br>
-git push origin render-deployment<br>
-<br>
-# النشر على Render من render-deployment branch<br>
-<br>
-# العودة للـ main branch (مع التراخيص)<br>
-git checkout main
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-
