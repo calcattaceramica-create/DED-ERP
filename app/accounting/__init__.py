@@ -2,5 +2,5 @@ from flask import Blueprint
 
 bp = Blueprint('accounting', __name__)
 
-from app.accounting import routes
+from app.accounting import routes, expenses_routes
 

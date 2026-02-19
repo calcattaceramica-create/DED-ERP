@@ -5,7 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ _('Dashboard') }} - DED ERP{% endblock %}</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}{{ _('Dashboard') }} - DED ERP v2.0{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
     {% if is_rtl %}
@@ -293,10 +296,55 @@
                         {% endif %}
 
                         {% if current_user.has_permission('accounting.view') %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('accounting.accounts') }}">
-                                <i class="fas fa-calculator"></i> {{ _('Accounting') }}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="accountingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calculator"></i> المحاسبة
                             </a>
+                            <ul class="dropdown-menu" aria-labelledby="accountingDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.accounts') }}">
+                                    <i class="fas fa-list"></i> دليل الحسابات
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.journal_entries') }}">
+                                    <i class="fas fa-book"></i> القيود اليومية
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.bank_accounts') }}">
+                                    <i class="fas fa-university"></i> الحسابات البنكية
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.expenses') }}">
+                                    <i class="fas fa-receipt"></i> المصروفات
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.payments') }}">
+                                    <i class="fas fa-money-bill-wave"></i> المدفوعات
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('accounting.reports') }}">
+                                    <i class="fas fa-chart-line"></i> التقارير المالية
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+
+                        <!-- Banking Menu -->
+                        {% if current_user.has_permission('accounting.view') %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="bankingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-university"></i> 💳 Banking
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="bankingDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('banking.add_bank') }}">
+                                    <i class="fas fa-plus-circle"></i> ➕ Add Bank
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('banking.bank_list') }}">
+                                    <i class="fas fa-list-alt"></i> 📄 Bank List
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('banking.add_manual_transaction') }}">
+                                    <i class="fas fa-exchange-alt"></i> ➕ Add Manual Transaction
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('banking.bank_statement') }}">
+                                    <i class="fas fa-file-invoice-dollar"></i> 📊 Bank Statement
+                                </a></li>
+                            </ul>
                         </li>
                         {% endif %}
 
@@ -420,6 +468,20 @@
             localStorage.removeItem('forceReload');
             // Force hard reload to clear cache
             window.location.reload(true);
+        }
+
+        // Force cache clear on version change
+        const CURRENT_VERSION = 'v2026-02-13-003';
+        const storedVersion = localStorage.getItem('app_version');
+
+        if (storedVersion !== CURRENT_VERSION) {
+            console.log('New version detected: ' + CURRENT_VERSION + ', clearing cache...');
+            localStorage.setItem('app_version', CURRENT_VERSION);
+
+            // Force hard reload without cache
+            setTimeout(function() {
+                window.location.reload(true);
+            }, 100);
         }
     </script>
 

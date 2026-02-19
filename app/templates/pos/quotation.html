@@ -21,7 +21,7 @@
         }
 
         .quotation-container {
-            max-width: 210mm; /* عرض A4 */
+            max-width: 210mm; /* A4 width */
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -30,7 +30,7 @@
             page-break-inside: avoid;
         }
 
-        /* ========== رأس الفاتورة ========== */
+        /* ========== Quotation Header ========== */
         .quotation-header {
             color: white;
             padding: 20px 30px;
@@ -109,7 +109,7 @@
             margin-top: 4px;
         }
 
-        /* ========== معلومات العميل ========== */
+        /* ========== Customer Information ========== */
         .info-section {
             padding: 15px 30px;
             background: #f8f9fa;
@@ -161,7 +161,7 @@
             font-size: 13px;
         }
 
-        /* ========== جدول المنتجات ========== */
+        /* ========== Products Table ========== */
         .items-section {
             padding: 15px 30px;
         }
@@ -227,7 +227,7 @@
             margin-top: 3px;
         }
 
-        /* ========== الإجماليات ========== */
+        /* ========== Totals ========== */
         .totals-section {
             background: linear-gradient(135deg, #f8f9fa 0%, #e5e7eb 100%);
             padding: 15px 30px;
@@ -286,7 +286,7 @@
             font-weight: 700;
         }
 
-        /* ========== الملاحظات والتذييل ========== */
+        /* ========== Notes and Footer ========== */
         .notes-section {
             padding: 12px 30px;
             background: #fffbeb;
@@ -360,7 +360,7 @@
             font-style: italic;
         }
 
-        /* ========== زر الطباعة ========== */
+        /* ========== Print Button ========== */
         .print-button {
             position: fixed;
             bottom: 30px;
@@ -390,7 +390,7 @@
             transform: translateY(-1px);
         }
 
-        /* ========== إعدادات الطباعة ========== */
+        /* ========== Print Settings ========== */
         @media print {
             @page {
                 size: A4;
@@ -550,13 +550,13 @@
                 font-size: 9px !important;
             }
 
-            /* إخفاء التأثيرات الحركية */
+            /* Hide animations */
             * {
                 animation: none !important;
                 transition: none !important;
             }
 
-            /* ضمان عدم تقسيم الأقسام */
+            /* Ensure sections don't split */
             .quotation-header,
             .info-section,
             .items-section,
@@ -567,13 +567,13 @@
                 page-break-inside: avoid !important;
             }
 
-            /* ضمان طباعة كل شيء على صفحة واحدة */
+            /* Ensure everything prints on one page */
             html, body {
                 height: auto;
                 overflow: visible;
             }
 
-            /* الحفاظ على الألوان */
+            /* Preserve colors */
             .quotation-header,
             .items-table thead,
             .grand-total {
@@ -587,14 +587,14 @@
     {% include 'pos/quotation_styles.html' %}
 </head>
 <body>
-    <!-- زر الطباعة العائم -->
+    <!-- Floating print button -->
     <button onclick="window.print()" class="print-button no-print">
         <i class="fas fa-print"></i>
-        <span>طباعة</span>
+        <span>{{ _('Print') }}</span>
     </button>
 
     <div class="quotation-container">
-        <!-- رأس الفاتورة -->
+        <!-- Invoice header -->
         <div class="quotation-header">
             <div class="header-content">
                 <div class="row align-items-center">
@@ -636,7 +636,7 @@
             </div>
         </div>
 
-        <!-- معلومات العميل -->
+        <!-- Customer information -->
         <div class="info-section">
             <div class="customer-card">
                 <div class="customer-title">
@@ -686,7 +686,7 @@
             </div>
         </div>
 
-        <!-- جدول المنتجات -->
+        <!-- Products table -->
         <div class="items-section">
             <table class="items-table">
                 <thead>
@@ -719,7 +719,7 @@
             </table>
         </div>
 
-        <!-- الإجماليات -->
+        <!-- Totals -->
         <div class="totals-section">
             <div class="totals-container">
                 <div class="total-row">
@@ -760,7 +760,7 @@
             </div>
         </div>
 
-        <!-- الملاحظات -->
+        <!-- Notes -->
         {% if quotation.notes %}
         <div class="notes-section">
             <div class="notes-title">
@@ -773,7 +773,7 @@
         </div>
         {% endif %}
 
-        <!-- صلاحية العرض -->
+        <!-- Quotation Validity -->
         <div class="validity-section">
             <div class="validity-text">
                 <i class="fas fa-clock"></i>
@@ -781,7 +781,7 @@
             </div>
         </div>
 
-        <!-- التذييل -->
+        <!-- Footer -->
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-title">

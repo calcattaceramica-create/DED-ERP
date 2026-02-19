@@ -38,6 +38,7 @@
                     <h5 class="mb-0"><i class="fas fa-info-circle"></i> {{ _('Basic Information') }}</h5>
                 </div>
                 <div class="card-body">
+                    {% if current_user.has_permission('settings.company.edit') %}
                     <form method="POST" action="{{ url_for('settings.update_company') }}" enctype="multipart/form-data">
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -173,6 +174,54 @@
                             </button>
                         </div>
                     </form>
+                    {% else %}
+                    <!-- Read-only view for users without edit permission -->
+                    <div class="alert alert-warning">
+                        <i class="fas fa-lock"></i> {{ _('You do not have permission to edit company data') }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-building text-primary"></i> {{ _('Company Name (Arabic)') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-building text-primary"></i> {{ _('Company Name (English)') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.name_en or '-' }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-file-invoice text-success"></i> {{ _('Tax Number') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.tax_number or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-certificate text-warning"></i> {{ _('Commercial Register') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.commercial_register or '-' }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-phone text-info"></i> {{ _('Phone') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.phone or '-' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-envelope text-danger"></i> {{ _('Email') }}
+                            </label>
+                            <p class="form-control-plaintext">{{ company.email or '-' }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

@@ -95,7 +95,10 @@ def create_app(config_name='default'):
     
     from app.accounting import bp as accounting_bp
     app.register_blueprint(accounting_bp, url_prefix='/accounting')
-    
+
+    from app.banking import bp as banking_bp
+    app.register_blueprint(banking_bp, url_prefix='/banking')
+
     from app.crm import bp as crm_bp
     app.register_blueprint(crm_bp, url_prefix='/crm')
     
@@ -192,4 +195,5 @@ def create_app(config_name='default'):
     return app
 
 from app import models
+from app import models_currency
 

@@ -131,6 +131,60 @@
     </div>
 </div>
 
+    <!-- Bank Accounts and Expenses Row -->
+    <div class="row g-3 mt-2">
+        <div class="col-12 col-md-4">
+            <div class="card bg-gradient-warning text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">إجمالي رصيد البنك</h6>
+                            <h3 class="mb-0">{{ "{:,.2f}".format(stats.total_bank_balance) }}</h3>
+                            <small>{{ currency_name }} - {{ stats.bank_accounts_count }} حساب</small>
+                        </div>
+                        <div>
+                            <i class="fas fa-university fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card bg-gradient-danger text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">المصروفات هذا الشهر</h6>
+                            <h3 class="mb-0">{{ "{:,.2f}".format(stats.expenses_this_month) }}</h3>
+                            <small>{{ currency_name }}</small>
+                        </div>
+                        <div>
+                            <i class="fas fa-receipt fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card bg-gradient-secondary text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">قيمة المخزون</h6>
+                            <h3 class="mb-0">{{ "{:,.2f}".format(stats.inventory_value) }}</h3>
+                            <small>{{ currency_name }}</small>
+                        </div>
+                        <div>
+                            <i class="fas fa-warehouse fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts Row -->
     <div class="row g-3 mt-2">
         <div class="col-12 col-lg-8">
@@ -337,6 +391,12 @@
 }
 .bg-gradient-danger {
     background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+}
+.bg-gradient-secondary {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
 }
 .opacity-50 {
     opacity: 0.5;

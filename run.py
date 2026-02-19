@@ -27,12 +27,14 @@ def init_database():
     """Initialize database with error handling"""
     with app.app_context():
         try:
-            # Ensure database directory exists
-            db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
-            db_dir = os.path.dirname(db_path)
-            if db_dir and not os.path.exists(db_dir):
-                os.makedirs(db_dir)
-                print(f"Created database directory: {db_dir}")
+            # Ensure database directory exists (only for SQLite)
+            db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+            if db_uri.startswith('sqlite:///'):
+                db_path = db_uri.replace('sqlite:///', '')
+                db_dir = os.path.dirname(db_path)
+                if db_dir and not os.path.exists(db_dir):
+                    os.makedirs(db_dir)
+                    print(f"Created database directory: {db_dir}")
 
             db.create_all()
             print("✅ Database tables created successfully!")
@@ -326,5 +328,40 @@ def init_db():
     print('Database initialized successfully!')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Check if SSL certificates exist
+    import os
+    ssl_dir = os.path.join(os.path.dirname(__file__), 'ssl')
+    cert_file = os.path.join(ssl_dir, 'cert.pem')
+    key_file = os.path.join(ssl_dir, 'key.pem')
+
+    # Use HTTPS if certificates exist, otherwise HTTP
+    if os.path.exists(cert_file) and os.path.exists(key_file):
+        print("\n" + "=" * 100)
+        print("🔒 Starting server with HTTPS (SSL enabled)")
+        print("🔒 بدء الخادم مع HTTPS (SSL مفعل)")
+        print("=" * 100)
+        print(f"📁 Certificate: {cert_file}")
+        print(f"🔑 Private Key: {key_file}")
+        print(f"🌐 URL: https://127.0.0.1:5000")
+        print(f"🌐 URL: https://localhost:5000")
+        print("\n⚠️  Note: Browser will show security warning for self-signed certificate")
+        print("⚠️  ملاحظة: المتصفح سيظهر تحذير أمان للشهادة ذاتية التوقيع")
+        print("   Click 'Advanced' → 'Proceed to localhost' to continue")
+        print("   اضغط 'متقدم' ← 'المتابعة إلى localhost' للاستمرار")
+        print("=" * 100 + "\n")
+
+        # Create SSL context
+        ssl_context = (cert_file, key_file)
+        app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=ssl_context)
+    else:
+        print("\n" + "=" * 100)
+        print("⚠️  SSL certificates not found - Starting with HTTP")
+        print("⚠️  شهادات SSL غير موجودة - بدء الخادم مع HTTP")
+        print("=" * 100)
+        print(f"💡 To enable HTTPS, run: python generate_ssl_cert.py")
+        print(f"💡 لتفعيل HTTPS، شغّل: python generate_ssl_cert.py")
+        print(f"🌐 URL: http://127.0.0.1:5000")
+        print("=" * 100 + "\n")
+
+        app.run(debug=True, host='0.0.0.0', port=5000)
 

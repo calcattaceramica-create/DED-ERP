@@ -3,14 +3,15 @@ from flask_login import login_required, current_user
 from flask_babel import gettext as _
 from app.purchases import bp
 from app import db
-from app.models import Supplier, PurchaseInvoice, PurchaseInvoiceItem, Product, Warehouse, Stock, StockMovement
+from app.models import Supplier, PurchaseInvoice, PurchaseInvoiceItem, Product, Warehouse, Stock, StockMovement, BankAccount
 from app.utils.accounting_helper import create_purchase_invoice_journal_entry
+from app.utils.bank_helper import create_bank_transaction, reverse_bank_transaction
 from app.auth.decorators import permission_required, any_permission_required
 from datetime import datetime
 
 @bp.route('/suppliers')
 @login_required
-@permission_required('suppliers.view')
+@permission_required('purchases.suppliers.view')
 def suppliers():
     """List all suppliers"""
     page = request.args.get('page', 1, type=int)
@@ -35,7 +36,7 @@ def suppliers():
 
 @bp.route('/suppliers/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('suppliers.create')
+@permission_required('purchases.suppliers.add')
 def add_supplier():
     """Add new supplier"""
     if request.method == 'POST':
@@ -70,7 +71,7 @@ def add_supplier():
 
 @bp.route('/suppliers/<int:id>')
 @login_required
-@permission_required('suppliers.view')
+@permission_required('purchases.suppliers.view')
 def supplier_details(id):
     """View supplier details"""
     supplier = Supplier.query.get_or_404(id)
@@ -78,7 +79,7 @@ def supplier_details(id):
 
 @bp.route('/suppliers/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-@permission_required('suppliers.edit')
+@permission_required('purchases.suppliers.edit')
 def edit_supplier(id):
     """Edit supplier"""
     supplier = Supplier.query.get_or_404(id)
@@ -109,7 +110,7 @@ def edit_supplier(id):
 
 @bp.route('/invoices')
 @login_required
-@permission_required('purchases.view')
+@permission_required('purchases.invoices.view')
 def invoices():
     """List all purchase invoices"""
     page = request.args.get('page', 1, type=int)
@@ -135,7 +136,7 @@ def invoices():
 
 @bp.route('/invoices/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('purchases.create')
+@permission_required('purchases.invoices.add')
 def add_invoice():
     """Add new purchase invoice"""
     if request.method == 'POST':
@@ -157,6 +158,7 @@ def add_invoice():
             invoice_date=datetime.strptime(request.form.get('invoice_date'), '%Y-%m-%d').date(),
             supplier_id=request.form.get('supplier_id', type=int),
             warehouse_id=request.form.get('warehouse_id', type=int),
+            bank_account_id=request.form.get('bank_account_id', type=int),
             supplier_invoice_number=request.form.get('supplier_invoice_number'),
             notes=request.form.get('notes'),
             user_id=current_user.id,
@@ -223,6 +225,7 @@ def add_invoice():
     
     suppliers = Supplier.query.filter_by(is_active=True).all()
     warehouses = Warehouse.query.filter_by(is_active=True).all()
+    bank_accounts = BankAccount.query.filter_by(is_active=True).all()
     products = Product.query.filter_by(is_active=True, is_purchasable=True).all()
 
     # Get company settings for currency
@@ -235,13 +238,14 @@ def add_invoice():
     return render_template('purchases/add_invoice.html',
                          suppliers=suppliers,
                          warehouses=warehouses,
+                         bank_accounts=bank_accounts,
                          products=products,
                          currency_code=currency_code,
                          currency_symbol=currency_symbol)
 
 @bp.route('/invoices/<int:id>')
 @login_required
-@permission_required('purchases.view')
+@permission_required('purchases.invoices.view')
 def invoice_details(id):
     """View purchase invoice details"""
     invoice = PurchaseInvoice.query.get_or_404(id)
@@ -249,7 +253,7 @@ def invoice_details(id):
 
 @bp.route('/invoices/<int:id>/confirm', methods=['GET', 'POST'])
 @login_required
-@permission_required('purchases.edit')
+@permission_required('purchases.invoices.confirm')
 def confirm_invoice(id):
     """Confirm purchase invoice and add stock"""
     invoice = PurchaseInvoice.query.get_or_404(id)
@@ -268,6 +272,25 @@ def confirm_invoice(id):
 
             # Add stock for each item
             for item in invoice.items:
+                # Update product cost price (weighted average)
+                product = Product.query.get(item.product_id)
+                if product:
+                    # Calculate unit cost (price after discount, before tax)
+                    item_subtotal = item.quantity * item.unit_price
+                    item_discount = item_subtotal * (item.discount_percentage / 100)
+                    unit_cost = (item_subtotal - item_discount) / item.quantity
+
+                    # Update cost price with weighted average
+                    current_stock = product.get_stock()
+                    if current_stock > 0:
+                        # Weighted average: (old_cost * old_qty + new_cost * new_qty) / total_qty
+                        total_cost = (product.cost_price * current_stock) + (unit_cost * item.quantity)
+                        total_qty = current_stock + item.quantity
+                        product.cost_price = total_cost / total_qty
+                    else:
+                        # No existing stock, use new cost
+                        product.cost_price = unit_cost
+
                 # Get or create stock record
                 stock = Stock.query.filter_by(
                     product_id=item.product_id,
@@ -293,13 +316,32 @@ def confirm_invoice(id):
                     quantity=item.quantity,
                     reference_type='purchase_invoice',
                     reference_id=invoice.id,
-                    notes=f'فاتورة شراء رقم {invoice.invoice_number}',
+                    notes=f'Purchase Invoice No. {invoice.invoice_number}',
                     user_id=current_user.id
                 )
                 db.session.add(movement)
 
             # Update supplier balance
             invoice.supplier.current_balance += invoice.total_amount
+
+            # Update bank account balance if bank_account_id is set
+            if invoice.bank_account_id:
+                try:
+                    bank_transaction = create_bank_transaction(
+                        bank_account_id=invoice.bank_account_id,
+                        transaction_type='withdrawal',
+                        amount=invoice.total_amount,
+                        reference_type='purchase_invoice',
+                        reference_id=invoice.id,
+                        description=f'مشتريات - فاتورة رقم {invoice.invoice_number}'
+                    )
+                    if bank_transaction:
+                        print(f"Bank transaction created: {bank_transaction.transaction_number}")
+                    else:
+                        flash(_('Warning: Bank transaction was not created'), 'warning')
+                except Exception as be:
+                    print(f"Bank transaction error: {str(be)}")
+                    flash(_('Warning: Bank transaction was not created: %(error)s', error=str(be)), 'warning')
 
             # Create accounting journal entry
             try:
@@ -333,7 +375,7 @@ def confirm_invoice(id):
 
 @bp.route('/invoices/<int:id>/cancel', methods=['GET', 'POST'])
 @login_required
-@permission_required('purchases.cancel')
+@permission_required('purchases.invoices.cancel')
 def cancel_invoice(id):
     """Cancel purchase invoice and remove stock"""
     invoice = PurchaseInvoice.query.get_or_404(id)
@@ -365,13 +407,36 @@ def cancel_invoice(id):
                         quantity=item.quantity,
                         reference_type='purchase_invoice_cancel',
                         reference_id=invoice.id,
-                        notes=f'إلغاء فاتورة شراء رقم {invoice.invoice_number}',
+                        notes=f'Cancel Purchase Invoice No. {invoice.invoice_number}',
                         user_id=current_user.id
                     )
                     db.session.add(movement)
 
             # Update supplier balance
             invoice.supplier.current_balance -= invoice.total_amount
+
+            # Reverse bank transaction if exists
+            if invoice.bank_account_id:
+                try:
+                    # Get bank account
+                    from app.models import BankAccount
+                    from app.models_accounting import BankTransaction
+
+                    bank_account = BankAccount.query.get(invoice.bank_account_id)
+                    if bank_account:
+                        # Add back to bank balance (reverse the withdrawal)
+                        bank_account.current_balance += invoice.total_amount
+
+                        # Delete related bank transaction
+                        BankTransaction.query.filter_by(
+                            reference_type='purchase_invoice',
+                            reference_id=invoice.id
+                        ).delete()
+
+                        print(f"Bank transaction reversed for cancellation: Added {invoice.total_amount} back to bank account {bank_account.account_name}")
+                except Exception as be:
+                    print(f"Bank transaction reversal error: {str(be)}")
+                    flash(_('Warning: Bank transaction reversal failed: %(error)s', error=str(be)), 'warning')
 
             db.session.commit()
             flash(_('Purchase invoice cancelled successfully'), 'success')
@@ -386,7 +451,7 @@ def cancel_invoice(id):
 
 @bp.route('/invoices/<int:id>/delete', methods=['GET', 'POST'])
 @login_required
-@permission_required('purchases.delete')
+@permission_required('purchases.invoices.delete')
 def delete_invoice(id):
     """Delete purchase invoice"""
     invoice = PurchaseInvoice.query.get_or_404(id)
@@ -420,6 +485,29 @@ def delete_invoice(id):
                 # Update supplier balance
                 invoice.supplier.current_balance -= invoice.total_amount
 
+                # Reverse bank transaction if exists
+                if invoice.bank_account_id:
+                    try:
+                        # Get bank account
+                        from app.models import BankAccount
+                        from app.models_accounting import BankTransaction
+
+                        bank_account = BankAccount.query.get(invoice.bank_account_id)
+                        if bank_account:
+                            # Add back to bank balance (reverse the withdrawal)
+                            bank_account.current_balance += invoice.total_amount
+
+                            # Delete related bank transaction
+                            BankTransaction.query.filter_by(
+                                reference_type='purchase_invoice',
+                                reference_id=invoice.id
+                            ).delete()
+
+                            print(f"Bank transaction reversed: Added {invoice.total_amount} back to bank account {bank_account.account_name}")
+                    except Exception as be:
+                        print(f"Bank transaction reversal error: {str(be)}")
+                        flash(_('Warning: Bank transaction reversal failed: %(error)s', error=str(be)), 'warning')
+
             # Delete invoice
             db.session.delete(invoice)
             db.session.commit()
@@ -434,7 +522,7 @@ def delete_invoice(id):
 
 @bp.route('/suppliers/<int:id>/delete', methods=['POST'])
 @login_required
-@permission_required('suppliers.delete')
+@permission_required('purchases.suppliers.delete')
 def delete_supplier(id):
     """Delete supplier"""
     try:

@@ -3,15 +3,16 @@ from flask_login import login_required, current_user
 from flask_babel import gettext as _
 from app.sales import bp
 from app import db
-from app.models import Customer, SalesInvoice, SalesInvoiceItem, Product, Warehouse, Stock, StockMovement
+from app.models import Customer, SalesInvoice, SalesInvoiceItem, Product, Warehouse, Stock, StockMovement, BankAccount
 from app.models_sales import Quotation, QuotationItem
 from app.utils.accounting_helper import create_sales_invoice_journal_entry
+from app.utils.bank_helper import create_bank_transaction, reverse_bank_transaction
 from app.auth.decorators import permission_required, any_permission_required
 from datetime import datetime, timedelta
 
 @bp.route('/customers')
 @login_required
-@permission_required('customers.view')
+@permission_required('sales.customers.view')
 def customers():
     """List all customers"""
     page = request.args.get('page', 1, type=int)
@@ -36,7 +37,7 @@ def customers():
 
 @bp.route('/customers/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('customers.create')
+@permission_required('sales.customers.add')
 def add_customer():
     """Add new customer"""
     if request.method == 'POST':
@@ -72,7 +73,7 @@ def add_customer():
 
 @bp.route('/customers/add_ajax', methods=['POST'])
 @login_required
-@permission_required('customers.create')
+@permission_required('sales.customers.add')
 def add_customer_ajax():
     """Add new customer via AJAX (for use in invoice forms)"""
     try:
@@ -119,7 +120,7 @@ def add_customer_ajax():
 
 @bp.route('/invoices')
 @login_required
-@permission_required('sales.view')
+@permission_required('sales.invoices.view')
 def invoices():
     """List all sales invoices"""
     page = request.args.get('page', 1, type=int)
@@ -145,7 +146,7 @@ def invoices():
 
 @bp.route('/invoices/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('sales.create')
+@permission_required('sales.invoices.add')
 def add_invoice():
     """Add new sales invoice"""
     if request.method == 'POST':
@@ -260,6 +261,7 @@ def add_invoice():
     
     customers = Customer.query.filter_by(is_active=True).all()
     warehouses = Warehouse.query.filter_by(is_active=True).all()
+    bank_accounts = BankAccount.query.filter_by(is_active=True).all()
     products_query = Product.query.filter_by(is_active=True, is_sellable=True).all()
 
     # Convert products to dictionary for JSON serialization
@@ -285,6 +287,7 @@ def add_invoice():
     return render_template('sales/add_invoice.html',
                          customers=customers,
                          warehouses=warehouses,
+                         bank_accounts=bank_accounts,
                          products=products,
                          today=today,
                          currency_code=currency_code,
@@ -292,7 +295,7 @@ def add_invoice():
 
 @bp.route('/invoices/<int:id>')
 @login_required
-@permission_required('sales.view')
+@permission_required('sales.invoices.view')
 def invoice_details(id):
     """View invoice details"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -300,7 +303,7 @@ def invoice_details(id):
 
 @bp.route('/invoices/<int:id>/customer-receipt')
 @login_required
-@permission_required('sales.view')
+@permission_required('sales.invoices.view')
 def customer_receipt(id):
     """Print customer receipt"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -308,7 +311,7 @@ def customer_receipt(id):
 
 @bp.route('/invoices/<int:id>/warehouse-paper')
 @login_required
-@permission_required('sales.view')
+@permission_required('sales.invoices.view')
 def warehouse_paper(id):
     """Print warehouse paper"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -316,7 +319,7 @@ def warehouse_paper(id):
 
 @bp.route('/invoices/<int:id>/confirm', methods=['POST', 'GET'])
 @login_required
-@permission_required('sales.edit')
+@permission_required('sales.invoices.confirm')
 def confirm_invoice(id):
     """Confirm sales invoice and update stock"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -367,6 +370,24 @@ def confirm_invoice(id):
         # Update customer balance
         invoice.customer.current_balance += invoice.total_amount
 
+        # Update bank account balance if bank_account_id is set
+        if invoice.bank_account_id:
+            try:
+                bank_transaction = create_bank_transaction(
+                    bank_account_id=invoice.bank_account_id,
+                    transaction_type='deposit',
+                    amount=invoice.total_amount,
+                    reference_type='sales_invoice',
+                    reference_id=invoice.id,
+                    description=f'مبيعات - فاتورة رقم {invoice.invoice_number}'
+                )
+                if bank_transaction:
+                    flash(_('Bank transaction created: %(number)s', number=bank_transaction.transaction_number), 'info')
+                else:
+                    flash(_('Warning: Bank transaction was not created'), 'warning')
+            except Exception as be:
+                flash(_('Warning: Bank transaction was not created: %(error)s', error=str(be)), 'warning')
+
         # Create accounting journal entry
         try:
             journal_entry = create_sales_invoice_journal_entry(invoice)
@@ -387,7 +408,7 @@ def confirm_invoice(id):
 
 @bp.route('/invoices/<int:id>/complete_sale', methods=['POST', 'GET'])
 @login_required
-@permission_required('sales.complete')
+@permission_required('sales.invoices.complete')
 def complete_sale(id):
     """Complete sale: Confirm invoice and mark as paid"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -448,6 +469,25 @@ def complete_sale(id):
         # Update customer balance (no balance since it's paid)
         # Customer balance remains unchanged for cash sales
 
+        # Update bank account balance if bank_account_id is set
+        if invoice.bank_account_id:
+            try:
+                bank_transaction = create_bank_transaction(
+                    bank_account_id=invoice.bank_account_id,
+                    transaction_type='deposit',
+                    amount=invoice.total_amount,
+                    reference_type='sales_invoice',
+                    reference_id=invoice.id,
+                    description=f'مبيعات - فاتورة رقم {invoice.invoice_number}'
+                )
+                if bank_transaction:
+                    print(f"Bank transaction created: {bank_transaction.transaction_number}")
+                else:
+                    flash(_('Warning: Bank transaction was not created'), 'warning')
+            except Exception as be:
+                print(f"Bank transaction error: {str(be)}")
+                flash(_('Warning: Bank transaction was not created: %(error)s', error=str(be)), 'warning')
+
         # Create accounting journal entry
         try:
             journal_entry = create_sales_invoice_journal_entry(invoice)
@@ -473,7 +513,7 @@ def complete_sale(id):
 
 @bp.route('/invoices/<int:id>/delete', methods=['POST', 'GET'])
 @login_required
-@permission_required('sales.delete')
+@permission_required('sales.invoices.delete')
 def delete_invoice(id):
     """Delete sales invoice"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -506,6 +546,27 @@ def delete_invoice(id):
             # Update customer balance
             invoice.customer.current_balance -= invoice.total_amount
 
+            # Reverse bank transaction if exists
+            if invoice.bank_account_id:
+                try:
+                    # Get bank account
+                    bank_account = BankAccount.query.get(invoice.bank_account_id)
+                    if bank_account:
+                        # Subtract from bank balance (reverse the deposit)
+                        bank_account.current_balance -= invoice.total_amount
+
+                        # Delete related bank transaction
+                        from app.models_accounting import BankTransaction
+                        BankTransaction.query.filter_by(
+                            reference_type='sales_invoice',
+                            reference_id=invoice.id
+                        ).delete()
+
+                        print(f"Bank transaction reversed: Subtracted {invoice.total_amount} from bank account {bank_account.account_name}")
+                except Exception as be:
+                    print(f"Bank transaction reversal error: {str(be)}")
+                    flash(_('Warning: Bank transaction reversal failed: %(error)s', error=str(be)), 'warning')
+
         # Delete invoice
         db.session.delete(invoice)
         db.session.commit()
@@ -518,7 +579,7 @@ def delete_invoice(id):
 
 @bp.route('/invoices/<int:id>/cancel', methods=['POST', 'GET'])
 @login_required
-@permission_required('sales.cancel')
+@permission_required('sales.invoices.cancel')
 def cancel_invoice(id):
     """Cancel sales invoice and restore stock"""
     invoice = SalesInvoice.query.get_or_404(id)
@@ -555,6 +616,27 @@ def cancel_invoice(id):
             # Update customer balance
             invoice.customer.current_balance -= invoice.total_amount
 
+            # Reverse bank transaction if exists
+            if invoice.bank_account_id:
+                try:
+                    # Get bank account
+                    bank_account = BankAccount.query.get(invoice.bank_account_id)
+                    if bank_account:
+                        # Subtract from bank balance (reverse the deposit)
+                        bank_account.current_balance -= invoice.total_amount
+
+                        # Delete related bank transaction
+                        from app.models_accounting import BankTransaction
+                        BankTransaction.query.filter_by(
+                            reference_type='sales_invoice',
+                            reference_id=invoice.id
+                        ).delete()
+
+                        print(f"Bank transaction reversed for cancellation: Subtracted {invoice.total_amount} from bank account {bank_account.account_name}")
+                except Exception as be:
+                    print(f"Bank transaction reversal error: {str(be)}")
+                    flash(_('Warning: Bank transaction reversal failed: %(error)s', error=str(be)), 'warning')
+
         # Update invoice status
         invoice.status = 'cancelled'
         invoice.payment_status = 'unpaid'
@@ -572,7 +654,7 @@ def cancel_invoice(id):
 
 @bp.route('/quotations')
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.view')
 def quotations():
     """List all quotations"""
     page = request.args.get('page', 1, type=int)
@@ -605,7 +687,7 @@ def quotations():
 
 @bp.route('/quotations/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.add')
 def add_quotation():
     """Add new quotation"""
     if request.method == 'POST':
@@ -718,7 +800,7 @@ def add_quotation():
 
 @bp.route('/quotations/<int:id>')
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.view')
 def quotation_details(id):
     """View quotation details"""
     quotation = Quotation.query.get_or_404(id)
@@ -734,7 +816,7 @@ def quotation_details(id):
 
 @bp.route('/quotations/<int:id>/convert', methods=['POST'])
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.convert')
 def convert_quotation_to_invoice(id):
     """Convert quotation to sales invoice"""
     quotation = Quotation.query.get_or_404(id)
@@ -806,7 +888,7 @@ def convert_quotation_to_invoice(id):
 
 @bp.route('/quotations/<int:id>/update_status', methods=['POST'])
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.edit')
 def update_quotation_status(id):
     """Update quotation status"""
     quotation = Quotation.query.get_or_404(id)
@@ -823,7 +905,7 @@ def update_quotation_status(id):
 
 @bp.route('/quotations/<int:id>/delete', methods=['POST'])
 @login_required
-@permission_required('sales.quotations')
+@permission_required('sales.quotations.delete')
 def delete_quotation(id):
     """Delete quotation"""
     quotation = Quotation.query.get_or_404(id)

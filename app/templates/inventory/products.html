@@ -102,17 +102,21 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
+                                    {% if current_user.has_permission('inventory.products.edit') %}
                                     <a href="{{ url_for('inventory.edit_product', id=product.id) }}"
                                        class="btn btn-sm btn-outline-primary"
                                        title="{{ _('Edit') }}">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    {% endif %}
+                                    {% if current_user.has_permission('inventory.products.delete') %}
                                     <button type="button"
                                             class="btn btn-sm btn-outline-danger"
                                             onclick="confirmDelete('{{ product.id }}', '{{ product.name }}')"
                                             title="{{ _('Delete') }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    {% endif %}
                                 </div>
                         </td>
                     </tr>

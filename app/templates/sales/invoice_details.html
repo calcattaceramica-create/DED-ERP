@@ -52,6 +52,13 @@
                     </div>
                     <div class="col-md-6">
                         <p><strong>{{ _('Warehouse') }}:</strong> {{ invoice.warehouse.name if invoice.warehouse else '-' }}</p>
+                        <p><strong>الحساب البنكي:</strong>
+                            {% if invoice.bank_account %}
+                                {{ invoice.bank_account.account_name }} - {{ invoice.bank_account.bank_name }}
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </p>
                         <p><strong>{{ _('User') }}:</strong> {{ invoice.user.username if invoice.user else '-' }}</p>
                         <p><strong>{{ _('Created At') }}:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                     </div>

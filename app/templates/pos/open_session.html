@@ -24,8 +24,19 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="bank_account_id" class="form-label">الحساب البنكي</label>
+                            <select class="form-select" id="bank_account_id" name="bank_account_id">
+                                <option value="">بدون حساب بنكي</option>
+                                {% for account in bank_accounts %}
+                                <option value="{{ account.id }}">{{ account.account_name }} - {{ account.bank_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">اختر الحساب البنكي الذي ستودع فيه مبيعات هذه الوردية</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="opening_balance" class="form-label">الرصيد الافتتاحي (ريال)</label>
-                            <input type="number" class="form-control" id="opening_balance" name="opening_balance" 
+                            <input type="number" class="form-control" id="opening_balance" name="opening_balance"
                                    step="0.01" value="0" min="0">
                             <div class="form-text">المبلغ النقدي الموجود في الدرج عند بداية الوردية</div>
                         </div>

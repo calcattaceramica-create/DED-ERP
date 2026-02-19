@@ -132,6 +132,22 @@ def index():
 
     stats['inventory_value'] = inventory_value
 
+    # Get bank accounts data
+    bank_accounts = BankAccount.query.filter_by(is_active=True).all()
+    total_bank_balance = sum(acc.current_balance for acc in bank_accounts)
+    stats['total_bank_balance'] = total_bank_balance
+    stats['bank_accounts_count'] = len(bank_accounts)
+
+    # Get recent bank transactions
+    recent_bank_transactions = BankTransaction.query.order_by(BankTransaction.created_at.desc()).limit(5).all()
+
+    # Get expenses this month
+    expenses_this_month = db.session.query(func.sum(Expense.amount)).filter(
+        Expense.expense_date >= first_day,
+        Expense.status != 'cancelled'
+    ).scalar() or 0
+    stats['expenses_this_month'] = expenses_this_month
+
     return render_template('main/index.html',
                          stats=stats,
                          recent_sales=recent_sales,
@@ -139,7 +155,9 @@ def index():
                          sales_chart_data=sales_chart_data,
                          purchases_chart_data=purchases_chart_data,
                          chart_labels=chart_labels,
-                         top_products=top_products)
+                         top_products=top_products,
+                         bank_accounts=bank_accounts,
+                         recent_bank_transactions=recent_bank_transactions)
 
 @bp.route('/about')
 def about():

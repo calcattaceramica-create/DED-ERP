@@ -109,15 +109,17 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
+                                        {% if current_user.has_permission('settings.users.edit') %}
                                         <button class="btn btn-info" onclick="editUser({{ user.id }}, '{{ user.username }}', '{{ user.full_name or '' }}', '{{ user.email }}', '{{ user.phone or '' }}', {{ user.role_id or 'null' }}, {{ user.branch_id or 'null' }}, {{ 'true' if user.is_active else 'false' }})" title="{{ _('Edit') }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        {% if user.role %}
+                                        {% endif %}
+                                        {% if user.role and current_user.has_permission('settings.users.view') %}
                                         <button class="btn btn-warning" onclick="viewPermissions({{ user.id }}, '{{ user.username }}', '{{ user.role.name_ar }}')" title="{{ _('View Permissions') }}">
                                             <i class="fas fa-key"></i>
                                         </button>
                                         {% endif %}
-                                        {% if user.id != current_user.id %}
+                                        {% if user.id != current_user.id and current_user.has_permission('settings.users.delete') %}
                                         <button class="btn btn-danger" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" title="{{ _('Delete') }}">
                                             <i class="fas fa-trash"></i>
                                         </button>

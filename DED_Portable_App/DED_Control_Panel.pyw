@@ -235,10 +235,10 @@ class DEDControlPanel:
             )
             if response:
                 self.start_app()
-                self.root.after(2000, lambda: webbrowser.open("http://127.0.0.1:5000"))
+                self.root.after(2000, lambda: webbrowser.open("https://127.0.0.1:5000"))
             return
 
-        webbrowser.open("http://127.0.0.1:5000")
+        webbrowser.open("https://127.0.0.1:5000")
 
     def check_status(self):
         """Check if Flask is running"""

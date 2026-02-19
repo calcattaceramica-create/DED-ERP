@@ -91,13 +91,15 @@
                             <td>{{ "{:,.2f}".format(item.cost_value) }} {{ currency_symbol }}</td>
                             <td>{{ item.user.username if item.user else '-' }}</td>
                             <td>
-                                <form method="post" action="{{ url_for('inventory.delete_damaged_inventory', id=item.id) }}" 
-                                      onsubmit="return confirm('{{ _('Are you sure you want to delete this record?') }}');" 
+                                {% if current_user.has_permission('inventory.damaged.delete') %}
+                                <form method="post" action="{{ url_for('inventory.delete_damaged_inventory', id=item.id) }}"
+                                      onsubmit="return confirm('{{ _('Are you sure you want to delete this record?') }}');"
                                       style="display: inline;">
                                     <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+                                {% endif %}
                             </td>
                         </tr>
                         {% else %}

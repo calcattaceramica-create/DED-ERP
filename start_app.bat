@@ -1,5 +1,5 @@
 @echo off
-cd C:\Users\DELL\Desktop\DED_Portable_App
-python run.py
-pause
+cd /d "C:\Users\DELL\DED"
+start /min python run.py
+exit
 

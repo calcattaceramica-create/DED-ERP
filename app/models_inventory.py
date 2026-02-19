@@ -4,31 +4,44 @@ from app import db
 # Inventory Models
 class Category(db.Model):
     __tablename__ = 'categories'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(128), nullable=False)
     name_en = db.Column(db.String(128))
-    code = db.Column(db.String(20), unique=True)
+    code = db.Column(db.String(20))
     parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     description = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_category_code_tenant'),
+    )
+
     # Self-referential relationship for parent/child categories
     children = db.relationship('Category', backref=db.backref('parent', remote_side=[id]))
-    
+
     def __repr__(self):
         return f'<Category {self.name}>'
 
 class Unit(db.Model):
     __tablename__ = 'units'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(64), nullable=False)
     name_en = db.Column(db.String(64))
     symbol = db.Column(db.String(10))
     is_active = db.Column(db.Boolean, default=True)
-    
+
     def __repr__(self):
         return f'<Unit {self.name}>'
 
@@ -36,28 +49,32 @@ class Product(db.Model):
     __tablename__ = 'products'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(256), nullable=False, index=True)
     name_en = db.Column(db.String(256))
-    code = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    barcode = db.Column(db.String(128), index=True)  # Removed unique constraint
+    code = db.Column(db.String(64), nullable=False, index=True)
+    barcode = db.Column(db.String(128), index=True)
     sku = db.Column(db.String(64))
-    
+
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     unit_id = db.Column(db.Integer, db.ForeignKey('units.id'))
-    
+
     description = db.Column(db.Text)
     image = db.Column(db.String(256))
-    
+
     # Pricing
     cost_price = db.Column(db.Float, default=0.0)
     selling_price = db.Column(db.Float, default=0.0)
     min_price = db.Column(db.Float, default=0.0)
-    
+
     # Stock
     min_stock = db.Column(db.Float, default=0.0)
     max_stock = db.Column(db.Float, default=0.0)
     reorder_level = db.Column(db.Float, default=0.0)
-    
+
     # Flags
     is_active = db.Column(db.Boolean, default=True)
     is_sellable = db.Column(db.Boolean, default=True)
@@ -65,17 +82,22 @@ class Product(db.Model):
     track_inventory = db.Column(db.Boolean, default=True)
     has_expiry = db.Column(db.Boolean, default=False)
     has_serial = db.Column(db.Boolean, default=False)
-    
+
     # Tax
     tax_rate = db.Column(db.Float, default=15.0)
-    
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_product_code_tenant'),
+    )
+
     # Relationships
     category = db.relationship('Category', backref='products')
     unit = db.relationship('Unit', backref='products')
-    
+
     def __repr__(self):
         return f'<Product {self.name}>'
     
@@ -89,19 +111,28 @@ class Product(db.Model):
 
 class Warehouse(db.Model):
     __tablename__ = 'warehouses'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(128), nullable=False)
     name_en = db.Column(db.String(128))
-    code = db.Column(db.String(20), unique=True)
+    code = db.Column(db.String(20))
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'))
     address = db.Column(db.Text)
     manager_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_warehouse_code_tenant'),
+    )
+
     branch = db.relationship('Branch', backref='warehouses')
-    
+
     def __repr__(self):
         return f'<Warehouse {self.name}>'
 
@@ -109,6 +140,10 @@ class Stock(db.Model):
     __tablename__ = 'stocks'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouses.id'), nullable=False)
     quantity = db.Column(db.Float, default=0.0)
@@ -121,7 +156,7 @@ class Stock(db.Model):
     warehouse = db.relationship('Warehouse', backref='stocks')
 
     __table_args__ = (
-        db.UniqueConstraint('product_id', 'warehouse_id', name='unique_product_warehouse'),
+        db.UniqueConstraint('product_id', 'warehouse_id', 'tenant_id', name='uq_stock_product_warehouse_tenant'),
     )
 
     def __repr__(self):
@@ -131,6 +166,10 @@ class StockMovement(db.Model):
     __tablename__ = 'stock_movements'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouses.id'), nullable=False)
 
@@ -154,6 +193,10 @@ class DamagedInventory(db.Model):
     __tablename__ = 'damaged_inventory'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouses.id'), nullable=False)
     quantity = db.Column(db.Float, nullable=False)

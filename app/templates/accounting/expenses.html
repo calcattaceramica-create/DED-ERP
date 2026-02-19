@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}المصروفات - نظام إدارة المخزون{% endblock %}
+{% block page_title %}المصروفات{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-receipt"></i> المصروفات</h4>
+                    <a href="{{ url_for('accounting.add_expense') }}" class="btn btn-light">
+                        <i class="fas fa-plus"></i> إضافة مصروف جديد
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Card -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5>إجمالي المصروفات</h5>
+                                    <h2>{{ "{:,.2f}".format(total_expenses) }} {{ currency_symbol }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <ul class="nav nav-pills mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'all' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='all') }}">
+                                <i class="fas fa-list"></i> الكل
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'rent' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='rent') }}">
+                                <i class="fas fa-home"></i> إيجار
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'utilities' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='utilities') }}">
+                                <i class="fas fa-bolt"></i> مرافق
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'salaries' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='salaries') }}">
+                                <i class="fas fa-users"></i> رواتب
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'maintenance' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='maintenance') }}">
+                                <i class="fas fa-tools"></i> صيانة
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_category == 'other' %}active{% endif %}" 
+                               href="{{ url_for('accounting.expenses', category='other') }}">
+                                <i class="fas fa-ellipsis-h"></i> أخرى
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Expenses Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>رقم المصروف</th>
+                                    <th>التاريخ</th>
+                                    <th>الفئة</th>
+                                    <th>الوصف</th>
+                                    <th>المبلغ</th>
+                                    <th>طريقة الدفع</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expenses.items %}
+                                <tr>
+                                    <td><strong>{{ expense.expense_number }}</strong></td>
+                                    <td>{{ expense.expense_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if expense.expense_category == 'rent' %}
+                                            <span class="badge bg-primary">إيجار</span>
+                                        {% elif expense.expense_category == 'utilities' %}
+                                            <span class="badge bg-warning">مرافق</span>
+                                        {% elif expense.expense_category == 'salaries' %}
+                                            <span class="badge bg-success">رواتب</span>
+                                        {% elif expense.expense_category == 'maintenance' %}
+                                            <span class="badge bg-info">صيانة</span>
+                                        {% elif expense.expense_category == 'transportation' %}
+                                            <span class="badge bg-secondary">مواصلات</span>
+                                        {% elif expense.expense_category == 'office_supplies' %}
+                                            <span class="badge bg-dark">مستلزمات</span>
+                                        {% elif expense.expense_category == 'marketing' %}
+                                            <span class="badge bg-purple">تسويق</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ expense.expense_category }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ expense.description }}</td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            {{ "{:,.2f}".format(expense.amount) }} €
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        {% if expense.payment_method == 'cash' %}
+                                            <span class="badge bg-success">نقدي</span>
+                                        {% elif expense.payment_method == 'bank' %}
+                                            <span class="badge bg-primary">بنكي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if expense.status == 'posted' %}
+                                            <span class="badge bg-success">مرحل</span>
+                                        {% elif expense.status == 'draft' %}
+                                            <span class="badge bg-warning">مسودة</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('accounting.expense_details', id=expense.id) }}"
+                                           class="btn btn-sm btn-info" title="عرض التفاصيل">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                onclick="confirmDelete({{ expense.id }}, '{{ expense.expense_number }}')"
+                                                title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                                        <p>لا توجد مصروفات</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if expenses.pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if expenses.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('accounting.expenses', page=expenses.prev_num, category=current_category) }}">السابق</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in expenses.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {% if page_num == expenses.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('accounting.expenses', page=page_num, category=current_category) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if expenses.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('accounting.expenses', page=expenses.next_num, category=current_category) }}">التالي</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(expenseId, expenseNumber) {
+    if (confirm('هل أنت متأكد من حذف المصروف ' + expenseNumber + '؟\n\nملاحظة: إذا كان المصروف مدفوعاً بنكياً، سيتم إرجاع المبلغ للحساب البنكي.')) {
+        window.location.href = '/accounting/expenses/' + expenseId + '/delete';
+    }
+}
+</script>
+{% endblock %}
+

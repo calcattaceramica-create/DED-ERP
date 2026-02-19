@@ -101,6 +101,16 @@
                                     <td>{{ invoice.warehouse.name if invoice.warehouse else '-' }}</td>
                                 </tr>
                                 <tr>
+                                    <th>الحساب البنكي:</th>
+                                    <td>
+                                        {% if invoice.bank_account %}
+                                            {{ invoice.bank_account.account_name }} - {{ invoice.bank_account.bank_name }}
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>{{ _('User') }}:</th>
                                     <td>{{ invoice.user.username if invoice.user else '-' }}</td>
                                 </tr>

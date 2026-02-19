@@ -1,11 +1,13 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app, g
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
 from app.pos import bp
 from app import db
-from app.models import POSSession, POSOrder, POSOrderItem, Product, Customer, Warehouse, Company
+from app.models import POSSession, POSOrder, POSOrderItem, Product, Customer, Warehouse, Company, BankAccount
 from app.models import SalesInvoice, SalesInvoiceItem, Stock, StockMovement
+from app.utils.bank_helper import create_bank_transaction, reverse_bank_transaction
 from app.auth.decorators import permission_required, any_permission_required
+from app.tenant_mixin import TenantMixin
 from datetime import datetime
 
 def _generate_invoice_number():
@@ -78,7 +80,7 @@ def index():
 
 @bp.route('/open-session', methods=['GET', 'POST'])
 @login_required
-@permission_required('pos.session.manage')
+@permission_required('pos.sessions.open')
 def open_session():
     """Open new POS session"""
     if request.method == 'POST':
@@ -88,33 +90,43 @@ def open_session():
         last_session = POSSession.query.filter(
             POSSession.session_number.like(f'{prefix}%')
         ).order_by(POSSession.id.desc()).first()
-        
+
         if last_session:
             last_num = int(last_session.session_number[-3:])
             session_number = f'{prefix}{(last_num + 1):03d}'
         else:
             session_number = f'{prefix}001'
-        
+
+        # Get tenant_id from TenantMixin (uses g.current_tenant_id or current_user.tenant_id)
+        tenant_id = TenantMixin.get_current_tenant_id()
+
+        # If still None, try to get from current_user directly
+        if tenant_id is None and hasattr(current_user, 'tenant_id'):
+            tenant_id = current_user.tenant_id
+
         session = POSSession(
             session_number=session_number,
             cashier_id=current_user.id,
             warehouse_id=request.form.get('warehouse_id', type=int),
+            bank_account_id=request.form.get('bank_account_id', type=int),
             opening_balance=request.form.get('opening_balance', 0, type=float),
-            status='open'
+            status='open',
+            tenant_id=tenant_id
         )
-        
+
         db.session.add(session)
         db.session.commit()
-        
+
         flash('تم فتح الوردية بنجاح', 'success')
         return redirect(url_for('pos.index'))
-    
+
     warehouses = Warehouse.query.filter_by(is_active=True).all()
-    return render_template('pos/open_session.html', warehouses=warehouses)
+    bank_accounts = BankAccount.query.filter_by(is_active=True).all()
+    return render_template('pos/open_session.html', warehouses=warehouses, bank_accounts=bank_accounts)
 
 @bp.route('/close-session/<int:id>', methods=['POST'])
 @login_required
-@permission_required('pos.session.manage')
+@permission_required('pos.sessions.close')
 def close_session(id):
     """Close POS session"""
     session = POSSession.query.get_or_404(id)
@@ -173,7 +185,7 @@ def session_details(id):
 
 @bp.route('/delete-session/<int:id>', methods=['POST'])
 @login_required
-@permission_required('pos.session.manage')
+@permission_required('pos.sessions.close')
 def delete_session(id):
     """Delete POS session"""
     session = POSSession.query.get_or_404(id)
@@ -201,7 +213,7 @@ def delete_session(id):
 
 @bp.route('/create-order', methods=['POST'])
 @login_required
-@permission_required('pos.sell')
+@permission_required('pos.orders.create')
 def create_order():
     """Create new POS order"""
     try:
@@ -220,6 +232,13 @@ def create_order():
         else:
             order_number = f'{prefix}0001'
 
+        # Get tenant_id from TenantMixin (uses g.current_tenant_id or current_user.tenant_id)
+        tenant_id = TenantMixin.get_current_tenant_id()
+
+        # If still None, try to get from current_user directly
+        if tenant_id is None and hasattr(current_user, 'tenant_id'):
+            tenant_id = current_user.tenant_id
+
         # Create order
         order = POSOrder(
             order_number=order_number,
@@ -233,7 +252,8 @@ def create_order():
             cash_amount=data['cash_amount'],
             card_amount=data['card_amount'],
             change_amount=max(0, data['cash_amount'] - data['total_amount']) if data['payment_method'] == 'cash' else 0,
-            status='completed'
+            status='completed',
+            tenant_id=tenant_id
         )
 
         db.session.add(order)
@@ -248,7 +268,8 @@ def create_order():
                 product_id=item_data['productId'],
                 quantity=item_data['quantity'],
                 unit_price=item_data['price'],
-                total=item_data['price'] * item_data['quantity']
+                total=item_data['price'] * item_data['quantity'],
+                tenant_id=tenant_id
             )
             db.session.add(item)
 
@@ -269,7 +290,9 @@ def create_order():
                     quantity=item_data['quantity'],
                     reference_type='pos_order',
                     reference_id=order.id,
-                    notes=f'بيع من نقطة البيع - طلب {order_number}'
+                    notes=f'Sale from POS - Order {order_number}',
+                    user_id=current_user.id,
+                    tenant_id=tenant_id
                 )
                 db.session.add(movement)
 
@@ -286,15 +309,17 @@ def create_order():
             invoice_date=datetime.utcnow().date(),
             customer_id=customer_id,
             warehouse_id=session.warehouse_id,
+            bank_account_id=session.bank_account_id,  # Link to session's bank account
             subtotal=data['subtotal'],
             discount_amount=data['discount_amount'],
             tax_amount=data['tax_amount'],
             total_amount=data['total_amount'],
             paid_amount=data['total_amount'],  # Fully paid in POS
             remaining_amount=0.0,  # No remaining amount
-            notes=f'فاتورة من نقطة البيع - طلب {order_number}',
+            notes=f'Invoice from POS - Order {order_number}',
             pos_order_id=order.id,
             user_id=current_user.id,
+            tenant_id=tenant_id,  # ✅ Add tenant_id
             status='paid'  # Automatically mark as paid
         )
 
@@ -320,9 +345,26 @@ def create_order():
                 discount_amount=0.0,
                 tax_rate=tax_rate,
                 tax_amount=item_tax,
-                total=item_total
+                total=item_total,
+                tenant_id=tenant_id  # ✅ Add tenant_id
             )
             db.session.add(invoice_item)
+
+        # Update bank account balance if session has bank_account_id
+        if session.bank_account_id:
+            try:
+                bank_transaction = create_bank_transaction(
+                    bank_account_id=session.bank_account_id,
+                    transaction_type='deposit',
+                    amount=data['total_amount'],
+                    reference_type='pos_order',
+                    reference_id=order.id,
+                    description=f'POS Sales - Order {order_number}'
+                )
+                if not bank_transaction:
+                    print(f"Warning: Bank transaction was not created for POS order {order_number}")
+            except Exception as be:
+                print(f"Bank transaction error for POS order {order_number}: {str(be)}")
 
         db.session.commit()
 
@@ -371,7 +413,7 @@ def print_session_report(id):
 
 @bp.route('/create-quotation', methods=['POST'])
 @login_required
-@permission_required('pos.quotation.create')
+@permission_required('pos.orders.create')
 def create_quotation():
     """Create quotation from POS cart"""
     try:
@@ -407,7 +449,7 @@ def create_quotation():
             discount_amount=data['discount_amount'],
             tax_amount=data['tax_amount'],
             total_amount=data['total_amount'],
-            notes=f'عرض سعر من نقطة البيع',
+            notes=f'Quotation from POS',
             user_id=current_user.id,
             status='pending'
         )

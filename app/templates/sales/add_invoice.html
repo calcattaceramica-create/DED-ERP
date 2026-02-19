@@ -63,6 +63,18 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">الحساب البنكي <span class="text-danger">*</span></label>
+                                <select class="form-select" name="bank_account_id" required>
+                                    <option value="">اختر الحساب البنكي</option>
+                                    {% for account in bank_accounts %}
+                                    <option value="{{ account.id }}">{{ account.account_name }} - {{ account.bank_name }} ({{ "{:,.2f}".format(account.current_balance) }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">سيتم إضافة المبلغ إلى رصيد الحساب عند إتمام البيع</small>
+                            </div>
+                        </div>
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label class="form-label">{{ _('Notes') }}</label>

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}النسخ الاحتياطي - نظام إدارة المخزون{% endblock %}
+{% block page_title %}النسخ الاحتياطي{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h3><i class="fas fa-database"></i> النسخ الاحتياطي</h3>
+    <p class="text-muted mb-0">إدارة النسخ الاحتياطية للنظام</p>
+</div>
+
+<!-- Create Backup Card -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> إنشاء نسخة احتياطية جديدة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6><i class="fas fa-info-circle text-info"></i> ما الذي سيتم نسخه؟</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> قاعدة البيانات (erp_system.db)</li>
+                            <li><i class="fas fa-check text-success"></i> الملفات المرفوعة (uploads/)</li>
+                            <li><i class="fas fa-check text-success"></i"> ملف الإعدادات (config.py)</li>
+                            <li><i class="fas fa-check text-success"></i> معلومات النسخة الاحتياطية</li>
+                        </ul>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>تنبيه:</strong> يُنصح بإنشاء نسخة احتياطية بشكل دوري (يومي أو أسبوعي) للحفاظ على بياناتك.
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <form method="POST" action="{{ url_for('settings.create_backup') }}">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-download"></i> إنشاء نسخة احتياطية الآن
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Existing Backups -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> النسخ الاحتياطية الموجودة ({{ backups|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if backups %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th><i class="fas fa-file-archive"></i> اسم الملف</th>
+                                <th><i class="fas fa-hdd"></i> الحجم</th>
+                                <th><i class="fas fa-calendar"></i> تاريخ الإنشاء</th>
+                                <th><i class="fas fa-cogs"></i> الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <i class="fas fa-file-archive text-primary"></i>
+                                    <strong>{{ backup.filename }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ backup.size_mb }} MB</span>
+                                </td>
+                                <td>
+                                    <i class="fas fa-clock text-muted"></i>
+                                    {{ backup.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('settings.download_backup', filename=backup.filename) }}" 
+                                           class="btn btn-sm btn-success" 
+                                           title="تحميل">
+                                            <i class="fas fa-download"></i> تحميل
+                                        </a>
+                                        <form method="POST" 
+                                              action="{{ url_for('settings.delete_backup', filename=backup.filename) }}" 
+                                              style="display: inline;"
+                                              onsubmit="return confirm('هل أنت متأكد من حذف هذه النسخة الاحتياطية؟');">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="حذف">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle fa-3x mb-3"></i>
+                    <h5>لا توجد نسخ احتياطية</h5>
+                    <p>لم يتم إنشاء أي نسخة احتياطية بعد. اضغط على الزر أعلاه لإنشاء أول نسخة احتياطية.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions Card -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-book"></i> تعليمات الاستخدام</h5>
+            </div>
+            <div class="card-body">
+                <h6><i class="fas fa-question-circle text-primary"></i> كيفية استخدام النسخ الاحتياطي:</h6>
+                <ol>
+                    <li><strong>إنشاء نسخة احتياطية:</strong> اضغط على زر "إنشاء نسخة احتياطية الآن" لإنشاء نسخة جديدة</li>
+                    <li><strong>تحميل النسخة:</strong> اضغط على زر "تحميل" لتنزيل النسخة الاحتياطية على جهازك</li>
+                    <li><strong>حفظ النسخة:</strong> احفظ النسخة الاحتياطية في مكان آمن (قرص خارجي، سحابة، إلخ)</li>
+                    <li><strong>حذف النسخة:</strong> يمكنك حذف النسخ القديمة لتوفير المساحة</li>
+                </ol>
+                
+                <div class="alert alert-danger mt-3">
+                    <h6><i class="fas fa-exclamation-triangle"></i> تحذيرات مهمة:</h6>
+                    <ul class="mb-0">
+                        <li>احتفظ بنسخة احتياطية خارج الخادم دائماً</li>
+                        <li>لا تحذف جميع النسخ الاحتياطية - احتفظ بنسخة واحدة على الأقل</li>
+                        <li>قم بإنشاء نسخة احتياطية قبل أي تحديث أو تغيير كبير</li>
+                        <li>تأكد من سلامة النسخة الاحتياطية بتحميلها واختبارها</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

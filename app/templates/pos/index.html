@@ -528,6 +528,12 @@
                         <span><i class="fas fa-warehouse"></i> {{ _('Warehouse') }}:</span>
                         <strong>{{ pos_session.warehouse.name }}</strong>
                     </div>
+                    {% if pos_session.bank_account %}
+                    <div class="session-info-item">
+                        <span><i class="bi bi-bank"></i> {{ _('Bank Account') }}:</span>
+                        <strong>{{ pos_session.bank_account.account_name }}</strong>
+                    </div>
+                    {% endif %}
                     <div class="session-info-item">
                         <span><i class="fas fa-clock"></i> {{ _('Time') }}:</span>
                         <strong id="session-time"></strong>
@@ -551,12 +557,17 @@
                     <label class="form-label fw-bold">
                         <i class="fas fa-user"></i> {{ _('Customer') }} ({{ _('Optional') }})
                     </label>
-                    <select class="form-select" id="customer-select">
-                        <option value="">{{ _('Walk-in Customer') }}</option>
-                        {% for customer in customers %}
-                        <option value="{{ customer.id }}">{{ customer.name }} - {{ customer.phone }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="input-group">
+                        <select class="form-select" id="customer-select">
+                            <option value="">{{ _('Walk-in Customer') }}</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }} - {{ customer.phone }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- الإجماليات -->
@@ -1184,6 +1195,146 @@ console.log('🧪 Testing formatPrice function:');
 console.log('formatPrice(100):', formatPrice(100));
 console.log('Expected for EN: € 100.00');
 console.log('Expected for AR: 100.00 €');
+
+// Add new customer from POS
+async function addNewCustomer() {
+    const form = document.getElementById('addCustomerForm');
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch('/sales/customers/add_ajax', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Add new customer to dropdown list
+            const customerSelect = document.getElementById('customer-select');
+            const option = document.createElement('option');
+            option.value = result.customer.id;
+            option.text = result.customer.name + ' - ' + formData.get('phone');
+            option.selected = true;
+            customerSelect.add(option);
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addCustomerModal'));
+            modal.hide();
+
+            // Reset form
+            form.reset();
+
+            alert('Customer added successfully!');
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        alert('An error occurred while adding customer');
+        console.error(error);
+    }
+}
 </script>
+
+<!-- Modal Add New Customer -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addCustomerModalLabel">
+                    <i class="fas fa-user-plus"></i> Add New Customer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCustomerForm">
+                    <div class="row g-3">
+                        <!-- Name -->
+                        <div class="col-md-6">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+
+                        <!-- Name in English -->
+                        <div class="col-md-6">
+                            <label class="form-label">Name in English</label>
+                            <input type="text" class="form-control" name="name_en">
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="phone" required>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" name="mobile">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+
+                        <!-- Customer Type -->
+                        <div class="col-md-6">
+                            <label class="form-label">Customer Type</label>
+                            <select class="form-select" name="customer_type">
+                                <option value="individual">Individual</option>
+                                <option value="company">Company</option>
+                            </select>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="2"></textarea>
+                        </div>
+
+                        <!-- City -->
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" name="city">
+                        </div>
+
+                        <!-- Country -->
+                        <div class="col-md-6">
+                            <label class="form-label">Country</label>
+                            <input type="text" class="form-control" name="country">
+                        </div>
+
+                        <!-- Tax Number -->
+                        <div class="col-md-6">
+                            <label class="form-label">Tax Number</label>
+                            <input type="text" class="form-control" name="tax_number">
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category">
+                                <option value="">Choose Category</option>
+                                <option value="vip">VIP</option>
+                                <option value="regular">Regular</option>
+                                <option value="wholesale">Wholesale</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="addNewCustomer()">
+                    <i class="fas fa-save"></i> Save Customer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 

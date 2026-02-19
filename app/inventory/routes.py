@@ -85,7 +85,7 @@ def products():
 
 @bp.route('/products/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('inventory.products.create')
+@permission_required('inventory.products.add')
 def add_product():
     """Add new product"""
     if request.method == 'POST':
@@ -409,7 +409,7 @@ def categories():
 
 @bp.route('/add_category', methods=['POST'])
 @login_required
-@permission_required('inventory.categories.manage')
+@permission_required('inventory.categories.add')
 def add_category():
     """Add new category"""
     try:
@@ -428,7 +428,7 @@ def add_category():
 
 @bp.route('/edit_category/<int:id>', methods=['POST'])
 @login_required
-@permission_required('inventory.categories.manage')
+@permission_required('inventory.categories.edit')
 def edit_category(id):
     """Edit category"""
     try:
@@ -445,7 +445,7 @@ def edit_category(id):
 
 @bp.route('/delete_category/<int:id>', methods=['POST'])
 @login_required
-@permission_required('inventory.categories.manage')
+@permission_required('inventory.categories.delete')
 def delete_category(id):
     """Delete category"""
     try:
@@ -469,22 +469,33 @@ def stock():
     """View stock levels"""
     page = request.args.get('page', 1, type=int)
     warehouse_id = request.args.get('warehouse', type=int)
-    
+
     query = Stock.query.join(Product).join(Warehouse)
-    
+
     if warehouse_id:
         query = query.filter(Stock.warehouse_id == warehouse_id)
-    
+
     stocks = query.order_by(Product.name).paginate(
         page=page, per_page=20, error_out=False
     )
-    
+
     warehouses = Warehouse.query.filter_by(is_active=True).all()
-    
+
+    # Get company settings for currency
+    from app.models import Company
+    from flask import current_app
+    company = Company.query.first()
+    currency_code = company.currency if company else current_app.config.get('DEFAULT_CURRENCY', 'EUR')
+    currency_symbol = current_app.config['CURRENCIES'].get(currency_code, {}).get('symbol', '€')
+    currency_name = current_app.config['CURRENCIES'].get(currency_code, {}).get('name', 'يورو')
+
     return render_template('inventory/stock.html',
                          stocks=stocks,
                          warehouses=warehouses,
-                         warehouse_id=warehouse_id)
+                         warehouse_id=warehouse_id,
+                         currency_symbol=currency_symbol,
+                         currency_name=currency_name,
+                         currency_code=currency_code)
 
 @bp.route('/warehouses')
 @login_required
@@ -501,7 +512,7 @@ def warehouses():
 
 @bp.route('/warehouses/add', methods=['POST'])
 @login_required
-@permission_required('inventory.warehouses.manage')
+@permission_required('inventory.warehouses.add')
 def add_warehouse():
     """Add new warehouse"""
     try:
@@ -527,7 +538,7 @@ def add_warehouse():
 
 @bp.route('/warehouses/<int:id>/edit', methods=['POST'])
 @login_required
-@permission_required('inventory.warehouses.manage')
+@permission_required('inventory.warehouses.edit')
 def edit_warehouse(id):
     """Edit warehouse"""
     warehouse = Warehouse.query.get_or_404(id)
@@ -551,7 +562,7 @@ def edit_warehouse(id):
 
 @bp.route('/warehouses/<int:id>/delete', methods=['POST'])
 @login_required
-@permission_required('inventory.warehouses.manage')
+@permission_required('inventory.warehouses.delete')
 def delete_warehouse(id):
     """Delete warehouse"""
     warehouse = Warehouse.query.get_or_404(id)
@@ -758,7 +769,7 @@ def damaged_inventory():
 
 @bp.route('/damaged-inventory/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('inventory.stock.edit')
+@permission_required('inventory.damaged.add')
 def add_damaged_inventory():
     """Add damaged inventory record"""
     if request.method == 'POST':
@@ -834,7 +845,7 @@ def add_damaged_inventory():
 
 @bp.route('/damaged-inventory/<int:id>/delete', methods=['GET', 'POST'])
 @login_required
-@permission_required('inventory.stock.delete')
+@permission_required('inventory.damaged.delete')
 def delete_damaged_inventory(id):
     """Delete damaged inventory record"""
     damaged = DamagedInventory.query.get_or_404(id)

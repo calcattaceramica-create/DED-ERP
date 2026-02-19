@@ -4,9 +4,10 @@ from flask_babel import gettext as _
 from app.auth.decorators import permission_required
 from app.accounting import bp
 from app import db
-from app.models_accounting import Account, JournalEntry, JournalEntryItem, Payment, BankAccount, CostCenter
+from app.models_accounting import Account, JournalEntry, JournalEntryItem, Payment, BankAccount, CostCenter, BankTransaction
 from app.models import Customer, Supplier
 from app.utils.accounting_helper import create_payment_journal_entry
+from app.utils.bank_helper import create_bank_transaction
 from datetime import datetime, date
 
 # ==================== دليل الحسابات ====================
@@ -37,7 +38,7 @@ def accounts():
 
 @bp.route('/accounts/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('accounting.accounts.manage')
+@permission_required('accounting.accounts.add')
 def add_account():
     """Add new account - إضافة حساب جديد"""
     if request.method == 'POST':
@@ -238,7 +239,7 @@ def post_journal_entry(id):
 
 @bp.route('/journal-entries/<int:id>/delete', methods=['POST'])
 @login_required
-@permission_required('accounting.transactions.create')
+@permission_required('accounting.transactions.delete')
 def delete_journal_entry(id):
     """Delete journal entry - حذف القيد"""
     try:
@@ -283,7 +284,7 @@ def payments():
 
 @bp.route('/payments/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('accounting.payments.create')
+@permission_required('accounting.payments.add')
 def add_payment():
     """Add new payment - إضافة مدفوعة جديدة"""
     if request.method == 'POST':
@@ -324,6 +325,37 @@ def add_payment():
             db.session.add(payment)
             db.session.flush()
 
+            # Update bank account balance if bank payment method
+            if payment.bank_account_id and payment.payment_method in ['bank', 'check', 'card']:
+                try:
+                    # Determine transaction type based on payment type
+                    if payment.payment_type == 'receipt':
+                        # Receipt: deposit money into bank (increase balance)
+                        transaction_type = 'deposit'
+                        description = f'مقبوضات - {payment.payment_number}'
+                    else:
+                        # Payment: withdraw money from bank (decrease balance)
+                        transaction_type = 'withdrawal'
+                        description = f'مدفوعات - {payment.payment_number}'
+
+                    # Create bank transaction
+                    bank_transaction = create_bank_transaction(
+                        bank_account_id=payment.bank_account_id,
+                        transaction_type=transaction_type,
+                        amount=payment.amount,
+                        reference_type='payment',
+                        reference_id=payment.id,
+                        description=description
+                    )
+
+                    if bank_transaction:
+                        flash(f'تم تحديث الحساب البنكي - معاملة رقم {bank_transaction.transaction_number}', 'info')
+                    else:
+                        flash('تحذير: لم يتم تحديث الحساب البنكي', 'warning')
+
+                except Exception as be:
+                    flash(f'تحذير: خطأ في تحديث الحساب البنكي: {str(be)}', 'warning')
+
             # Create accounting journal entry
             try:
                 journal_entry = create_payment_journal_entry(payment)
@@ -347,9 +379,13 @@ def add_payment():
     suppliers = Supplier.query.filter_by(is_active=True).all()
     bank_accounts = BankAccount.query.filter_by(is_active=True).all()
 
+    # Convert to dictionaries for JSON serialization
+    customers_dict = [{'id': c.id, 'name': c.name} for c in customers]
+    suppliers_dict = [{'id': s.id, 'name': s.name} for s in suppliers]
+
     return render_template('accounting/add_payment.html',
-                         customers=customers,
-                         suppliers=suppliers,
+                         customers=customers_dict,
+                         suppliers=suppliers_dict,
                          bank_accounts=bank_accounts)
 
 @bp.route('/payments/<int:id>')
@@ -372,6 +408,46 @@ def payment_details(id):
                          payment=payment,
                          party_name=party_name)
 
+@bp.route('/payments/<int:id>/delete', methods=['POST'])
+@login_required
+@permission_required('accounting.payments.delete')
+def delete_payment(id):
+    """Delete payment - حذف مدفوعة"""
+    try:
+        payment = Payment.query.get_or_404(id)
+
+        # Check if payment has a bank account transaction
+        if payment.bank_account_id and payment.payment_method in ['bank', 'check', 'card']:
+            bank_account = BankAccount.query.get(payment.bank_account_id)
+            if bank_account:
+                # Reverse the bank transaction
+                if payment.payment_type == 'receipt':
+                    # Receipt: decrease bank balance (reverse the increase)
+                    bank_account.current_balance -= payment.amount
+                else:
+                    # Payment: increase bank balance (reverse the decrease)
+                    bank_account.current_balance += payment.amount
+
+                # Delete related bank transaction
+                from app.models_accounting import BankTransaction
+                BankTransaction.query.filter_by(
+                    reference_type='payment',
+                    reference_id=payment.id
+                ).delete()
+
+        # Delete the payment
+        payment_number = payment.payment_number
+        db.session.delete(payment)
+        db.session.commit()
+
+        flash(f'تم حذف المدفوعة {payment_number} بنجاح', 'success')
+        return redirect(url_for('accounting.payments'))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'حدث خطأ أثناء حذف المدفوعة: {str(e)}', 'danger')
+        return redirect(url_for('accounting.payments'))
+
 # ==================== الحسابات البنكية ====================
 
 @bp.route('/bank-accounts')
@@ -390,11 +466,14 @@ def bank_accounts():
 
 @bp.route('/bank-accounts/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('accounting.accounts.manage')
+@permission_required('accounting.accounts.add')
 def add_bank_account():
     """Add new bank account - إضافة حساب بنكي جديد"""
     if request.method == 'POST':
         try:
+            opening_balance = float(request.form.get('opening_balance', 0))
+            account_id = request.form.get('account_id', type=int) if request.form.get('account_id') else None
+
             account = BankAccount(
                 account_name=request.form.get('account_name'),
                 account_number=request.form.get('account_number'),
@@ -402,13 +481,92 @@ def add_bank_account():
                 branch=request.form.get('branch'),
                 iban=request.form.get('iban'),
                 swift_code=request.form.get('swift_code'),
+                account_type=request.form.get('account_type', 'current'),
                 currency=request.form.get('currency', 'SAR'),
-                current_balance=float(request.form.get('current_balance', 0)),
-                account_id=request.form.get('account_id', type=int) if request.form.get('account_id') else None,
-                is_active=True
+                opening_balance=opening_balance,
+                current_balance=opening_balance,
+                account_id=account_id,
+                is_active=True,
+                notes=request.form.get('notes')
             )
 
             db.session.add(account)
+            db.session.flush()  # Get bank account ID
+
+            # Update linked accounting account balance if exists and opening balance > 0
+            if account_id and opening_balance > 0:
+                accounting_account = Account.query.get(account_id)
+                if accounting_account:
+                    # Bank accounts are assets, so debit increases balance
+                    accounting_account.debit_balance += opening_balance
+                    accounting_account.current_balance = accounting_account.debit_balance - accounting_account.credit_balance
+
+                    # Create opening balance journal entry
+                    from app.models_accounting import JournalEntry, JournalEntryItem
+                    from app.models_settings import AccountingSettings
+
+                    settings = AccountingSettings.query.first()
+
+                    # Generate entry number
+                    today = datetime.utcnow()
+                    prefix = f'JE{today.year}{today.month:02d}'
+                    last_entry = JournalEntry.query.filter(
+                        JournalEntry.entry_number.like(f'{prefix}%')
+                    ).order_by(JournalEntry.id.desc()).first()
+
+                    if last_entry:
+                        last_num = int(last_entry.entry_number[-4:])
+                        entry_number = f'{prefix}{(last_num + 1):04d}'
+                    else:
+                        entry_number = f'{prefix}0001'
+
+                    # Create journal entry for opening balance
+                    entry = JournalEntry(
+                        entry_number=entry_number,
+                        entry_date=today.date(),
+                        entry_type='auto',
+                        reference_type='bank_account_opening',
+                        reference_id=account.id,
+                        description=f'رصيد افتتاحي - حساب بنكي: {account.account_name}',
+                        total_debit=opening_balance,
+                        total_credit=opening_balance,
+                        status='posted' if settings and settings.auto_post_journal_entries else 'draft',
+                        user_id=current_user.id
+                    )
+                    db.session.add(entry)
+                    db.session.flush()
+
+                    # Debit: Bank Account (Asset)
+                    debit_item = JournalEntryItem(
+                        journal_entry_id=entry.id,
+                        account_id=account_id,
+                        description=f'رصيد افتتاحي - {account.account_name}',
+                        debit=opening_balance,
+                        credit=0
+                    )
+                    db.session.add(debit_item)
+
+                    # Credit: Owner's Equity or Opening Balance Equity
+                    # Try to find equity account for opening balances
+                    equity_account = Account.query.filter_by(
+                        account_type='equity',
+                        is_active=True
+                    ).order_by(Account.code).first()
+
+                    if equity_account:
+                        credit_item = JournalEntryItem(
+                            journal_entry_id=entry.id,
+                            account_id=equity_account.id,
+                            description=f'رصيد افتتاحي - {account.account_name}',
+                            debit=0,
+                            credit=opening_balance
+                        )
+                        db.session.add(credit_item)
+
+                        # Update equity account balance
+                        equity_account.credit_balance += opening_balance
+                        equity_account.current_balance = equity_account.credit_balance - equity_account.debit_balance
+
             db.session.commit()
 
             flash('تم إضافة الحساب البنكي بنجاح', 'success')
@@ -423,11 +581,70 @@ def add_bank_account():
 
     return render_template('accounting/add_bank_account.html', accounts=accounts)
 
+@bp.route('/bank-accounts/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@permission_required('accounting.accounts.edit')
+def edit_bank_account(id):
+    """Edit bank account - تعديل حساب بنكي"""
+    account = BankAccount.query.get_or_404(id)
+
+    if request.method == 'POST':
+        try:
+            account.account_name = request.form.get('account_name')
+            account.account_number = request.form.get('account_number')
+            account.bank_name = request.form.get('bank_name')
+            account.branch = request.form.get('branch')
+            account.iban = request.form.get('iban')
+            account.swift_code = request.form.get('swift_code')
+            account.account_type = request.form.get('account_type', 'current')
+            account.currency = request.form.get('currency', 'SAR')
+            account.account_id = request.form.get('account_id', type=int) if request.form.get('account_id') else None
+            account.notes = request.form.get('notes')
+
+            db.session.commit()
+
+            flash('تم تعديل الحساب البنكي بنجاح', 'success')
+            return redirect(url_for('accounting.bank_accounts'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'حدث خطأ: {str(e)}', 'danger')
+
+    # Get accounts for linking
+    accounts = Account.query.filter_by(account_type='asset', is_active=True).order_by(Account.code).all()
+
+    return render_template('accounting/edit_bank_account.html', account=account, accounts=accounts)
+
+@bp.route('/bank-accounts/delete/<int:id>', methods=['POST'])
+@login_required
+@permission_required('accounting.accounts.delete')
+def delete_bank_account(id):
+    """Delete bank account - حذف حساب بنكي"""
+    try:
+        account = BankAccount.query.get_or_404(id)
+
+        # Check if account has transactions
+        if account.current_balance != account.opening_balance:
+            flash('لا يمكن حذف حساب بنكي يحتوي على معاملات. قم بتعطيله بدلاً من ذلك.', 'warning')
+            return redirect(url_for('accounting.bank_accounts'))
+
+        # Soft delete - just mark as inactive
+        account.is_active = False
+        db.session.commit()
+
+        flash('تم حذف الحساب البنكي بنجاح', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'حدث خطأ أثناء حذف الحساب البنكي: {str(e)}', 'danger')
+
+    return redirect(url_for('accounting.bank_accounts'))
+
 # ==================== مراكز التكلفة ====================
 
 @bp.route('/cost-centers')
 @login_required
-@permission_required('accounting.accounts.manage')
+@permission_required('accounting.view')
 def cost_centers():
     """List cost centers - قائمة مراكز التكلفة"""
     centers = CostCenter.query.filter_by(is_active=True).order_by(CostCenter.code).all()
@@ -435,7 +652,7 @@ def cost_centers():
 
 @bp.route('/cost-centers/add', methods=['GET', 'POST'])
 @login_required
-@permission_required('accounting.accounts.manage')
+@permission_required('accounting.accounts.add')
 def add_cost_center():
     """Add new cost center - إضافة مركز تكلفة جديد"""
     if request.method == 'POST':

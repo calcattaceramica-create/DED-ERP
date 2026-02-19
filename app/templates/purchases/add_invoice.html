@@ -38,6 +38,22 @@
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3">
+                                <label for="bank_account_id" class="form-label">الحساب البنكي</label>
+                                <select class="form-select" id="bank_account_id" name="bank_account_id">
+                                    <option value="">اختر الحساب البنكي (اختياري)</option>
+                                    {% for account in bank_accounts %}
+                                    <option value="{{ account.id }}">{{ account.account_name }} - {{ account.bank_name }} ({{ "{:,.2f}".format(account.current_balance) }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted d-block">
+                                    {% if bank_accounts %}
+                                    سيتم خصم المبلغ من رصيد الحساب عند تأكيد الفاتورة
+                                    {% else %}
+                                    <span class="text-warning">⚠️ لا توجد حسابات بنكية. <a href="{{ url_for('accounting.add_bank_account') }}" class="text-primary">إضافة حساب بنكي</a></span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <label for="reference_number" class="form-label">{{ _('Reference Number') }}</label>
                                 <input type="text" class="form-control" id="reference_number" name="reference_number">
                             </div>

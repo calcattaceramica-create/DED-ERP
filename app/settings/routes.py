@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app, send_file, session
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
 from app.settings import bp
@@ -6,8 +6,13 @@ from app import db
 from app.models import Company, Branch, User, Role, Permission, RolePermission
 from app.models_settings import AccountingSettings
 from app.models_accounting import Account, BankAccount
+from app.models_currency import Currency, ExchangeRate
 from app.auth.decorators import admin_required, permission_required, any_permission_required
 import os
+import shutil
+import zipfile
+import json
+from datetime import datetime, date
 from werkzeug.utils import secure_filename
 
 @bp.route('/')
@@ -18,6 +23,7 @@ def index():
 
 @bp.route('/company')
 @login_required
+@permission_required('settings.company.view')
 def company():
     """Company settings"""
     company = Company.query.first()
@@ -25,6 +31,7 @@ def company():
 
 @bp.route('/company/update', methods=['POST'])
 @login_required
+@permission_required('settings.company.edit')
 def update_company():
     """Update company information"""
     try:
@@ -75,7 +82,7 @@ def update_company():
 
 @bp.route('/company/create', methods=['POST'])
 @login_required
-@permission_required('settings.company')
+@permission_required('settings.company.edit')
 def create_company():
     """Create company information"""
     try:
@@ -105,7 +112,7 @@ def create_company():
 
 @bp.route('/invoice-templates')
 @login_required
-@permission_required('settings.company')
+@permission_required('settings.company.view')
 def invoice_templates():
     """Invoice templates settings"""
     company = Company.query.first()
@@ -113,7 +120,7 @@ def invoice_templates():
 
 @bp.route('/invoice-templates/update', methods=['POST'])
 @login_required
-@permission_required('settings.company')
+@permission_required('settings.company.edit')
 def update_invoice_template():
     """Update invoice template"""
     try:
@@ -150,7 +157,7 @@ def update_invoice_template():
 
 @bp.route('/branches')
 @login_required
-@permission_required('settings.branches.manage')
+@permission_required('settings.branches.view')
 def branches():
     """Branches management"""
     branches = Branch.query.all()
@@ -158,7 +165,7 @@ def branches():
 
 @bp.route('/branches/add', methods=['POST'])
 @login_required
-@permission_required('settings.branches.manage')
+@permission_required('settings.branches.add')
 def add_branch():
     """Add new branch"""
     try:
@@ -184,7 +191,7 @@ def add_branch():
 
 @bp.route('/branches/edit/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.branches.manage')
+@permission_required('settings.branches.edit')
 def edit_branch(id):
     """Edit branch"""
     try:
@@ -209,7 +216,7 @@ def edit_branch(id):
 
 @bp.route('/branches/delete/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.branches.manage')
+@permission_required('settings.branches.delete')
 def delete_branch(id):
     """Delete branch"""
     try:
@@ -235,7 +242,7 @@ def users():
 
 @bp.route('/users/add', methods=['POST'])
 @login_required
-@permission_required('settings.users.manage')
+@permission_required('settings.users.add')
 def add_user():
     """Add new user"""
     try:
@@ -280,7 +287,7 @@ def add_user():
 
 @bp.route('/users/edit/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.users.manage')
+@permission_required('settings.users.edit')
 def edit_user(id):
     """Edit user"""
     try:
@@ -308,7 +315,7 @@ def edit_user(id):
 
 @bp.route('/users/delete/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.users.manage')
+@permission_required('settings.users.delete')
 def delete_user(id):
     """Delete user"""
     try:
@@ -374,7 +381,7 @@ def roles():
 
 @bp.route('/roles/add', methods=['POST'])
 @login_required
-@permission_required('settings.roles.manage')
+@permission_required('settings.roles.add')
 def add_role():
     """Add new role"""
     try:
@@ -405,7 +412,7 @@ def add_role():
 
 @bp.route('/roles/edit/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.roles.manage')
+@permission_required('settings.roles.edit')
 def edit_role(id):
     """Edit role"""
     try:
@@ -424,7 +431,7 @@ def edit_role(id):
 
 @bp.route('/roles/delete/<int:id>', methods=['POST'])
 @login_required
-@permission_required('settings.roles.manage')
+@permission_required('settings.roles.delete')
 def delete_role(id):
     """Delete role"""
     try:
@@ -446,7 +453,7 @@ def delete_role(id):
 
 @bp.route('/roles/<int:id>/permissions', methods=['POST'])
 @login_required
-@permission_required('settings.permissions.manage')
+@permission_required('settings.roles.edit')
 def update_role_permissions(id):
     """Update role permissions"""
     try:
@@ -455,22 +462,42 @@ def update_role_permissions(id):
         # Get selected permissions
         permission_ids = request.form.getlist('permissions')
 
+        # Log the update for debugging
+        current_app.logger.info(f'Updating permissions for role {role.name} (ID: {role.id})')
+        current_app.logger.info(f'Selected permission IDs: {permission_ids}')
+
         # Clear existing permissions
-        RolePermission.query.filter_by(role_id=role.id).delete()
+        deleted_count = RolePermission.query.filter_by(role_id=role.id).delete()
+        current_app.logger.info(f'Deleted {deleted_count} existing permissions')
 
         # Add new permissions
+        added_count = 0
         for permission_id in permission_ids:
             role_permission = RolePermission(
                 role_id=role.id,
                 permission_id=int(permission_id)
             )
             db.session.add(role_permission)
+            added_count += 1
 
         db.session.commit()
-        flash('تم تحديث صلاحيات الدور بنجاح', 'success')
+
+        current_app.logger.info(f'Added {added_count} new permissions')
+
+        # Success message with details
+        if session.get('language') == 'en':
+            flash(f'Successfully updated permissions for role "{role.name}". Total permissions: {added_count}', 'success')
+        else:
+            flash(f'تم تحديث صلاحيات الدور "{role.name_ar}" بنجاح. إجمالي الصلاحيات: {added_count}', 'success')
+
     except Exception as e:
         db.session.rollback()
-        flash(f'حدث خطأ: {str(e)}', 'danger')
+        current_app.logger.error(f'Error updating role permissions: {str(e)}')
+
+        if session.get('language') == 'en':
+            flash(f'Error updating permissions: {str(e)}', 'danger')
+        else:
+            flash(f'حدث خطأ أثناء تحديث الصلاحيات: {str(e)}', 'danger')
 
     return redirect(url_for('settings.roles'))
 
@@ -484,7 +511,7 @@ def permissions():
 
 @bp.route('/permissions/add', methods=['POST'])
 @login_required
-@permission_required('settings.permissions.manage')
+@permission_required('settings.permissions.add')
 def add_permission():
     """Add new permission"""
     try:
@@ -690,4 +717,293 @@ def save_tax_settings():
         flash(f'حدث خطأ: {str(e)}', 'danger')
 
     return redirect(url_for('settings.tax_settings'))
+
+# ============================================================================
+# Backup Routes
+# ============================================================================
+
+@bp.route('/backup')
+@login_required
+@permission_required('settings.manage')
+def backup():
+    """Backup management page"""
+    basedir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    backup_dir = os.path.join(basedir, 'backups')
+
+    # Create backup directory if it doesn't exist
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+
+    # Get list of existing backups
+    backups = []
+    if os.path.exists(backup_dir):
+        for filename in os.listdir(backup_dir):
+            if filename.endswith('.zip'):
+                filepath = os.path.join(backup_dir, filename)
+                file_stat = os.stat(filepath)
+                backups.append({
+                    'filename': filename,
+                    'size': file_stat.st_size,
+                    'size_mb': round(file_stat.st_size / (1024 * 1024), 2),
+                    'created_at': datetime.fromtimestamp(file_stat.st_ctime),
+                    'path': filepath
+                })
+
+    # Sort by creation date (newest first)
+    backups.sort(key=lambda x: x['created_at'], reverse=True)
+
+    return render_template('settings/backup.html', backups=backups)
+
+@bp.route('/backup/create', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def create_backup():
+    """Create a new backup"""
+    try:
+        basedir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        backup_dir = os.path.join(basedir, 'backups')
+
+        # Create backup directory if it doesn't exist
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+
+        # Generate backup filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_filename = f'backup_{timestamp}.zip'
+        backup_path = os.path.join(backup_dir, backup_filename)
+
+        # Create zip file
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # Backup database
+            db_path = os.path.join(basedir, 'erp_system.db')
+            if os.path.exists(db_path):
+                zipf.write(db_path, 'erp_system.db')
+
+            # Backup uploads folder
+            uploads_dir = os.path.join(basedir, 'uploads')
+            if os.path.exists(uploads_dir):
+                for root, dirs, files in os.walk(uploads_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, basedir)
+                        zipf.write(file_path, arcname)
+
+            # Backup config file
+            config_path = os.path.join(basedir, 'config.py')
+            if os.path.exists(config_path):
+                zipf.write(config_path, 'config.py')
+
+            # Create backup info file
+            backup_info = {
+                'created_at': datetime.now().isoformat(),
+                'created_by': current_user.username,
+                'database': 'erp_system.db',
+                'version': '1.0'
+            }
+            zipf.writestr('backup_info.json', json.dumps(backup_info, indent=2, ensure_ascii=False))
+
+        flash(f'✅ تم إنشاء النسخة الاحتياطية بنجاح: {backup_filename}', 'success')
+
+    except Exception as e:
+        flash(f'❌ حدث خطأ أثناء إنشاء النسخة الاحتياطية: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.backup'))
+
+@bp.route('/backup/download/<filename>')
+@login_required
+@permission_required('settings.manage')
+def download_backup(filename):
+    """Download a backup file"""
+    try:
+        basedir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        backup_dir = os.path.join(basedir, 'backups')
+        backup_path = os.path.join(backup_dir, filename)
+
+        if not os.path.exists(backup_path):
+            flash('❌ الملف غير موجود', 'danger')
+            return redirect(url_for('settings.backup'))
+
+        return send_file(backup_path, as_attachment=True, download_name=filename)
+
+    except Exception as e:
+        flash(f'❌ حدث خطأ أثناء تحميل النسخة الاحتياطية: {str(e)}', 'danger')
+        return redirect(url_for('settings.backup'))
+
+@bp.route('/backup/delete/<filename>', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def delete_backup(filename):
+    """Delete a backup file"""
+    try:
+        basedir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        backup_dir = os.path.join(basedir, 'backups')
+        backup_path = os.path.join(backup_dir, filename)
+
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+            flash(f'✅ تم حذف النسخة الاحتياطية: {filename}', 'success')
+        else:
+            flash('❌ الملف غير موجود', 'danger')
+
+    except Exception as e:
+        flash(f'❌ حدث خطأ أثناء حذف النسخة الاحتياطية: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.backup'))
+
+# ============================================================================
+# Currency Management Routes
+# ============================================================================
+
+@bp.route('/currencies')
+@login_required
+@permission_required('settings.manage')
+def currencies():
+    """Currency management page"""
+    currencies = Currency.query.all()
+    return render_template('settings/currencies.html', currencies=currencies)
+
+@bp.route('/currencies/add', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def add_currency():
+    """Add new currency"""
+    try:
+        # Check if currency code already exists
+        existing = Currency.query.filter_by(code=request.form.get('code')).first()
+        if existing:
+            flash('❌ رمز العملة موجود بالفعل', 'danger')
+            return redirect(url_for('settings.currencies'))
+
+        currency = Currency(
+            code=request.form.get('code').upper(),
+            name=request.form.get('name'),
+            name_ar=request.form.get('name_ar'),
+            symbol=request.form.get('symbol'),
+            exchange_rate=float(request.form.get('exchange_rate', 1.0)),
+            is_base='is_base' in request.form,
+            is_active='is_active' in request.form,
+            decimal_places=int(request.form.get('decimal_places', 2))
+        )
+
+        # If this is set as base currency, unset all others
+        if currency.is_base:
+            Currency.query.update({'is_base': False})
+            currency.exchange_rate = 1.0
+
+        db.session.add(currency)
+        db.session.commit()
+
+        flash(f'✅ تم إضافة العملة {currency.code} بنجاح', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ حدث خطأ: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.currencies'))
+
+@bp.route('/currencies/edit/<int:id>', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def edit_currency(id):
+    """Edit currency"""
+    try:
+        currency = Currency.query.get_or_404(id)
+
+        currency.name = request.form.get('name')
+        currency.name_ar = request.form.get('name_ar')
+        currency.symbol = request.form.get('symbol')
+        currency.exchange_rate = float(request.form.get('exchange_rate', 1.0))
+        currency.is_active = 'is_active' in request.form
+        currency.decimal_places = int(request.form.get('decimal_places', 2))
+
+        # Handle base currency
+        is_base = 'is_base' in request.form
+        if is_base and not currency.is_base:
+            # Unset all other base currencies
+            Currency.query.update({'is_base': False})
+            currency.is_base = True
+            currency.exchange_rate = 1.0
+        elif not is_base and currency.is_base:
+            currency.is_base = False
+
+        db.session.commit()
+        flash(f'✅ تم تحديث العملة {currency.code} بنجاح', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ حدث خطأ: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.currencies'))
+
+@bp.route('/currencies/delete/<int:id>', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def delete_currency(id):
+    """Delete currency"""
+    try:
+        currency = Currency.query.get_or_404(id)
+
+        if currency.is_base:
+            flash('❌ لا يمكن حذف العملة الأساسية', 'danger')
+            return redirect(url_for('settings.currencies'))
+
+        db.session.delete(currency)
+        db.session.commit()
+
+        flash(f'✅ تم حذف العملة {currency.code} بنجاح', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ حدث خطأ: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.currencies'))
+
+@bp.route('/exchange-rates')
+@login_required
+@permission_required('settings.manage')
+def exchange_rates():
+    """Exchange rates management page"""
+    rates = ExchangeRate.query.order_by(ExchangeRate.effective_date.desc()).limit(100).all()
+    currencies = Currency.query.filter_by(is_active=True).all()
+    return render_template('settings/exchange_rates.html', rates=rates, currencies=currencies)
+
+@bp.route('/exchange-rates/add', methods=['POST'])
+@login_required
+@permission_required('settings.manage')
+def add_exchange_rate():
+    """Add new exchange rate"""
+    try:
+        from_currency_id = request.form.get('from_currency_id', type=int)
+        to_currency_id = request.form.get('to_currency_id', type=int)
+
+        if from_currency_id == to_currency_id:
+            flash('❌ لا يمكن إضافة سعر صرف للعملة نفسها', 'danger')
+            return redirect(url_for('settings.exchange_rates'))
+
+        rate = ExchangeRate(
+            from_currency_id=from_currency_id,
+            to_currency_id=to_currency_id,
+            rate=float(request.form.get('rate')),
+            effective_date=datetime.strptime(request.form.get('effective_date'), '%Y-%m-%d').date(),
+            source=request.form.get('source', 'manual'),
+            notes=request.form.get('notes'),
+            created_by=current_user.id
+        )
+
+        db.session.add(rate)
+
+        # Update currency exchange rate if this is the latest rate
+        from_currency = Currency.query.get(from_currency_id)
+        if from_currency and rate.effective_date >= date.today():
+            from_currency.exchange_rate = rate.rate
+
+        db.session.commit()
+
+        flash('✅ تم إضافة سعر الصرف بنجاح', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ حدث خطأ: {str(e)}', 'danger')
+
+    return redirect(url_for('settings.exchange_rates'))
 

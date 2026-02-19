@@ -34,7 +34,11 @@ class Config:
     # Session Security
     SESSION_TYPE = 'filesystem'  # Use filesystem for session storage
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2)  # Session expires after 2 hours
-    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False') == 'True'
+
+    # Auto-detect HTTPS: Check if SSL certificates exist
+    _ssl_cert_exists = os.path.exists(os.path.join(basedir, 'ssl', 'cert.pem'))
+    SESSION_COOKIE_SECURE = _ssl_cert_exists or (os.environ.get('SESSION_COOKIE_SECURE', 'False') == 'True')
+
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to cookies
     SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
     SESSION_REFRESH_EACH_REQUEST = True  # Refresh session on each request
@@ -45,6 +49,9 @@ class Config:
     MAX_LOGIN_ATTEMPTS = 5  # Maximum failed login attempts before account lock
     ACCOUNT_LOCK_DURATION = 30  # Account lock duration in minutes
     SESSION_TIMEOUT_WARNING = 5  # Show warning 5 minutes before session expires
+
+    # HTTPS/SSL Settings
+    PREFERRED_URL_SCHEME = 'https' if _ssl_cert_exists else 'http'
     PASSWORD_MIN_LENGTH = 8  # Minimum password length
     PASSWORD_REQUIRE_UPPERCASE = True  # Require uppercase letter
     PASSWORD_REQUIRE_DIGIT = True  # Require digit

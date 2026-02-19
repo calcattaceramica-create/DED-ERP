@@ -88,24 +88,31 @@
                                             {% endif %}
                                         </td>
                                         <td>
+                                            {% if current_user.has_permission('purchases.invoices.view') %}
                                             <a href="{{ url_for('purchases.invoice_details', id=invoice.id) }}"
                                                class="btn btn-sm btn-info" title="{{ _('View Details') }}">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            {% if invoice.status == 'draft' %}
+                                            {% endif %}
+                                            {% if invoice.status == 'draft' and current_user.has_permission('purchases.invoices.confirm') %}
                                             <a href="{{ url_for('purchases.confirm_invoice', id=invoice.id) }}"
                                                class="btn btn-sm btn-success" title="{{ _('Confirm') }}">
                                                 <i class="fas fa-check"></i>
                                             </a>
+                                            {% endif %}
+                                            {% if invoice.status == 'draft' and current_user.has_permission('purchases.invoices.delete') %}
                                             <button type="button" class="btn btn-sm btn-danger" title="{{ _('Delete') }}"
                                                     onclick="confirmDeletePurchaseInvoice({{ invoice.id }}, '{{ invoice.invoice_number }}')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                            {% elif invoice.status == 'confirmed' %}
+                                            {% endif %}
+                                            {% if invoice.status == 'confirmed' and current_user.has_permission('purchases.invoices.cancel') %}
                                             <button type="button" class="btn btn-sm btn-warning" title="{{ _('Cancel Invoice') }}"
                                                     onclick="confirmCancelPurchaseInvoice({{ invoice.id }}, '{{ invoice.invoice_number }}')">
                                                 <i class="fas fa-ban"></i>
                                             </button>
+                                            {% endif %}
+                                            {% if invoice.status == 'confirmed' and current_user.has_permission('purchases.invoices.delete') %}
                                             <button type="button" class="btn btn-sm btn-danger" title="{{ _('Delete') }}"
                                                     onclick="confirmDeletePurchaseInvoice({{ invoice.id }}, '{{ invoice.invoice_number }}')">
                                                 <i class="fas fa-trash"></i>

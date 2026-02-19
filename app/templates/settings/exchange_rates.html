@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Exchange Rates') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-exchange-alt"></i> {{ _('Exchange Rates') }}</h2>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRateModal">
+                <i class="fas fa-plus"></i> {{ _('Add Exchange Rate') }}
+            </button>
+            <a href="{{ url_for('settings.currencies') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {{ _('Back to Currencies') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Exchange Rates Table -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-chart-line"></i> {{ _('Exchange Rate History') }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ _('From') }}</th>
+                            <th>{{ _('To') }}</th>
+                            <th>{{ _('Rate') }}</th>
+                            <th>{{ _('Effective Date') }}</th>
+                            <th>{{ _('Source') }}</th>
+                            <th>{{ _('Notes') }}</th>
+                            <th>{{ _('Created By') }}</th>
+                            <th>{{ _('Created At') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate in rates %}
+                        <tr>
+                            <td><strong>{{ rate.from_currency.code }}</strong></td>
+                            <td><strong>{{ rate.to_currency.code }}</strong></td>
+                            <td><span class="badge bg-primary">{{ rate.rate|round(4) }}</span></td>
+                            <td>{{ rate.effective_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if rate.source == 'manual' %}
+                                <span class="badge bg-secondary">{{ _('Manual') }}</span>
+                                {% elif rate.source == 'api' %}
+                                <span class="badge bg-success">{{ _('API') }}</span>
+                                {% elif rate.source == 'bank' %}
+                                <span class="badge bg-info">{{ _('Bank') }}</span>
+                                {% else %}
+                                <span class="badge bg-light text-dark">{{ rate.source }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ rate.notes or '-' }}</td>
+                            <td>{{ rate.creator.username if rate.creator else '-' }}</td>
+                            <td>{{ rate.created_at.strftime('%Y-%m-%d %H:%M') if rate.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">{{ _('No exchange rates found') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Exchange Rate Modal -->
+<div class="modal fade" id="addRateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('settings.add_exchange_rate') }}">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> {{ _('Add Exchange Rate') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('From Currency') }} <span class="text-danger">*</span></label>
+                        <select class="form-select" name="from_currency_id" required>
+                            <option value="">-- {{ _('Select Currency') }} --</option>
+                            {% for currency in currencies %}
+                            <option value="{{ currency.id }}">{{ currency.code }} - {{ currency.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('To Currency') }} <span class="text-danger">*</span></label>
+                        <select class="form-select" name="to_currency_id" required>
+                            <option value="">-- {{ _('Select Currency') }} --</option>
+                            {% for currency in currencies %}
+                            <option value="{{ currency.id }}">{{ currency.code }} - {{ currency.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Exchange Rate') }} <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="rate" step="0.0001" required placeholder="3.75">
+                        <small class="text-muted">{{ _('1 unit of FROM currency = X units of TO currency') }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Effective Date') }} <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="effective_date" value="{{ today }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Source') }}</label>
+                        <select class="form-select" name="source">
+                            <option value="manual">{{ _('Manual') }}</option>
+                            <option value="api">{{ _('API') }}</option>
+                            <option value="bank">{{ _('Bank') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Notes') }}</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Save') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="effective_date"]').value = today;
+});
+</script>
+{% endblock %}
+

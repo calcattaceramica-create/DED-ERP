@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة مصروف - نظام إدارة المخزون{% endblock %}
+{% block page_title %}إضافة مصروف جديد{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-receipt"></i> إضافة مصروف جديد</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('accounting.add_expense') }}">
+                        <div class="row">
+                            <!-- Expense Date -->
+                            <div class="col-md-6 mb-3">
+                                <label for="expense_date" class="form-label">تاريخ المصروف <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="expense_date" name="expense_date" 
+                                       value="{{ request.form.get('expense_date', '') or today }}" required>
+                            </div>
+
+                            <!-- Expense Category -->
+                            <div class="col-md-6 mb-3">
+                                <label for="expense_category" class="form-label">فئة المصروف <span class="text-danger">*</span></label>
+                                <select class="form-select" id="expense_category" name="expense_category" required>
+                                    <option value="">-- اختر الفئة --</option>
+                                    {% for cat_value, cat_label in categories %}
+                                    <option value="{{ cat_value }}" {% if request.form.get('expense_category') == cat_value %}selected{% endif %}>
+                                        {{ cat_label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">الوصف <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="description" name="description" 
+                                       value="{{ request.form.get('description', '') }}" 
+                                       placeholder="مثال: فاتورة كهرباء شهر يناير" required>
+                            </div>
+
+                            <!-- Amount -->
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">المبلغ (€) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="amount" name="amount"
+                                       value="{{ request.form.get('amount', '') }}"
+                                       placeholder="0.00" required>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-md-6 mb-3">
+                                <label for="payment_method" class="form-label">طريقة الدفع <span class="text-danger">*</span></label>
+                                <select class="form-select" id="payment_method" name="payment_method" required onchange="toggleBankAccount()">
+                                    <option value="">-- اختر طريقة الدفع --</option>
+                                    <option value="cash" {% if request.form.get('payment_method') == 'cash' %}selected{% endif %}>نقدي</option>
+                                    <option value="bank" {% if request.form.get('payment_method') == 'bank' %}selected{% endif %}>بنكي</option>
+                                </select>
+                            </div>
+
+                            <!-- Bank Account (shown only if payment method is bank) -->
+                            <div class="col-md-6 mb-3" id="bank_account_div" style="display: none;">
+                                <label for="bank_account_id" class="form-label">الحساب البنكي <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bank_account_id" name="bank_account_id">
+                                    <option value="">-- اختر الحساب البنكي --</option>
+                                    {% for bank in bank_accounts %}
+                                    <option value="{{ bank.id }}" {% if request.form.get('bank_account_id')|int == bank.id %}selected{% endif %}>
+                                        {{ bank.account_name }} - {{ bank.bank_name }} ({{ "{:,.2f}".format(bank.current_balance) }} €)
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Expense Account -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_id" class="form-label">حساب المصروف (اختياري)</label>
+                                <select class="form-select" id="account_id" name="account_id">
+                                    <option value="">-- اختر الحساب --</option>
+                                    {% for account in expense_accounts %}
+                                    <option value="{{ account.id }}" {% if request.form.get('account_id')|int == account.id %}selected{% endif %}>
+                                        {{ account.code }} - {{ account.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12 mb-3">
+                                <label for="notes" class="form-label">ملاحظات</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                          placeholder="أي ملاحظات إضافية...">{{ request.form.get('notes', '') }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('accounting.expenses') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-save"></i> حفظ المصروف
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleBankAccount() {
+    var paymentMethod = document.getElementById('payment_method').value;
+    var bankAccountDiv = document.getElementById('bank_account_div');
+    var bankAccountSelect = document.getElementById('bank_account_id');
+    
+    if (paymentMethod === 'bank') {
+        bankAccountDiv.style.display = 'block';
+        bankAccountSelect.required = true;
+    } else {
+        bankAccountDiv.style.display = 'none';
+        bankAccountSelect.required = false;
+        bankAccountSelect.value = '';
+    }
+}
+
+// Call on page load to set initial state
+document.addEventListener('DOMContentLoaded', function() {
+    toggleBankAccount();
+});
+</script>
+{% endblock %}
+

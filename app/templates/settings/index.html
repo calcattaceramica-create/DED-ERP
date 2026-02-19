@@ -157,7 +157,7 @@
                 <i class="fas fa-dollar-sign fa-4x text-success mb-3"></i>
                 <h5>{{ _('Currencies') }}</h5>
                 <p class="text-muted">{{ _('Manage currencies and exchange rates') }}</p>
-                <a href="#" class="btn btn-success">
+                <a href="{{ url_for('settings.currencies') }}" class="btn btn-success">
                     <i class="fas fa-money-bill"></i> {{ _('Manage Currencies') }}
                 </a>
             </div>
@@ -213,13 +213,13 @@
 
     <!-- Backup -->
     <div class="col-md-4 mb-4">
-        <div class="card h-100">
+        <div class="card h-100 border-info">
             <div class="card-body text-center">
                 <i class="fas fa-database fa-4x text-info mb-3"></i>
                 <h5>{{ _('Backup') }}</h5>
                 <p class="text-muted">{{ _('Backup and restore data') }}</p>
-                <a href="#" class="btn btn-info">
-                    <i class="fas fa-download"></i> {{ _('Backup') }}
+                <a href="{{ url_for('settings.backup') }}" class="btn btn-info">
+                    <i class="fas fa-download"></i> النسخ الاحتياطي
                 </a>
             </div>
         </div>

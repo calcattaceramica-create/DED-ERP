@@ -21,12 +21,16 @@
                         <i class="fas fa-warehouse"></i> {{ warehouse.name }}
                     </h5>
                     <div>
+                        {% if current_user.has_permission('inventory.warehouses.manage') %}
                         <button class="btn btn-sm btn-light" onclick="editWarehouse({{ warehouse.id }}, '{{ warehouse.name }}', '{{ warehouse.name_en or '' }}', '{{ warehouse.code }}', {{ warehouse.branch_id or 'null' }}, '{{ warehouse.address or '' }}', {{ warehouse.manager_id or 'null' }}, {{ 'true' if warehouse.is_active else 'false' }})">
                             <i class="fas fa-edit"></i>
                         </button>
+                        {% endif %}
+                        {% if current_user.has_permission('inventory.warehouses.delete') %}
                         <button class="btn btn-sm btn-danger" onclick="deleteWarehouse({{ warehouse.id }}, '{{ warehouse.name }}')">
                             <i class="fas fa-trash"></i>
                         </button>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-body">

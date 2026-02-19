@@ -4,57 +4,66 @@ from app import db
 # Lead - العملاء المحتملون
 class Lead(db.Model):
     __tablename__ = 'leads'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(20), unique=True, nullable=False)
-    
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
+    code = db.Column(db.String(20), nullable=False)
+
     # Basic Info
     name = db.Column(db.String(128), nullable=False, index=True)
     company = db.Column(db.String(128))
     title = db.Column(db.String(64))  # Job title
-    
+
     # Contact Info
     email = db.Column(db.String(120))
     phone = db.Column(db.String(20))
     mobile = db.Column(db.String(20))
     website = db.Column(db.String(200))
-    
+
     # Address
     address = db.Column(db.Text)
     city = db.Column(db.String(64))
     country = db.Column(db.String(64))
-    
+
     # Lead Info
     source = db.Column(db.String(64))  # Website, Referral, Cold Call, etc.
     status = db.Column(db.String(20), default='new')  # new, contacted, qualified, converted, lost
     rating = db.Column(db.Integer, default=0)  # 1-5 stars
-    
+
     # Sales Info
     expected_revenue = db.Column(db.Float, default=0.0)
     probability = db.Column(db.Integer, default=0)  # 0-100%
     expected_close_date = db.Column(db.Date)
-    
+
     # Assignment
     assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
     # Conversion
     converted_to_customer = db.Column(db.Boolean, default=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     converted_date = db.Column(db.DateTime)
-    
+
     # Notes
     description = db.Column(db.Text)
     notes = db.Column(db.Text)
-    
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_lead_code_tenant'),
+    )
+
     # Relationships
     interactions = db.relationship('Interaction', backref='lead', lazy='dynamic', cascade='all, delete-orphan')
     tasks = db.relationship('Task', backref='lead', lazy='dynamic', cascade='all, delete-orphan')
-    
+
     def __repr__(self):
         return f'<Lead {self.name}>'
 
@@ -62,30 +71,33 @@ class Lead(db.Model):
 # Interaction - التفاعلات مع العملاء
 class Interaction(db.Model):
     __tablename__ = 'interactions'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     # Type
     interaction_type = db.Column(db.String(20), nullable=False)  # call, email, meeting, note
     subject = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    
+
     # Related To
     lead_id = db.Column(db.Integer, db.ForeignKey('leads.id'))
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     opportunity_id = db.Column(db.Integer, db.ForeignKey('opportunities.id'))
-    
+
     # Details
     interaction_date = db.Column(db.DateTime, default=datetime.utcnow)
     duration = db.Column(db.Integer)  # Minutes
     outcome = db.Column(db.String(200))
-    
+
     # Assignment
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def __repr__(self):
         return f'<Interaction {self.subject}>'
 
@@ -93,43 +105,52 @@ class Interaction(db.Model):
 # Opportunity - الفرص التجارية
 class Opportunity(db.Model):
     __tablename__ = 'opportunities'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(20), unique=True, nullable=False)
-    
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
+    code = db.Column(db.String(20), nullable=False)
+
     # Basic Info
     name = db.Column(db.String(200), nullable=False, index=True)
     description = db.Column(db.Text)
-    
+
     # Related
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
     lead_id = db.Column(db.Integer, db.ForeignKey('leads.id'))
-    
+
     # Sales Info
     amount = db.Column(db.Float, default=0.0)
     probability = db.Column(db.Integer, default=0)  # 0-100%
     stage = db.Column(db.String(20), default='prospecting')  # prospecting, qualification, proposal, negotiation, closed_won, closed_lost
-    
+
     # Dates
     expected_close_date = db.Column(db.Date)
     actual_close_date = db.Column(db.Date)
-    
+
     # Assignment
     assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
     # Status
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
-    
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_opportunity_code_tenant'),
+    )
+
     # Relationships
     interactions = db.relationship('Interaction', backref='opportunity', lazy='dynamic', cascade='all, delete-orphan')
     tasks = db.relationship('Task', backref='opportunity', lazy='dynamic', cascade='all, delete-orphan')
-    
+
     def __repr__(self):
         return f'<Opportunity {self.name}>'
 
@@ -139,6 +160,9 @@ class Task(db.Model):
     __tablename__ = 'tasks'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
 
     # Basic Info
     title = db.Column(db.String(200), nullable=False)
@@ -177,7 +201,11 @@ class Campaign(db.Model):
     __tablename__ = 'campaigns'
 
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(20), unique=True, nullable=False)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
+    code = db.Column(db.String(20), nullable=False)
 
     # Basic Info
     name = db.Column(db.String(200), nullable=False, index=True)
@@ -214,6 +242,11 @@ class Campaign(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    # Unique constraint: code + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_campaign_code_tenant'),
+    )
+
     def __repr__(self):
         return f'<Campaign {self.name}>'
 
@@ -223,6 +256,9 @@ class Contact(db.Model):
     __tablename__ = 'contacts'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
 
     # Basic Info
     first_name = db.Column(db.String(64), nullable=False)

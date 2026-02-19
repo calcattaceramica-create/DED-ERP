@@ -10,9 +10,11 @@
             <div class="card shadow">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><i class="fas fa-university"></i> الحسابات البنكية</h4>
+                    {% if current_user.has_permission('accounting.accounts.add') %}
                     <a href="{{ url_for('accounting.add_bank_account') }}" class="btn btn-light">
                         <i class="fas fa-plus"></i> إضافة حساب بنكي
                     </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <!-- Summary Cards -->
@@ -21,7 +23,7 @@
                             <div class="card bg-primary text-white">
                                 <div class="card-body">
                                     <h6 class="card-title">إجمالي الأرصدة</h6>
-                                    <h3 class="mb-0">{{ "{:,.2f}".format(total_balance) }} ريال</h3>
+                                    <h3 class="mb-0">{{ "{:,.2f}".format(total_balance) }} €</h3>
                                 </div>
                             </div>
                         </div>
@@ -56,6 +58,9 @@
                                     <th>العملة</th>
                                     <th>الرصيد الحالي</th>
                                     <th>الحالة</th>
+                                    {% if current_user.has_permission('accounting.accounts.edit') or current_user.has_permission('accounting.accounts.delete') %}
+                                    <th>الإجراءات</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,10 +92,31 @@
                                             <span class="badge bg-secondary">غير نشط</span>
                                         {% endif %}
                                     </td>
+                                    {% if current_user.has_permission('accounting.accounts.edit') or current_user.has_permission('accounting.accounts.delete') %}
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if current_user.has_permission('accounting.accounts.edit') %}
+                                            <a href="{{ url_for('accounting.edit_bank_account', id=account.id) }}"
+                                               class="btn btn-warning btn-sm"
+                                               title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if current_user.has_permission('accounting.accounts.delete') %}
+                                            <button type="button"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="confirmDelete({{ account.id }}, '{{ account.account_name }}')"
+                                                    title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    {% endif %}
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted">لا توجد حسابات بنكية</td>
+                                    <td colspan="{% if current_user.has_permission('accounting.accounts.edit') or current_user.has_permission('accounting.accounts.delete') %}9{% else %}8{% endif %}" class="text-center text-muted">لا توجد حسابات بنكية</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -102,4 +128,31 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(accountId, accountName) {
+    if (confirm('هل أنت متأكد من حذف الحساب البنكي "' + accountName + '"؟\n\nتحذير: هذا الإجراء لا يمكن التراجع عنه!')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/accounting/bank-accounts/delete/' + accountId;
+
+        // Add CSRF token if available
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'csrf_token';
+            input.value = csrfToken.content;
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}
+
 

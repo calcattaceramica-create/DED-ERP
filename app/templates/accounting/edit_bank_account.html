@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل حساب بنكي - نظام إدارة المخزون{% endblock %}
+{% block page_title %}تعديل حساب بنكي{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> تعديل حساب بنكي: {{ account.account_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('accounting.edit_bank_account', id=account.id) }}">
+                        <div class="row">
+                            <!-- Account Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_name" class="form-label">اسم الحساب <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="account_name" name="account_name" required 
+                                       value="{{ account.account_name }}" placeholder="مثال: الحساب الجاري الرئيسي">
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_number" class="form-label">رقم الحساب</label>
+                                <input type="text" class="form-control" id="account_number" name="account_number" 
+                                       value="{{ account.account_number or '' }}" placeholder="رقم الحساب البنكي">
+                            </div>
+
+                            <!-- Bank Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="bank_name" class="form-label">اسم البنك</label>
+                                <input type="text" class="form-control" id="bank_name" name="bank_name" 
+                                       value="{{ account.bank_name or '' }}" placeholder="مثال: البنك الأهلي السعودي">
+                            </div>
+
+                            <!-- Branch -->
+                            <div class="col-md-6 mb-3">
+                                <label for="branch" class="form-label">الفرع</label>
+                                <input type="text" class="form-control" id="branch" name="branch" 
+                                       value="{{ account.branch or '' }}" placeholder="مثال: فرع الرياض الرئيسي">
+                            </div>
+
+                            <!-- IBAN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="iban" class="form-label">IBAN</label>
+                                <input type="text" class="form-control" id="iban" name="iban" 
+                                       value="{{ account.iban or '' }}" placeholder="SA0000000000000000000000">
+                                <small class="text-muted">رقم الحساب البنكي الدولي</small>
+                            </div>
+
+                            <!-- SWIFT Code -->
+                            <div class="col-md-6 mb-3">
+                                <label for="swift_code" class="form-label">SWIFT Code</label>
+                                <input type="text" class="form-control" id="swift_code" name="swift_code" 
+                                       value="{{ account.swift_code or '' }}" placeholder="XXXXXXXX">
+                                <small class="text-muted">رمز البنك الدولي</small>
+                            </div>
+
+                            <!-- Currency -->
+                            <div class="col-md-6 mb-3">
+                                <label for="currency" class="form-label">العملة <span class="text-danger">*</span></label>
+                                <select class="form-select" id="currency" name="currency" required>
+                                    <option value="EUR" {% if account.currency == 'EUR' %}selected{% endif %}>يورو (EUR)</option>
+                                    <option value="USD" {% if account.currency == 'USD' %}selected{% endif %}>دولار أمريكي (USD)</option>
+                                    <option value="SAR" {% if account.currency == 'SAR' %}selected{% endif %}>ريال سعودي (SAR)</option>
+                                    <option value="EGP" {% if account.currency == 'EGP' %}selected{% endif %}>جنيه مصري (EGP)</option>
+                                </select>
+                            </div>
+
+                            <!-- Current Balance (Read-only) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="current_balance_display" class="form-label">الرصيد الحالي</label>
+                                <input type="text" class="form-control" id="current_balance_display" 
+                                       value="{{ '{:,.2f}'.format(account.current_balance) }}" readonly>
+                                <small class="text-muted">لا يمكن تعديل الرصيد مباشرة - يتم تحديثه من خلال المعاملات</small>
+                            </div>
+
+                            <!-- Link to Chart of Accounts -->
+                            <div class="col-md-12 mb-3">
+                                <label for="account_id" class="form-label">ربط بدليل الحسابات</label>
+                                <select class="form-select" id="account_id" name="account_id">
+                                    <option value="">-- اختر الحساب --</option>
+                                    {% for acc in accounts %}
+                                    <option value="{{ acc.id }}" {% if account.account_id == acc.id %}selected{% endif %}>
+                                        {{ acc.code }} - {{ acc.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">اختر الحساب المقابل في دليل الحسابات (اختياري)</small>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-md-12 mb-3">
+                                <label for="notes" class="form-label">ملاحظات</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                          placeholder="ملاحظات إضافية">{{ account.notes or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('accounting.bank_accounts') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> حفظ التعديلات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Info Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> معلومات الحساب</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>الرصيد الافتتاحي:</strong> {{ '{:,.2f}'.format(account.opening_balance) }} {{ account.currency }}</p>
+                            <p><strong>الرصيد الحالي:</strong> {{ '{:,.2f}'.format(account.current_balance) }} {{ account.currency }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>تاريخ الإنشاء:</strong> {{ account.created_at.strftime('%Y-%m-%d') if account.created_at else '-' }}</p>
+                            <p><strong>الحالة:</strong> 
+                                {% if account.is_active %}
+                                    <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">غير نشط</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

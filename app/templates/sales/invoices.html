@@ -117,13 +117,17 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if current_user.has_permission('sales.invoices.view') %}
                             <a href="{{ url_for('sales.invoice_details', id=invoice.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('View Details') }}">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            {% if invoice.status == 'draft' %}
+                            {% endif %}
+                            {% if invoice.status == 'draft' and current_user.has_permission('sales.invoices.confirm') %}
                             <a href="{{ url_for('sales.confirm_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-success" title="{{ _('Confirm Invoice') }}">
                                 <i class="fas fa-check"></i>
                             </a>
+                            {% endif %}
+                            {% if invoice.status == 'draft' and current_user.has_permission('sales.invoices.delete') %}
                             <button type="button" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}" onclick="confirmDeleteInvoice({{ invoice.id }}, '{{ invoice.invoice_number }}')">
                                 <i class="fas fa-trash"></i>
                             </button>

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}📊 Bank Statement - Banking System{% endblock %}
+{% block page_title %}📊 Bank Statement{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-body bg-gradient-success text-white text-center">
+                    <h6><i class="fas fa-arrow-down"></i> إجمالي الإيداعات - Total Deposits</h6>
+                    <h3>{{ "{:,.2f}".format(total_deposits) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-body bg-gradient-danger text-white text-center">
+                    <h6><i class="fas fa-arrow-up"></i> إجمالي السحوبات - Total Withdrawals</h6>
+                    <h3>{{ "{:,.2f}".format(total_withdrawals) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-body bg-gradient-info text-white text-center">
+                    <h6><i class="fas fa-chart-line"></i> صافي التغيير - Net Change</h6>
+                    <h3 class="{% if net_change >= 0 %}text-white{% else %}text-warning{% endif %}">
+                        {{ "{:,.2f}".format(net_change) }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-filter"></i> فلترة الكشف - Filter Statement</h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('banking.bank_statement') }}" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">الحساب البنكي - Bank Account</label>
+                            <select name="bank_id" class="form-select">
+                                <option value="">الكل - All Accounts</option>
+                                {% for bank in banks %}
+                                <option value="{{ bank.id }}" {% if bank_id == bank.id %}selected{% endif %}>
+                                    {{ bank.account_name }} - {{ bank.bank_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">من تاريخ - From Date</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">إلى تاريخ - To Date</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">نوع الحركة - Type</label>
+                            <select name="transaction_type" class="form-select">
+                                <option value="all" {% if not transaction_type or transaction_type == 'all' %}selected{% endif %}>الكل - All</option>
+                                <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>إيداع - Deposit</option>
+                                <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>سحب - Withdrawal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> بحث - Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statement Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice-dollar"></i> كشف الحساب البنكي - Bank Statement</h5>
+                    <div>
+                        <button onclick="window.print()" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-print"></i> طباعة - Print
+                        </button>
+                        <button onclick="exportToPDF()" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-pdf"></i> تصدير PDF - Export PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="statement_table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>رقم الحركة - Transaction #</th>
+                                    <th>التاريخ - Date</th>
+                                    <th>الحساب البنكي - Bank Account</th>
+                                    <th>النوع - Type</th>
+                                    <th>المبلغ - Amount</th>
+                                    <th>المرجع - Reference</th>
+                                    <th>الوصف - Description</th>
+                                    <th>الرصيد بعد - Balance After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in transactions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td><code>{{ trans.transaction_number }}</code></td>
+                                    <td>{{ trans.transaction_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ trans.bank_account.account_name }}</td>
+                                    <td>
+                                        {% if trans.transaction_type == 'deposit' %}
+                                            <span class="badge bg-success"><i class="fas fa-arrow-down"></i> إيداع</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-arrow-up"></i> سحب</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="{% if trans.transaction_type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
+                                        <strong>{{ "{:,.2f}".format(trans.amount) }}</strong>
+                                    </td>
+                                    <td><small>{{ trans.reference_type }}</small></td>
+                                    <td>{{ trans.description }}</td>
+                                    <td><strong>{{ "{:,.2f}".format(trans.balance_after) }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <th colspan="5" class="text-end">الإجمالي - Total:</th>
+                                    <th colspan="4">
+                                        <span class="text-success">إيداعات: {{ "{:,.2f}".format(total_deposits) }}</span> | 
+                                        <span class="text-danger">سحوبات: {{ "{:,.2f}".format(total_withdrawals) }}</span> | 
+                                        <span class="text-primary">صافي: {{ "{:,.2f}".format(net_change) }}</span>
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle fa-3x mb-3"></i>
+                        <h5>لا توجد حركات - No transactions found</h5>
+                        <p>جرب تغيير الفلاتر أو إضافة حركات جديدة</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportToPDF() {
+    alert('ميزة تصدير PDF ستكون متاحة قريباً - PDF export feature coming soon!');
+    // TODO: Implement PDF export using jsPDF or server-side PDF generation
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.bg-gradient-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important; }
+.bg-gradient-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important; }
+.bg-gradient-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
+
+@media print {
+    .btn, .card-header .btn, .navbar, .sidebar { display: none !important; }
+    .card { border: none !important; box-shadow: none !important; }
+}
+</style>
+{% endblock %}
+

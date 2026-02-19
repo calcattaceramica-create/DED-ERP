@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}➕ Add Bank - Banking System{% endblock %}
+{% block page_title %}➕ Add New Bank Account{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-university"></i> إضافة حساب بنكي جديد - Add New Bank Account</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('banking.add_bank') }}">
+                        <div class="row">
+                            <!-- Account Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_name" class="form-label">اسم الحساب - Account Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="account_name" name="account_name" required placeholder="مثال: حساب الراجحي الجاري">
+                            </div>
+
+                            <!-- Bank Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="bank_name" class="form-label">اسم البنك - Bank Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="bank_name" name="bank_name" required placeholder="مثال: بنك الراجحي">
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_number" class="form-label">رقم الحساب - Account Number</label>
+                                <input type="text" class="form-control" id="account_number" name="account_number" placeholder="سيتم إنشاؤه تلقائياً إذا ترك فارغاً">
+                                <small class="text-muted">اتركه فارغاً للإنشاء التلقائي</small>
+                            </div>
+
+                            <!-- Branch Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="branch_name" class="form-label">اسم الفرع - Branch Name</label>
+                                <input type="text" class="form-control" id="branch_name" name="branch_name" placeholder="مثال: فرع الرياض الرئيسي">
+                            </div>
+
+                            <!-- IBAN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="iban" class="form-label">IBAN - رقم الآيبان</label>
+                                <input type="text" class="form-control" id="iban" name="iban" placeholder="SA0000000000000000000000">
+                            </div>
+
+                            <!-- SWIFT Code -->
+                            <div class="col-md-6 mb-3">
+                                <label for="swift_code" class="form-label">SWIFT Code - رمز السويفت</label>
+                                <input type="text" class="form-control" id="swift_code" name="swift_code" placeholder="RIBLSARI">
+                            </div>
+
+                            <!-- Account Type -->
+                            <div class="col-md-4 mb-3">
+                                <label for="account_type" class="form-label">نوع الحساب - Account Type</label>
+                                <select class="form-select" id="account_type" name="account_type">
+                                    <option value="current">جاري - Current</option>
+                                    <option value="savings">توفير - Savings</option>
+                                    <option value="investment">استثماري - Investment</option>
+                                </select>
+                            </div>
+
+                            <!-- Currency -->
+                            <div class="col-md-4 mb-3">
+                                <label for="currency" class="form-label">العملة - Currency</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="SAR" {% if currency == 'SAR' %}selected{% endif %}>SAR - ريال سعودي</option>
+                                    <option value="USD">USD - دولار أمريكي</option>
+                                    <option value="EUR">EUR - يورو</option>
+                                    <option value="GBP">GBP - جنيه إسترليني</option>
+                                    <option value="AED">AED - درهم إماراتي</option>
+                                </select>
+                            </div>
+
+                            <!-- Opening Balance -->
+                            <div class="col-md-4 mb-3">
+                                <label for="opening_balance" class="form-label">الرصيد الافتتاحي - Opening Balance <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="opening_balance" name="opening_balance" value="0" required>
+                            </div>
+
+                            <!-- Is Active -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        نشط - Active
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-md-12 mb-3">
+                                <label for="notes" class="form-label">ملاحظات - Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('banking.bank_list') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> رجوع - Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> حفظ - Save Bank Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+</style>
+{% endblock %}
+

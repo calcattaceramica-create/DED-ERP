@@ -4,9 +4,13 @@ from datetime import datetime
 # Settings Models
 class SystemSettings(db.Model):
     __tablename__ = 'system_settings'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    setting_key = db.Column(db.String(64), unique=True, nullable=False)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
+    setting_key = db.Column(db.String(64), nullable=False)
     setting_value = db.Column(db.Text)
     setting_type = db.Column(db.String(20), default='string')  # string, integer, float, boolean, json
     description = db.Column(db.Text)
@@ -14,14 +18,22 @@ class SystemSettings(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
+    # Unique constraint: setting_key + tenant_id
+    __table_args__ = (
+        db.UniqueConstraint('setting_key', 'tenant_id', name='uq_system_settings_key_tenant'),
+    )
+
     def __repr__(self):
         return f'<SystemSettings {self.setting_key}>'
 
 class AccountingSettings(db.Model):
     __tablename__ = 'accounting_settings'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
     
     # Sales Accounts
     sales_revenue_account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))

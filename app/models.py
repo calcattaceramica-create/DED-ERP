@@ -8,18 +8,29 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)  # Nullable for backward compatibility
+
+    username = db.Column(db.String(64), nullable=False, index=True)  # Removed unique constraint
+    email = db.Column(db.String(120), nullable=False, index=True)  # Removed unique constraint
     password_hash = db.Column(db.String(256))
     full_name = db.Column(db.String(128))
     phone = db.Column(db.String(20))
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
+    is_super_admin = db.Column(db.Boolean, default=False)  # Super admin can access all tenants
     language = db.Column(db.String(5), default='ar')
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+
+    # Unique constraint: username + tenant_id must be unique
+    __table_args__ = (
+        db.UniqueConstraint('username', 'tenant_id', name='uq_user_username_tenant'),
+        db.UniqueConstraint('email', 'tenant_id', name='uq_user_email_tenant'),
+    )
 
     # Security fields
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -30,6 +41,7 @@ class User(UserMixin, db.Model):
     last_ip_address = db.Column(db.String(45))  # IPv6 support
 
     # Relationships
+    tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='users')
     branch = db.relationship('Branch', foreign_keys=[branch_id], backref='users')
     role = db.relationship('Role', backref='users', lazy='joined')
 
@@ -192,8 +204,12 @@ class SessionLog(db.Model):
 # Company and Branch Models
 class Company(db.Model):
     __tablename__ = 'companies'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(128), nullable=False)
     name_en = db.Column(db.String(128))
     tax_number = db.Column(db.String(64))
@@ -205,21 +221,28 @@ class Company(db.Model):
     email = db.Column(db.String(120))
     website = db.Column(db.String(128))
     logo = db.Column(db.String(256))
-    currency = db.Column(db.String(3), default='SAR')
+    currency = db.Column(db.String(3), default='EUR')
     tax_rate = db.Column(db.Float, default=18.0)
     invoice_template = db.Column(db.String(50), default='modern')  # modern, classic, minimal, elegant
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship
+    tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='companies')
 
     def __repr__(self):
         return f'<Company {self.name}>'
 
 class Branch(db.Model):
     __tablename__ = 'branches'
-    
+
     id = db.Column(db.Integer, primary_key=True)
+
+    # Multi-Tenant Support
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+
     name = db.Column(db.String(128), nullable=False)
     name_en = db.Column(db.String(128))
-    code = db.Column(db.String(20), unique=True)
+    code = db.Column(db.String(20))  # Removed unique constraint
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
     address = db.Column(db.Text)
     city = db.Column(db.String(64))
@@ -227,7 +250,14 @@ class Branch(db.Model):
     manager_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    # Unique constraint: code + tenant_id must be unique
+    __table_args__ = (
+        db.UniqueConstraint('code', 'tenant_id', name='uq_branch_code_tenant'),
+    )
+
+    # Relationships
+    tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='branches')
     company = db.relationship('Company', backref='branches')
     manager = db.relationship('User', foreign_keys=[manager_id], backref='managed_branches')
 
@@ -238,11 +268,14 @@ class Branch(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Import Tenant model first
+from app.models_tenant import Tenant
+
 # Import all models
 from app.models_inventory import Category, Unit, Product, Warehouse, Stock, StockMovement, DamagedInventory
 from app.models_sales import Customer, SalesInvoice, SalesInvoiceItem, Quotation, QuotationItem, SalesOrder
 from app.models_purchases import Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseInvoice, PurchaseInvoiceItem, PurchaseReturn, PurchaseReturnItem
-from app.models_accounting import Account, JournalEntry, JournalEntryItem, Payment, BankAccount, CostCenter
+from app.models_accounting import Account, JournalEntry, JournalEntryItem, Payment, BankAccount, CostCenter, BankTransaction, Expense
 from app.models_hr import Employee, Department, Position, Attendance, Leave, LeaveType, Payroll
 from app.models_pos import POSSession, POSOrder, POSOrderItem
 from app.models_settings import SystemSettings, AccountingSettings

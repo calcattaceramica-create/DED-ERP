@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل المصروف - نظام إدارة المخزون{% endblock %}
+{% block page_title %}تفاصيل المصروف{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-receipt"></i> تفاصيل المصروف: {{ expense.expense_number }}</h4>
+                    <a href="{{ url_for('accounting.expenses') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right"></i> رجوع
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Expense Number -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">رقم المصروف</label>
+                            <p class="h5"><strong>{{ expense.expense_number }}</strong></p>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">التاريخ</label>
+                            <p class="h5">{{ expense.expense_date.strftime('%Y-%m-%d') }}</p>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">الفئة</label>
+                            <p class="h5">
+                                {% if expense.expense_category == 'rent' %}
+                                    <span class="badge bg-primary">إيجار</span>
+                                {% elif expense.expense_category == 'utilities' %}
+                                    <span class="badge bg-warning">مرافق</span>
+                                {% elif expense.expense_category == 'salaries' %}
+                                    <span class="badge bg-success">رواتب</span>
+                                {% elif expense.expense_category == 'maintenance' %}
+                                    <span class="badge bg-info">صيانة</span>
+                                {% elif expense.expense_category == 'transportation' %}
+                                    <span class="badge bg-secondary">مواصلات</span>
+                                {% elif expense.expense_category == 'office_supplies' %}
+                                    <span class="badge bg-dark">مستلزمات مكتبية</span>
+                                {% elif expense.expense_category == 'marketing' %}
+                                    <span class="badge bg-purple">تسويق</span>
+                                {% elif expense.expense_category == 'insurance' %}
+                                    <span class="badge bg-info">تأمين</span>
+                                {% elif expense.expense_category == 'taxes' %}
+                                    <span class="badge bg-danger">ضرائب</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ expense.expense_category }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">المبلغ</label>
+                            <p class="h4 text-danger"><strong>{{ "{:,.2f}".format(expense.amount) }} €</strong></p>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12 mb-3">
+                            <label class="text-muted">الوصف</label>
+                            <p class="h5">{{ expense.description }}</p>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">طريقة الدفع</label>
+                            <p class="h5">
+                                {% if expense.payment_method == 'cash' %}
+                                    <span class="badge bg-success">نقدي</span>
+                                {% elif expense.payment_method == 'bank' %}
+                                    <span class="badge bg-primary">بنكي</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Bank Account -->
+                        {% if expense.bank_account %}
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">الحساب البنكي</label>
+                            <p class="h5">{{ expense.bank_account.account_name }} - {{ expense.bank_account.bank_name }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Expense Account -->
+                        {% if expense.account %}
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">حساب المصروف</label>
+                            <p class="h5">{{ expense.account.code }} - {{ expense.account.name }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">الحالة</label>
+                            <p class="h5">
+                                {% if expense.status == 'posted' %}
+                                    <span class="badge bg-success">مرحل</span>
+                                {% elif expense.status == 'draft' %}
+                                    <span class="badge bg-warning">مسودة</span>
+                                {% else %}
+                                    <span class="badge bg-danger">ملغي</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Notes -->
+                        {% if expense.notes %}
+                        <div class="col-12 mb-3">
+                            <label class="text-muted">ملاحظات</label>
+                            <p class="h5">{{ expense.notes }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Created By -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">أنشئ بواسطة</label>
+                            <p class="h6">{{ expense.user.username if expense.user else 'غير معروف' }}</p>
+                        </div>
+
+                        <!-- Created At -->
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted">تاريخ الإنشاء</label>
+                            <p class="h6">{{ expense.created_at.strftime('%Y-%m-%d %H:%M') if expense.created_at else '-' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('accounting.expenses') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right"></i> رجوع للقائمة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

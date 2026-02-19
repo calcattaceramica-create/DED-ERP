@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}✏️ Edit Bank - Banking System{% endblock %}
+{% block page_title %}✏️ Edit Bank Account{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> تعديل حساب بنكي - Edit Bank Account</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('banking.edit_bank', id=bank.id) }}">
+                        <div class="row">
+                            <!-- Account Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_name" class="form-label">اسم الحساب - Account Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="account_name" name="account_name" required value="{{ bank.account_name }}">
+                            </div>
+
+                            <!-- Bank Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="bank_name" class="form-label">اسم البنك - Bank Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="bank_name" name="bank_name" required value="{{ bank.bank_name }}">
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_number" class="form-label">رقم الحساب - Account Number</label>
+                                <input type="text" class="form-control" id="account_number" name="account_number" value="{{ bank.account_number }}">
+                            </div>
+
+                            <!-- Branch Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="branch_name" class="form-label">اسم الفرع - Branch Name</label>
+                                <input type="text" class="form-control" id="branch_name" name="branch_name" value="{{ bank.branch or '' }}">
+                            </div>
+
+                            <!-- IBAN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="iban" class="form-label">IBAN - رقم الآيبان</label>
+                                <input type="text" class="form-control" id="iban" name="iban" value="{{ bank.iban or '' }}">
+                            </div>
+
+                            <!-- SWIFT Code -->
+                            <div class="col-md-6 mb-3">
+                                <label for="swift_code" class="form-label">SWIFT Code - رمز السويفت</label>
+                                <input type="text" class="form-control" id="swift_code" name="swift_code" value="{{ bank.swift_code or '' }}">
+                            </div>
+
+                            <!-- Account Type -->
+                            <div class="col-md-6 mb-3">
+                                <label for="account_type" class="form-label">نوع الحساب - Account Type</label>
+                                <select class="form-select" id="account_type" name="account_type">
+                                    <option value="current" {% if bank.account_type == 'current' %}selected{% endif %}>جاري - Current</option>
+                                    <option value="savings" {% if bank.account_type == 'savings' %}selected{% endif %}>توفير - Savings</option>
+                                    <option value="investment" {% if bank.account_type == 'investment' %}selected{% endif %}>استثماري - Investment</option>
+                                </select>
+                            </div>
+
+                            <!-- Currency -->
+                            <div class="col-md-6 mb-3">
+                                <label for="currency" class="form-label">العملة - Currency</label>
+                                <input type="text" class="form-control" id="currency" name="currency" value="{{ bank.currency }}" readonly>
+                            </div>
+
+                            <!-- Current Balance (Read Only) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="current_balance" class="form-label">الرصيد الحالي - Current Balance</label>
+                                <input type="text" class="form-control" id="current_balance" value="{{ '{:,.2f}'.format(bank.current_balance) }}" readonly>
+                                <small class="text-muted">لا يمكن تعديل الرصيد مباشرة - استخدم المعاملات</small>
+                            </div>
+
+                            <!-- Opening Balance (Read Only) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="opening_balance" class="form-label">الرصيد الافتتاحي - Opening Balance</label>
+                                <input type="text" class="form-control" id="opening_balance" value="{{ '{:,.2f}'.format(bank.opening_balance) }}" readonly>
+                                <small class="text-muted">لا يمكن تعديل الرصيد الافتتاحي</small>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if bank.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        نشط - Active
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-md-12 mb-3">
+                                <label for="notes" class="form-label">ملاحظات - Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3">{{ bank.notes or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> حفظ التعديلات - Save Changes
+                            </button>
+                            <a href="{{ url_for('banking.bank_details', id=bank.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> إلغاء - Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
