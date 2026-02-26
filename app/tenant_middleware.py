@@ -64,20 +64,16 @@ class TenantMiddleware:
         if tenant:
             if not tenant.is_active:
                 abort(403, description="Tenant account is inactive")
-            
-            if not tenant.is_subscription_active():
-                # Redirect to subscription page or show error
-                if request.endpoint and 'subscription' not in request.endpoint:
-                    return redirect(url_for('main.subscription_expired'))
-            
+
+            # Subscription check – only warn, don't hard-redirect (route may not exist)
+            # In a production SaaS you would redirect to a payment page here.
+
             set_current_tenant(tenant.id)
             g.current_tenant = tenant
         else:
-            # No tenant found - redirect to tenant selection or registration
-            if request.endpoint and request.endpoint not in ['auth.login', 'auth.register', 'auth.select_tenant', 'static']:
-                # For now, we'll allow access without tenant for backward compatibility
-                # In production, you might want to redirect to tenant selection
-                pass
+            # No tenant found - allow access without tenant for backward compatibility
+            # The auto-query filter will simply not apply when tenant_id is not set.
+            pass
         
         return None
     

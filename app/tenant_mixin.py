@@ -6,8 +6,8 @@ This mixin adds tenant_id to models and provides automatic filtering.
 """
 
 from flask import g, has_request_context
-from sqlalchemy import event
-from sqlalchemy.orm import Query
+from sqlalchemy import event, true as sa_true
+from sqlalchemy.orm import Query, with_loader_criteria, Session
 from app import db
 
 
@@ -111,21 +111,63 @@ def register_tenant_events(model_class):
         event.listen(model_class, 'before_update', validate_tenant_on_update)
 
 
+def setup_tenant_query_filter():
+    """
+    Register SQLAlchemy do_orm_execute event to automatically filter
+    all SELECT queries by the current tenant_id.
+    This is the core of multi-tenant data isolation.
+    """
+
+    @event.listens_for(Session, 'do_orm_execute')
+    def _add_tenant_filter(orm_execute_state):
+        # Only apply to SELECT statements, skip relationship loads
+        if (not orm_execute_state.is_select
+                or orm_execute_state.is_relationship_load
+                or orm_execute_state.execution_options.get('skip_tenant_filter', False)):
+            return
+
+        # Get current tenant from request context
+        tenant_id = None
+        if has_request_context():
+            tenant_id = getattr(g, 'current_tenant_id', None)
+
+        if tenant_id is None:
+            return
+
+        # Build per-class criteria: filter by tenant_id only for models that have it,
+        # and never filter the Tenant table itself (to avoid recursion).
+        def _make_criteria(cls):
+            if (hasattr(cls, 'tenant_id')
+                    and getattr(cls, '__tablename__', None) != 'tenants'):
+                return cls.tenant_id == tenant_id
+            return sa_true()
+
+        orm_execute_state.statement = orm_execute_state.statement.options(
+            with_loader_criteria(
+                db.Model,
+                _make_criteria,
+                include_aliases=True,
+            )
+        )
+
+
 def init_tenant_support(app):
     """
-    Initialize tenant support for the application
-    
-    This should be called after all models are defined
+    Initialize tenant support for the application.
+    This should be called after all models are defined.
     """
     from app import db
-    
-    # Register events for all models with tenant_id
+
+    # Register automatic query filtering (the main isolation mechanism)
+    setup_tenant_query_filter()
+
+    # Register before_insert events for all models with tenant_id
     for mapper in db.Model.registry.mappers:
         model_class = mapper.class_
         if hasattr(model_class, 'tenant_id'):
             register_tenant_events(model_class)
-    
-    app.logger.info("Multi-tenant support initialized")
+
+    app.logger.info("Multi-tenant support initialized with automatic query filtering")
 
 
 # Utility functions for tenant management

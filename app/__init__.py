@@ -1,4 +1,4 @@
-from flask import Flask, request, session
+from flask import Flask, request, session, g, has_request_context
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -120,6 +120,15 @@ def create_app(config_name='default'):
     from app.backup import bp as backup_bp
     app.register_blueprint(backup_bp, url_prefix='/backup')
 
+    # ─── Multi-Tenant: register middleware and automatic query filtering ───
+    from app.tenant_middleware import TenantMiddleware
+    TenantMiddleware(app)
+
+    from app.tenant_mixin import init_tenant_support
+    with app.app_context():
+        init_tenant_support(app)
+    # ──────────────────────────────────────────────────────────────────────
+
     # Add context processor for translations and currency
     @app.context_processor
     def inject_locale():
@@ -138,12 +147,19 @@ def create_app(config_name='default'):
         from flask_babel import gettext
 
         try:
+            # Use tenant-aware query (auto-filtered by current tenant)
             company = Company.query.first()
             if company and company.currency:
                 currency_code = company.currency
             else:
-                currency_code = app.config.get('DEFAULT_CURRENCY', 'SAR')
-        except:
+                # Fall back to the current tenant's currency setting
+                currency_code = 'SAR'
+                if has_request_context():
+                    tenant = getattr(g, 'current_tenant', None)
+                    if tenant and tenant.currency:
+                        currency_code = tenant.currency
+                currency_code = currency_code or app.config.get('DEFAULT_CURRENCY', 'SAR')
+        except Exception:
             # Fallback if database is not available
             currency_code = 'SAR'
 

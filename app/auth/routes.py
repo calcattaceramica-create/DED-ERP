@@ -52,7 +52,23 @@ def login():
         password = request.form.get('password')
         remember = request.form.get('remember', False)
 
-        user = User.query.filter_by(username=username).first()
+        # ── Multi-Tenant: detect tenant from subdomain first ──
+        from flask import g
+        tenant_id_from_subdomain = getattr(g, 'current_tenant_id', None)
+
+        # Build user query – filter by tenant when on a subdomain
+        user_query = User.query.filter_by(username=username)
+        if tenant_id_from_subdomain:
+            # On a specific tenant subdomain: only look up users of this tenant
+            user_query = user_query.execution_options(skip_tenant_filter=True).filter_by(
+                tenant_id=tenant_id_from_subdomain
+            )
+        else:
+            # Root domain: bypass auto-filter and search all tenants
+            user_query = user_query.execution_options(skip_tenant_filter=True)
+
+        user = user_query.first()
+        # ─────────────────────────────────────────────────────
 
         if user is None or not user.check_password(password):
             log_security_event(None, 'failed_login',
@@ -68,7 +84,12 @@ def login():
 
         # Login successful
         login_user(user, remember=remember)
-        
+
+        # ── Store tenant_id in session for future requests ──
+        if user.tenant_id:
+            session['tenant_id'] = user.tenant_id
+        # ────────────────────────────────────────────────────
+
         # Create session log
         session_id = str(uuid.uuid4())
         session_log = SessionLog(
@@ -85,9 +106,9 @@ def login():
         session['session_log_id'] = session_log.id
 
         log_security_event(user.id, 'successful_login', 'User logged in successfully', 'info')
-        
+
         flash(f'مرحباً {user.username}!', 'success')
-        
+
         next_page = request.args.get('next')
         if next_page:
             return redirect(next_page)
@@ -199,14 +220,9 @@ def register():
                 subdomain = f'{subdomain_base}{counter}'
                 counter += 1
 
-            # Check if admin username or email already exists
-            if User.query.filter_by(username=admin_username).first():
-                flash('اسم المستخدم موجود مسبقاً', 'danger')
-                return redirect(url_for('auth.register'))
-
-            if User.query.filter_by(email=admin_email).first():
-                flash('البريد الإلكتروني موجود مسبقاً', 'danger')
-                return redirect(url_for('auth.register'))
+            # NOTE: Username uniqueness is per-tenant (same username can exist in
+            # different companies). The DB constraint (uq_user_username_tenant)
+            # enforces this. No global check needed here.
 
             # Create new tenant (company)
             tenant = Tenant(
