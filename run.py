@@ -1,6 +1,18 @@
 import os
 import sys
 
+# Fix Windows console encoding to support UTF-8
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # Use production config on Render, development otherwise
 config_name = os.getenv('FLASK_ENV', 'development')
 if config_name == 'production':
@@ -37,7 +49,7 @@ def init_database():
                     print(f"Created database directory: {db_dir}")
 
             db.create_all()
-            print("✅ Database tables created successfully!")
+            print("[OK] Database tables created successfully!")
 
             # Initialize default data if database is empty
             from app.models import Company, Branch, Role, User, Unit, Warehouse, Account, Permission
@@ -203,11 +215,11 @@ def init_database():
                 db.session.add_all(accounts)
 
                 db.session.commit()
-                print('✅ Default data initialized successfully!')
+                print('[OK] Default data initialized successfully!')
             else:
-                print('ℹ️ Database already contains data, skipping initialization')
+                print('[INFO] Database already contains data, skipping initialization')
         except Exception as e:
-            print(f"❌ Database initialization error: {e}")
+            print(f"[ERROR] Database initialization error: {e}")
             import traceback
             traceback.print_exc()
             # Don't exit - let the app start anyway
@@ -334,34 +346,26 @@ if __name__ == '__main__':
     cert_file = os.path.join(ssl_dir, 'cert.pem')
     key_file = os.path.join(ssl_dir, 'key.pem')
 
+    # Disable reloader when running via pythonw.exe (no console) to prevent multiple process conflicts
+    is_pythonw = 'pythonw' in sys.executable.lower()
+    use_reloader = not is_pythonw
+    debug_mode = not is_pythonw
+
     # Use HTTPS if certificates exist, otherwise HTTP
     if os.path.exists(cert_file) and os.path.exists(key_file):
         print("\n" + "=" * 100)
-        print("🔒 Starting server with HTTPS (SSL enabled)")
-        print("🔒 بدء الخادم مع HTTPS (SSL مفعل)")
-        print("=" * 100)
-        print(f"📁 Certificate: {cert_file}")
-        print(f"🔑 Private Key: {key_file}")
-        print(f"🌐 URL: https://127.0.0.1:5000")
-        print(f"🌐 URL: https://localhost:5000")
-        print("\n⚠️  Note: Browser will show security warning for self-signed certificate")
-        print("⚠️  ملاحظة: المتصفح سيظهر تحذير أمان للشهادة ذاتية التوقيع")
-        print("   Click 'Advanced' → 'Proceed to localhost' to continue")
-        print("   اضغط 'متقدم' ← 'المتابعة إلى localhost' للاستمرار")
+        print("[SSL] Starting server with HTTPS (SSL enabled)")
+        print("[URL] https://127.0.0.1:5000")
         print("=" * 100 + "\n")
 
-        # Create SSL context
         ssl_context = (cert_file, key_file)
-        app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=ssl_context)
+        app.run(debug=debug_mode, host='0.0.0.0', port=5000,
+                ssl_context=ssl_context, use_reloader=use_reloader)
     else:
         print("\n" + "=" * 100)
-        print("⚠️  SSL certificates not found - Starting with HTTP")
-        print("⚠️  شهادات SSL غير موجودة - بدء الخادم مع HTTP")
-        print("=" * 100)
-        print(f"💡 To enable HTTPS, run: python generate_ssl_cert.py")
-        print(f"💡 لتفعيل HTTPS، شغّل: python generate_ssl_cert.py")
-        print(f"🌐 URL: http://127.0.0.1:5000")
+        print("[INFO] Starting DED ERP System on HTTP")
+        print("[URL] http://127.0.0.1:5000")
         print("=" * 100 + "\n")
 
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=debug_mode, host='0.0.0.0', port=5000, use_reloader=use_reloader)
 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Profit & Loss Statement') }} - {{ _('Inventory Management System') }}{% endblock %}
 
@@ -35,6 +35,9 @@
                                     <button type="button" onclick="window.print()" class="btn btn-dark">
                                         <i class="fas fa-print"></i> {{ _('Print') }}
                                     </button>
+                                    <a href="{{ url_for('reports.export_pdf_profit_loss', start_date=start_date or '', end_date=end_date or '') }}" class="btn btn-danger">
+                                        <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -53,7 +56,7 @@
                                         <i class="fas fa-dollar-sign"></i> {{ _('Total Sales') }}
                                     </h6>
                                     <h2 style="color: white !important; font-weight: bold; margin-bottom: 0;">
-                                        {{ "{:,.2f}".format(total_revenue) }} {{ currency_symbol }}
+                                        {{ currency_prefix }}{{ "{:,.2f}".format(total_revenue) }}{{ currency_suffix }}
                                     </h2>
                                 </div>
                                 <div style="color: white !important; opacity: 0.5;">
@@ -73,7 +76,7 @@
                                         <i class="fas fa-shopping-cart"></i> {{ _('Total Purchases') }}
                                     </h6>
                                     <h2 style="color: white !important; font-weight: bold; margin-bottom: 0;">
-                                        {{ "{:,.2f}".format(total_cogs) }} {{ currency_symbol }}
+                                        {{ currency_prefix }}{{ "{:,.2f}".format(total_cogs) }}{{ currency_suffix }}
                                     </h2>
                                 </div>
                                 <div style="color: white !important; opacity: 0.5;">
@@ -98,7 +101,7 @@
                                         {% else %}
                                             <i class="fas fa-arrow-down"></i>
                                         {% endif %}
-                                        {{ "{:,.2f}".format(gross_profit) }} {{ currency_symbol }}
+                                        {{ currency_prefix }}{{ "{:,.2f}".format(gross_profit) }}{{ currency_suffix }}
                                     </h2>
                                 </div>
                                 <div style="color: white !important; opacity: 0.5;">
@@ -125,11 +128,11 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-4">{{ _('Total Sales') }}</td>
-                                    <td class="text-end"><strong>{{ "{:,.2f}".format(total_revenue) }} {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong>{{ currency_prefix }}{{ "{:,.2f}".format(total_revenue) }}{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr class="table-light">
                                     <td><strong>{{ _('Total Revenue') }}</strong></td>
-                                    <td class="text-end"><strong class="text-success">{{ "{:,.2f}".format(total_revenue) }} {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong class="text-success">{{ currency_prefix }}{{ "{:,.2f}".format(total_revenue) }}{{ currency_suffix }}</strong></td>
                                 </tr>
 
                                 <!-- Cost of Goods Sold Section -->
@@ -138,11 +141,11 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-4">{{ _('Total Purchases') }}</td>
-                                    <td class="text-end"><strong>{{ "{:,.2f}".format(total_cogs) }} {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong>{{ currency_prefix }}{{ "{:,.2f}".format(total_cogs) }}{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr class="table-light">
                                     <td><strong>{{ _('Total COGS') }}</strong></td>
-                                    <td class="text-end"><strong class="text-danger">{{ "{:,.2f}".format(total_cogs) }} {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong class="text-danger">{{ currency_prefix }}{{ "{:,.2f}".format(total_cogs) }}{{ currency_suffix }}</strong></td>
                                 </tr>
 
                                 <!-- Gross Profit Section -->
@@ -155,7 +158,7 @@
                                         <strong>
                                             {{ "{:,.2f}".format(total_revenue) }} - {{ "{:,.2f}".format(total_cogs) }} =
                                             <span class="{% if gross_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                                {{ "{:,.2f}".format(gross_profit) }} {{ currency_symbol }}
+                                                {{ currency_prefix }}{{ "{:,.2f}".format(gross_profit) }}{{ currency_suffix }}
                                             </span>
                                         </strong>
                                     </td>
@@ -164,7 +167,7 @@
                                     <td><strong><i class="fas fa-trophy"></i> {{ _('Net Profit/Loss') }}</strong></td>
                                     <td class="text-end">
                                         <h4 class="mb-0 {% if gross_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ "{:,.2f}".format(gross_profit) }} {{ currency_symbol }}
+                                            {{ currency_prefix }}{{ "{:,.2f}".format(gross_profit) }}{{ currency_suffix }}
                                             {% if gross_profit >= 0 %}
                                                 <i class="fas fa-arrow-up"></i>
                                             {% else %}

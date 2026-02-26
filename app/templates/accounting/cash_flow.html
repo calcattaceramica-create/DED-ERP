@@ -20,7 +20,7 @@
                     <!-- Report Header -->
                     <div class="text-center mb-4">
                         <h3>قائمة التدفقات النقدية</h3>
-                        <p class="text-muted">Cash Flow Statement</p>
+                        <p class="text-muted">{{ _('Cash Flow Statement') }}</p>
                         <p>الفترة: {{ start_date }} إلى {{ end_date }}</p>
                     </div>
 
@@ -133,7 +133,7 @@
                                 <div class="card-body text-center">
                                     <h6>التدفقات التشغيلية</h6>
                                     <h3>{{ "{:,.2f}".format(operating_cash_flow) }}</h3>
-                                    <small>Operating Cash Flow</small>
+                                    <small>{{ _('Operating Cash Flow') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -142,7 +142,7 @@
                                 <div class="card-body text-center">
                                     <h6>التدفقات الاستثمارية</h6>
                                     <h3>{{ "{:,.2f}".format(investing_cash_flow) }}</h3>
-                                    <small>Investing Cash Flow</small>
+                                    <small>{{ _('Investing Cash Flow') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -151,7 +151,7 @@
                                 <div class="card-body text-center">
                                     <h6>التدفقات التمويلية</h6>
                                     <h3>{{ "{:,.2f}".format(financing_cash_flow) }}</h3>
-                                    <small>Financing Cash Flow</small>
+                                    <small>{{ _('Financing Cash Flow') }}</small>
                                 </div>
                             </div>
                         </div>

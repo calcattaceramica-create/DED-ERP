@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Inventory Valuation Report') }} - {{ _('Inventory Management System') }}{% endblock %}
 
@@ -45,9 +45,12 @@
                             <i class="fas fa-info-circle"></i> {{ _('Current inventory value based on cost price') }}
                         </p>
                         <div>
-                            <button type="button" onclick="window.print()" class="btn btn-dark">
+                            <button type="button" onclick="window.print()" class="btn btn-dark me-1">
                                 <i class="fas fa-print"></i> {{ _('Print') }}
                             </button>
+                            <a href="{{ url_for('reports.export_pdf_inventory') }}" class="btn btn-danger me-1">
+                                <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                            </a>
                             <button type="button" onclick="exportToExcel()" class="btn btn-success">
                                 <i class="fas fa-file-excel"></i> {{ _('Export to Excel') }}
                             </button>
@@ -65,9 +68,9 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="text-white-50 mb-2">
-                                        <i class="fas fa-warehouse"></i> إجمالي قيمة المخزون
+                                        <i class="fas fa-warehouse"></i> {{ _('Total Inventory Value') }}
                                     </h6>
-                                    <h2 class="mb-0">{{ "{:,.2f}".format(total_value) }} {{ currency_symbol }}</h2>
+                                    <h2 class="mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_value) }}{{ currency_suffix }}</h2>
                                 </div>
                                 <div class="text-white-50">
                                     <i class="fas fa-warehouse fa-3x"></i>
@@ -84,10 +87,10 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="text-white-50 mb-2">
-                                        <i class="fas fa-boxes"></i> إجمالي المنتجات
+                                        <i class="fas fa-boxes"></i> {{ _('Total Products') }}
                                     </h6>
                                     <h2 class="mb-0">{{ inventory_data|length }}</h2>
-                                    <small class="text-white-50">منتج</small>
+                                    <small class="text-white-50">{{ _('Product') }}</small>
                                 </div>
                                 <div class="text-white-50">
                                     <i class="fas fa-boxes fa-3x"></i>
@@ -104,16 +107,16 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="text-white-50 mb-2">
-                                        <i class="fas fa-chart-line"></i> متوسط القيمة
+                                        <i class="fas fa-chart-line"></i> {{ _('Average Value') }}
                                     </h6>
                                     <h2 class="mb-0">
                                         {% if inventory_data|length > 0 %}
-                                            {{ "{:,.2f}".format(total_value / inventory_data|length) }} {{ currency_symbol }}
+                                            {{ currency_prefix }}{{ "{:,.2f}".format(total_value / inventory_data|length) }}{{ currency_suffix }}
                                         {% else %}
-                                            0.00 {{ currency_symbol }}
+                                            {{ currency_prefix }}0.00{{ currency_suffix }}
                                         {% endif %}
                                     </h2>
-                                    <small class="text-white-50">لكل منتج</small>
+                                    <small class="text-white-50">{{ _('Per Product') }}</small>
                                 </div>
                                 <div class="text-white-50">
                                     <i class="fas fa-chart-line fa-3x"></i>
@@ -167,9 +170,9 @@
                                                 {{ "{:,.2f}".format(item.stock) }} {{ item.product.unit }}
                                             </span>
                                         </td>
-                                        <td class="text-end">{{ "{:,.2f}".format(item.product.cost_price) }} {{ currency_symbol }}</td>
+                                        <td class="text-end">{{ currency_prefix }}{{ "{:,.2f}".format(item.product.cost_price) }}{{ currency_suffix }}</td>
                                         <td class="text-end">
-                                            <strong class="text-primary">{{ "{:,.2f}".format(item.value) }} {{ currency_symbol }}</strong>
+                                            <strong class="text-primary">{{ currency_prefix }}{{ "{:,.2f}".format(item.value) }}{{ currency_suffix }}</strong>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -188,7 +191,7 @@
                                         <h5 class="mb-0"><i class="fas fa-calculator"></i> {{ _('Total Inventory Value') }}:</h5>
                                     </th>
                                     <th class="text-end">
-                                        <h5 class="mb-0 text-primary">{{ "{:,.2f}".format(total_value) }} {{ currency_symbol }}</h5>
+                                        <h5 class="mb-0 text-primary">{{ currency_prefix }}{{ "{:,.2f}".format(total_value) }}{{ currency_suffix }}</h5>
                                     </th>
                                 </tr>
                             </tfoot>
@@ -202,39 +205,39 @@
                 <div class="col-md-3">
                     <div class="card bg-gradient-info text-white shadow-sm">
                         <div class="card-body">
-                            <h6 class="text-white-50 mb-1"><i class="fas fa-boxes"></i> إجمالي المنتجات</h6>
+                            <h6 class="text-white-50 mb-1"><i class="fas fa-boxes"></i> {{ _('Total Products') }}</h6>
                             <h4 class="mb-0">{{ inventory_data|length }}</h4>
-                            <small>منتج</small>
+                            <small>{{ _('Product') }}</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-gradient-success text-white shadow-sm">
                         <div class="card-body">
-                            <h6 class="text-white-50 mb-1"><i class="fas fa-check-circle"></i> متوفر في المخزون</h6>
+                            <h6 class="text-white-50 mb-1"><i class="fas fa-check-circle"></i> {{ _('In Stock') }}</h6>
                             <h4 class="mb-0">{{ inventory_data|selectattr('stock', 'gt', 0)|list|length }}</h4>
-                            <small>منتج</small>
+                            <small>{{ _('Product') }}</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-gradient-warning text-white shadow-sm">
                         <div class="card-body">
-                            <h6 class="text-white-50 mb-1"><i class="fas fa-exclamation-triangle"></i> مخزون منخفض</h6>
+                            <h6 class="text-white-50 mb-1"><i class="fas fa-exclamation-triangle"></i> {{ _('Low Stock') }}</h6>
                             <h4 class="mb-0">{{ inventory_data|selectattr('stock', 'le', inventory_data[0].product.min_stock if inventory_data else 0)|list|length }}</h4>
-                            <small>منتج</small>
+                            <small>{{ _('Product') }}</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-gradient-primary text-white shadow-sm">
                         <div class="card-body">
-                            <h6 class="text-white-50 mb-1"><i class="fas fa-dollar-sign"></i> متوسط القيمة</h6>
+                            <h6 class="text-white-50 mb-1"><i class="fas fa-dollar-sign"></i> {{ _('Average Value') }}</h6>
                             <h4 class="mb-0">
                                 {% if inventory_data|length > 0 %}
-                                    {{ "{:,.2f}".format(total_value / inventory_data|length) }} {{ currency_symbol }}
+                                    {{ currency_prefix }}{{ "{:,.2f}".format(total_value / inventory_data|length) }}{{ currency_suffix }}
                                 {% else %}
-                                    0.00 {{ currency_symbol }}
+                                    {{ currency_prefix }}0.00{{ currency_suffix }}
                                 {% endif %}
                             </h4>
                         </div>

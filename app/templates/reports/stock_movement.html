@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}تقرير حركة المخزون - نظام إدارة المخزون{% endblock %}
-{% block page_title %}تقرير حركة المخزون{% endblock %}
+{% block title %}{{ _('Stock Movement Report') }}{% endblock %}
+{% block page_title %}{{ _('Stock Movement Report') }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h3><i class="fas fa-exchange-alt"></i> تقرير حركة المخزون</h3>
-    <p class="text-muted mb-0">جميع حركات الإدخال والإخراج للمخزون</p>
+    <h3><i class="fas fa-exchange-alt"></i> {{ _('Stock Movement Report') }}</h3>
+    <p class="text-muted mb-0">{{ _('All stock entry and exit movements') }}</p>
 </div>
 
 <!-- Filters -->
 <div class="card shadow mb-4">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-filter"></i> تصفية النتائج</h5>
+        <h5 class="mb-0"><i class="fas fa-filter"></i> {{ _('Filter Results') }}</h5>
     </div>
     <div class="card-body">
         <form method="GET" action="{{ url_for('reports.stock_movement_report') }}">
             <div class="row">
                 <div class="col-md-3">
-                    <label class="form-label">من تاريخ</label>
+                    <label class="form-label">{{ _('From Date') }}</label>
                     <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">إلى تاريخ</label>
+                    <label class="form-label">{{ _('To Date') }}</label>
                     <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">المنتج</label>
+                    <label class="form-label">{{ _('Product') }}</label>
                     <select name="product_id" class="form-select">
-                        <option value="">الكل</option>
+                        <option value="">{{ _('All') }}</option>
                         {% for product in products %}
                         <option value="{{ product.id }}" {% if selected_product_id == product.id %}selected{% endif %}>
                             {{ product.name }}
@@ -37,9 +37,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">المستودع</label>
+                    <label class="form-label">{{ _('Warehouse') }}</label>
                     <select name="warehouse_id" class="form-select">
-                        <option value="">الكل</option>
+                        <option value="">{{ _('All') }}</option>
                         {% for warehouse in warehouses %}
                         <option value="{{ warehouse.id }}" {% if selected_warehouse_id == warehouse.id %}selected{% endif %}>
                             {{ warehouse.name }}
@@ -51,14 +51,17 @@
             <div class="row mt-3">
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> بحث
+                        <i class="fas fa-search"></i> {{ _('Search') }}
                     </button>
                     <a href="{{ url_for('reports.stock_movement_report') }}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> إعادة تعيين
+                        <i class="fas fa-redo"></i> {{ _('Reset') }}
                     </a>
                     <button type="button" onclick="window.print()" class="btn btn-info">
-                        <i class="fas fa-print"></i> طباعة
+                        <i class="fas fa-print"></i> {{ _('Print') }}
                     </button>
+                    <a href="{{ url_for('reports.export_pdf_stock_movement', start_date=start_date or '', end_date=end_date or '') }}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                    </a>
                 </div>
             </div>
         </form>
@@ -68,7 +71,7 @@
 <!-- Results -->
 <div class="card shadow">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-list"></i> الحركات ({{ movements|length }})</h5>
+        <h5 class="mb-0"><i class="fas fa-list"></i> {{ _('Movements') }} ({{ movements|length }})</h5>
     </div>
     <div class="card-body">
         {% if movements %}
@@ -77,13 +80,13 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>التاريخ</th>
-                        <th>المنتج</th>
-                        <th>المستودع</th>
-                        <th>النوع</th>
-                        <th>الكمية</th>
-                        <th>المرجع</th>
-                        <th>المستخدم</th>
+                        <th>{{ _('Date') }}</th>
+                        <th>{{ _('Product') }}</th>
+                        <th>{{ _('Warehouse') }}</th>
+                        <th>{{ _('Type') }}</th>
+                        <th>{{ _('Quantity') }}</th>
+                        <th>{{ _('Reference') }}</th>
+                        <th>{{ _('User') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,9 +98,9 @@
                         <td>{{ movement.warehouse.name }}</td>
                         <td>
                             {% if movement.movement_type == 'in' %}
-                                <span class="badge bg-success">إدخال</span>
+                                <span class="badge bg-success">{{ _('Stock In') }}</span>
                             {% else %}
-                                <span class="badge bg-danger">إخراج</span>
+                                <span class="badge bg-danger">{{ _('Stock Out') }}</span>
                             {% endif %}
                         </td>
                         <td>
@@ -109,15 +112,15 @@
                         </td>
                         <td>
                             {% if movement.reference_type == 'sale' %}
-                                <span class="badge bg-info">مبيعات</span>
+                                <span class="badge bg-info">{{ _('Sales') }}</span>
                             {% elif movement.reference_type == 'purchase' %}
-                                <span class="badge bg-primary">مشتريات</span>
+                                <span class="badge bg-primary">{{ _('Purchases') }}</span>
                             {% elif movement.reference_type == 'transfer' %}
-                                <span class="badge bg-warning">تحويل</span>
+                                <span class="badge bg-warning">{{ _('Transfer') }}</span>
                             {% elif movement.reference_type == 'adjustment' %}
-                                <span class="badge bg-secondary">تسوية</span>
+                                <span class="badge bg-secondary">{{ _('Adjustment') }}</span>
                             {% elif movement.reference_type == 'initial_stock' %}
-                                <span class="badge bg-dark">رصيد افتتاحي</span>
+                                <span class="badge bg-dark">{{ _('Initial Stock') }}</span>
                             {% else %}
                                 <span class="badge bg-light text-dark">{{ movement.reference_type }}</span>
                             {% endif %}
@@ -131,7 +134,7 @@
         {% else %}
         <div class="alert alert-info text-center">
             <i class="fas fa-info-circle"></i>
-            لا توجد حركات مخزون بالمعايير المحددة
+            {{ _('No stock movements found') }}
         </div>
         {% endif %}
     </div>

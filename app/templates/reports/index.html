@@ -27,7 +27,7 @@
                     <a href="{{ url_for('reports.sales_by_customer') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-users"></i> {{ _('Sales Report by Customer') }}
                     </a>
-                    <a href="{{ url_for('reports.sales_report') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.sales_monthly') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-calendar"></i> {{ _('Monthly Sales Report') }}
                     </a>
                 </div>
@@ -49,7 +49,7 @@
                     <a href="{{ url_for('reports.purchases_by_product') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-chart-line"></i> {{ _('Purchase Report by Product') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.purchases_by_supplier') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-truck"></i> {{ _('Purchase Report by Supplier') }}
                     </a>
                     <a href="{{ url_for('reports.purchases_monthly') }}" class="list-group-item list-group-item-action">
@@ -96,13 +96,13 @@
                     <a href="{{ url_for('reports.profit_loss') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-chart-pie"></i> {{ _('Profit and Loss Statement') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('accounting.balance_sheet') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-balance-scale"></i> {{ _('Balance Sheet') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.cash_flow') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-money-bill-wave"></i> {{ _('Cash Flow Report') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.accounts_receivable') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-file-invoice-dollar"></i> {{ _('Accounts Receivable Report') }}
                     </a>
                 </div>
@@ -118,16 +118,16 @@
             </div>
             <div class="card-body">
                 <div class="list-group">
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.customers_list') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-user-friends"></i> {{ _('Customer List') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.customers_top') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-star"></i> {{ _('Top Customers Report') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.customers_balances') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-credit-card"></i> {{ _('Customer Balances Report') }}
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('reports.customers_list') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-history"></i> {{ _('Customer History Report') }}
                     </a>
                 </div>

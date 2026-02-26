@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Sales Invoices') }} - {{ _('Inventory Management System') }}{% endblock %}
 {% block page_title %}{{ _('Sales Invoices') }}{% endblock %}
@@ -15,6 +15,74 @@
                 <a href="{{ url_for('sales.add_invoice') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">{{ _('Add New Invoice') }}</span>
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-3">
+                    <div class="fs-1 text-primary"><i class="fas fa-file-invoice"></i></div>
+                    <h4 class="fw-bold mb-0">{{ total_count }}</h4>
+                    <small class="text-muted">{{ _('Total Invoices') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-3">
+                    <div class="fs-1 text-success"><i class="fas fa-coins"></i></div>
+                    <h4 class="fw-bold mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_amount) }}{{ currency_suffix }}</h4>
+                    <small class="text-muted">{{ _('Total Sales') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-3">
+                    <div class="fs-1 text-info"><i class="fas fa-check-circle"></i></div>
+                    <h4 class="fw-bold mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_paid) }}{{ currency_suffix }}</h4>
+                    <small class="text-muted">{{ _('Paid Amount') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-3">
+                    <div class="fs-1 text-danger"><i class="fas fa-clock"></i></div>
+                    <h4 class="fw-bold mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_remaining) }}{{ currency_suffix }}</h4>
+                    <small class="text-muted">{{ _('Remaining Amount') }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header"><i class="fas fa-chart-pie text-primary"></i> {{ _('Invoice Status') }}</div>
+                <div class="card-body" style="height:260px; position:relative;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header"><i class="fas fa-chart-pie text-success"></i> {{ _('Payment Status') }}</div>
+                <div class="card-body" style="height:260px; position:relative;">
+                    <canvas id="payChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><i class="fas fa-chart-bar text-warning"></i> {{ _('Monthly Sales') }}</div>
+                <div class="card-body" style="height:260px; position:relative;">
+                    <canvas id="monthChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -260,8 +328,68 @@
     </div>
 </div>
 
-{% block scripts %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// Status Chart
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['{{ _("Draft") }}', '{{ _("Confirmed") }}', '{{ _("Paid") }}', '{{ _("Cancelled") }}'],
+        datasets: [{
+            data: [
+                {{ status_counts.draft }},
+                {{ status_counts.confirmed }},
+                {{ status_counts.paid }},
+                {{ status_counts.cancelled }}
+            ],
+            backgroundColor: ['#6c757d','#0d6efd','#198754','#dc3545']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// Payment Status Chart
+new Chart(document.getElementById('payChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['{{ _("Paid") }}', '{{ _("Partial") }}', '{{ _("Unpaid") }}'],
+        datasets: [{
+            data: [{{ pay_counts.paid }}, {{ pay_counts.partial }}, {{ pay_counts.unpaid }}],
+            backgroundColor: ['#198754','#ffc107','#dc3545']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// Monthly Sales Chart
+new Chart(document.getElementById('monthChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ month_labels|tojson }},
+        datasets: [{
+            label: '{{ _("Sales") }}',
+            data: {{ month_data|tojson }},
+            backgroundColor: 'rgba(13,110,253,0.7)',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
 function confirmDeleteInvoice(invoiceId, invoiceNumber) {
     // Set invoice number in modal
     document.getElementById('invoiceNumber').textContent = invoiceNumber;

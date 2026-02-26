@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Quotation Details') }} {{ quotation.quotation_number }} - {{ _('Inventory Management System') }}{% endblock %}
 {% block page_title %}{{ _('Quotation Details') }}{% endblock %}
@@ -140,7 +140,7 @@
                                 <td><strong>{{ item.product.name }}</strong></td>
                                 <td>{{ item.description or '-' }}</td>
                                 <td>{{ item.quantity }}</td>
-                                <td>{{ "%.2f"|format(item.unit_price) }} {{ _('SAR') }}</td>
+                                <td>{{ currency_prefix }}{{ "%.2f"|format(item.unit_price) }}{{ currency_suffix }}</td>
                                 <td>
                                     {% if item.discount_percentage > 0 %}
                                         {{ "%.1f"|format(item.discount_percentage) }}%
@@ -149,7 +149,7 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ "%.1f"|format(item.tax_rate) }}%</td>
-                                <td><strong>{{ "%.2f"|format(item.total) }} {{ _('SAR') }}</strong></td>
+                                <td><strong>{{ currency_prefix }}{{ "%.2f"|format(item.total) }}{{ currency_suffix }}</strong></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -167,21 +167,21 @@
                 <table class="table table-sm mb-0">
                     <tr>
                         <th>{{ _('Subtotal') }}:</th>
-                        <td class="text-end"><strong>{{ "%.2f"|format(quotation.subtotal) }} {{ _('SAR') }}</strong></td>
+                        <td class="text-end"><strong>{{ currency_prefix }}{{ "%.2f"|format(quotation.subtotal) }}{{ currency_suffix }}</strong></td>
                     </tr>
                     {% if quotation.discount_amount > 0 %}
                     <tr>
                         <th>{{ _('Discount') }}:</th>
-                        <td class="text-end"><strong class="text-danger">-{{ "%.2f"|format(quotation.discount_amount) }} {{ _('SAR') }}</strong></td>
+                        <td class="text-end"><strong class="text-danger">-{{ currency_prefix }}{{ "%.2f"|format(quotation.discount_amount) }}{{ currency_suffix }}</strong></td>
                     </tr>
                     {% endif %}
                     <tr>
                         <th>{{ _('Tax') }}:</th>
-                        <td class="text-end"><strong>{{ "%.2f"|format(quotation.tax_amount) }} {{ _('SAR') }}</strong></td>
+                        <td class="text-end"><strong>{{ currency_prefix }}{{ "%.2f"|format(quotation.tax_amount) }}{{ currency_suffix }}</strong></td>
                     </tr>
                     <tr class="table-success">
                         <th>{{ _('Grand Total') }}:</th>
-                        <td class="text-end"><strong class="fs-4">{{ "%.2f"|format(quotation.total_amount) }} {{ _('SAR') }}</strong></td>
+                        <td class="text-end"><strong class="fs-4">{{ currency_prefix }}{{ "%.2f"|format(quotation.total_amount) }}{{ currency_suffix }}</strong></td>
                     </tr>
                 </table>
             </div>

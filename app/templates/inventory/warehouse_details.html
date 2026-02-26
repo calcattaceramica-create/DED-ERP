@@ -39,8 +39,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="mb-0">قيمة المخزون</h6>
-                            <h3 class="mb-0">{{ "%.2f"|format(total_value) }}</h3>
-                            <small>{{ currency_symbol }}</small>
+                            <h3 class="mb-0">{{ currency_prefix }}{{ "%.2f"|format(total_value) }}{{ currency_suffix }}</h3>
                         </div>
                         <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
                     </div>

@@ -35,15 +35,23 @@
         <i class="fas fa-info-circle"></i>
         <strong>{{ _('Current Template') }}:</strong>
         {% if company and company.invoice_template == 'modern' %}
-            <span class="badge bg-primary">{{ _('Modern') }}</span>
+            <span class="badge bg-primary">عصري (Modern)</span>
         {% elif company and company.invoice_template == 'classic' %}
-            <span class="badge bg-success">{{ _('Classic') }}</span>
+            <span class="badge bg-success">كلاسيكي (Classic)</span>
         {% elif company and company.invoice_template == 'minimal' %}
-            <span class="badge bg-info">{{ _('Minimal') }}</span>
+            <span class="badge bg-info">بسيط (Minimal)</span>
         {% elif company and company.invoice_template == 'elegant' %}
-            <span class="badge bg-warning">{{ _('Elegant') }}</span>
+            <span class="badge bg-warning">أنيق (Elegant)</span>
+        {% elif company and company.invoice_template == 'dark' %}
+            <span class="badge" style="background:#0f3460;">داكن (Dark)</span>
+        {% elif company and company.invoice_template == 'ocean' %}
+            <span class="badge" style="background:#0077b6;">محيطي (Ocean)</span>
+        {% elif company and company.invoice_template == 'sunset' %}
+            <span class="badge" style="background:#f77f00;">غروب (Sunset)</span>
+        {% elif company and company.invoice_template == 'corporate' %}
+            <span class="badge" style="background:#1e3a5f;">مؤسسي (Corporate)</span>
         {% else %}
-            <span class="badge bg-primary">{{ _('Modern') }}</span>
+            <span class="badge bg-primary">عصري (Modern)</span>
         {% endif %}
     </div>
 
@@ -181,47 +189,164 @@
 
             <!-- Elegant Template -->
             <div class="col-lg-6">
-                <div class="card template-card h-100 {% if company and company.invoice_template == 'elegant' %}border-warning shadow-lg{% endif %}">
+                <div class="card template-card h-100 {% if company and company.invoice_template == 'elegant' %}shadow-lg{% endif %}" style="{% if company and company.invoice_template == 'elegant' %}border: 2px solid #f5576c;{% endif %}">
                     <div class="card-header text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-gem"></i> {{ _('Elegant') }}
-                            </h5>
+                            <h5 class="mb-0"><i class="fas fa-gem"></i> أنيق (Elegant)</h5>
                             {% if company and company.invoice_template == 'elegant' %}
-                                <span class="badge bg-light text-dark">
-                                    <i class="fas fa-check-circle"></i> {{ _('Active') }}
-                                </span>
+                                <span class="badge bg-light text-dark"><i class="fas fa-check-circle"></i> نشط</span>
                             {% endif %}
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="template-preview mb-3">
-                            <img src="{{ url_for('static', filename='images/templates/elegant-preview.png') }}"
-                                 alt="Elegant Template"
-                                 class="img-fluid rounded shadow-sm"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Cdefs%3E%3ClinearGradient id=%22grad%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%23f093fb%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%23f5576c%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill=%22url(%23grad)%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22%3E%D8%A3%D9%86%D9%8A%D9%82%3C/text%3E%3C/svg%3E'">
+                        <div class="template-preview mb-3" style="background: linear-gradient(135deg,#f093fb,#f5576c); min-height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                            <span style="color:white; font-size:36px;">💎</span>
                         </div>
-                        <h6 class="mb-3" style="color: #f5576c;">{{ _('Features') }}:</h6>
+                        <h6 class="mb-3" style="color: #f5576c;">المميزات:</h6>
                         <ul class="list-unstyled">
-                            <li><i class="fas fa-check text-success me-2"></i> {{ _('Luxurious and elegant design') }}</li>
-                            <li><i class="fas fa-check text-success me-2"></i> {{ _('Attractive gradient colors') }}</li>
-                            <li><i class="fas fa-check text-success me-2"></i> {{ _('Suitable for luxury companies') }}</li>
-                            <li><i class="fas fa-check text-success me-2"></i> {{ _('Leaves a strong impression') }}</li>
-                            <li><i class="fas fa-check text-success me-2"></i> {{ _('Fine details') }}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> تصميم فاخر وأنيق</li>
+                            <li><i class="fas fa-check text-success me-2"></i> ألوان متدرجة جذابة</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مناسب للشركات الراقية</li>
+                            <li><i class="fas fa-check text-success me-2"></i> يترك انطباعاً قوياً</li>
                         </ul>
                         <button type="submit" name="template" value="elegant"
                                 class="btn w-100 {% if company and company.invoice_template == 'elegant' %}disabled{% endif %}"
                                 style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
                             <i class="fas fa-check"></i>
-                            {% if company and company.invoice_template == 'elegant' %}
-                                {{ _('Currently Active') }}
-                            {% else %}
-                                {{ _('Select This Template') }}
-                            {% endif %}
+                            {% if company and company.invoice_template == 'elegant' %}نشط حالياً{% else %}اختر هذا التشكيل{% endif %}
                         </button>
                     </div>
                 </div>
             </div>
+
+            <!-- Dark Template - داكن -->
+            <div class="col-lg-6">
+                <div class="card template-card h-100 {% if company and company.invoice_template == 'dark' %}shadow-lg{% endif %}" style="{% if company and company.invoice_template == 'dark' %}border: 2px solid #e94560;{% endif %}">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-moon"></i> داكن (Dark)</h5>
+                            {% if company and company.invoice_template == 'dark' %}
+                                <span class="badge bg-light text-dark"><i class="fas fa-check-circle"></i> نشط</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="template-preview mb-3" style="background: linear-gradient(135deg,#1a1a2e,#0f3460); min-height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center; border: 2px solid #e94560;">
+                            <span style="color:#e94560; font-size:36px;">🌑</span>
+                        </div>
+                        <h6 class="mb-3" style="color: #0f3460;">المميزات:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> تصميم داكن عصري</li>
+                            <li><i class="fas fa-check text-success me-2"></i> ألوان نيون مميزة</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مناسب لشركات التقنية</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مريح للعيون في الإضاءة المنخفضة</li>
+                        </ul>
+                        <button type="submit" name="template" value="dark"
+                                class="btn w-100 {% if company and company.invoice_template == 'dark' %}disabled{% endif %}"
+                                style="background: linear-gradient(135deg,#1a1a2e,#0f3460); color:white; border: 1px solid #e94560;">
+                            <i class="fas fa-check"></i>
+                            {% if company and company.invoice_template == 'dark' %}نشط حالياً{% else %}اختر هذا التشكيل{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ocean Template - محيطي -->
+            <div class="col-lg-6">
+                <div class="card template-card h-100 {% if company and company.invoice_template == 'ocean' %}shadow-lg{% endif %}" style="{% if company and company.invoice_template == 'ocean' %}border: 2px solid #0077b6;{% endif %}">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #03045e 0%, #0077b6 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-water"></i> محيطي (Ocean)</h5>
+                            {% if company and company.invoice_template == 'ocean' %}
+                                <span class="badge bg-light text-dark"><i class="fas fa-check-circle"></i> نشط</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="template-preview mb-3" style="background: linear-gradient(135deg,#03045e,#0077b6,#00b4d8); min-height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                            <span style="color:white; font-size:36px;">🌊</span>
+                        </div>
+                        <h6 class="mb-3" style="color: #0077b6;">المميزات:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> ألوان المحيط الزرقاء</li>
+                            <li><i class="fas fa-check text-success me-2"></i> تصميم هادئ ومريح</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مناسب للشركات المالية</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مظهر احترافي</li>
+                        </ul>
+                        <button type="submit" name="template" value="ocean"
+                                class="btn w-100 {% if company and company.invoice_template == 'ocean' %}disabled{% endif %}"
+                                style="background: linear-gradient(135deg,#03045e,#0077b6); color:white; border:none;">
+                            <i class="fas fa-check"></i>
+                            {% if company and company.invoice_template == 'ocean' %}نشط حالياً{% else %}اختر هذا التشكيل{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sunset Template - غروب -->
+            <div class="col-lg-6">
+                <div class="card template-card h-100 {% if company and company.invoice_template == 'sunset' %}shadow-lg{% endif %}" style="{% if company and company.invoice_template == 'sunset' %}border: 2px solid #f77f00;{% endif %}">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #d62828 0%, #f77f00 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-sun"></i> غروب (Sunset)</h5>
+                            {% if company and company.invoice_template == 'sunset' %}
+                                <span class="badge bg-light text-dark"><i class="fas fa-check-circle"></i> نشط</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="template-preview mb-3" style="background: linear-gradient(135deg,#d62828,#f77f00,#fcbf49); min-height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                            <span style="color:white; font-size:36px;">🌅</span>
+                        </div>
+                        <h6 class="mb-3" style="color: #f77f00;">المميزات:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> ألوان دافئة وجذابة</li>
+                            <li><i class="fas fa-check text-success me-2"></i> تدرج برتقالي ذهبي</li>
+                            <li><i class="fas fa-check text-success me-2"></i> يناسب شركات الغذاء والسياحة</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مميز ومبهج</li>
+                        </ul>
+                        <button type="submit" name="template" value="sunset"
+                                class="btn w-100 {% if company and company.invoice_template == 'sunset' %}disabled{% endif %}"
+                                style="background: linear-gradient(135deg,#d62828,#f77f00); color:white; border:none;">
+                            <i class="fas fa-check"></i>
+                            {% if company and company.invoice_template == 'sunset' %}نشط حالياً{% else %}اختر هذا التشكيل{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corporate Template - مؤسسي -->
+            <div class="col-lg-6">
+                <div class="card template-card h-100 {% if company and company.invoice_template == 'corporate' %}shadow-lg{% endif %}" style="{% if company and company.invoice_template == 'corporate' %}border: 2px solid #1e3a5f;{% endif %}">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #1e3a5f 0%, #1b4332 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-briefcase"></i> مؤسسي (Corporate)</h5>
+                            {% if company and company.invoice_template == 'corporate' %}
+                                <span class="badge bg-light text-dark"><i class="fas fa-check-circle"></i> نشط</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="template-preview mb-3" style="background: linear-gradient(135deg,#1e3a5f,#1b4332); min-height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                            <span style="color:white; font-size:36px;">🏢</span>
+                        </div>
+                        <h6 class="mb-3" style="color: #1e3a5f;">المميزات:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> تصميم مؤسسي راقٍ</li>
+                            <li><i class="fas fa-check text-success me-2"></i> ألوان كحلي وأخضر داكن</li>
+                            <li><i class="fas fa-check text-success me-2"></i> مناسب للشركات الكبرى</li>
+                            <li><i class="fas fa-check text-success me-2"></i> يعكس الاحترافية والمصداقية</li>
+                        </ul>
+                        <button type="submit" name="template" value="corporate"
+                                class="btn w-100 {% if company and company.invoice_template == 'corporate' %}disabled{% endif %}"
+                                style="background: linear-gradient(135deg,#1e3a5f,#1b4332); color:white; border:none;">
+                            <i class="fas fa-check"></i>
+                            {% if company and company.invoice_template == 'corporate' %}نشط حالياً{% else %}اختر هذا التشكيل{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </form>
 

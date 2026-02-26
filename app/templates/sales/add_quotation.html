@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Add Quotation') }} - {{ _('Inventory Management System') }}{% endblock %}
 {% block page_title %}{{ _('Add Quotation') }}{% endblock %}
@@ -101,15 +101,15 @@
                             <table class="table table-sm">
                                 <tr>
                                     <th>{{ _('Subtotal') }}:</th>
-                                    <td class="text-end"><strong id="subtotalDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="subtotalDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr>
                                     <th>{{ _('Tax') }} (15%):</th>
-                                    <td class="text-end"><strong id="taxDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="taxDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr class="table-primary">
                                     <th>{{ _('Grand Total') }}:</th>
-                                    <td class="text-end"><strong id="totalDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="totalDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                             </table>
                         </div>
@@ -215,6 +215,12 @@
 let itemCounter = 0;
 const products = {{ products|tojson }};
 const currencySymbol = '{{ currency_symbol }}';
+const currentLang = '{{ session.get("language", "ar") }}';
+
+function formatAmount(value) {
+    const formatted = parseFloat(value).toFixed(2);
+    return currentLang === 'en' ? currencySymbol + ' ' + formatted : formatted + ' ' + currencySymbol;
+}
 
 function addItem() {
     const tbody = document.getElementById('itemsBody');
@@ -343,9 +349,9 @@ function calculateTotals() {
     const taxDisplay = document.getElementById('taxDisplay');
     const totalDisplay = document.getElementById('totalDisplay');
 
-    if (subtotalDisplay) subtotalDisplay.textContent = subtotal.toFixed(2) + ' ' + currencySymbol;
-    if (taxDisplay) taxDisplay.textContent = tax.toFixed(2) + ' ' + currencySymbol;
-    if (totalDisplay) totalDisplay.textContent = total.toFixed(2) + ' ' + currencySymbol;
+    if (subtotalDisplay) subtotalDisplay.textContent = formatAmount(subtotal);
+    if (taxDisplay) taxDisplay.textContent = formatAmount(tax);
+    if (totalDisplay) totalDisplay.textContent = formatAmount(total);
 
     console.log('Quotation totals:', { subtotal, tax, total });
 }

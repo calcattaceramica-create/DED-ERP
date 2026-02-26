@@ -24,8 +24,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">{{ _('Full Name') }}</label>
+                        <label class="form-label">{{ _('Full Name (Arabic)') }}</label>
                         <input type="text" class="form-control" name="full_name" value="{{ current_user.full_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Full Name (English)') }}</label>
+                        <input type="text" class="form-control" name="full_name_en" value="{{ current_user.full_name_en or '' }}">
                     </div>
 
                     <div class="mb-3">

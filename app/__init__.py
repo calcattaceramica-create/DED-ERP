@@ -117,6 +117,9 @@ def create_app(config_name='default'):
     from app.security import bp as security_bp
     app.register_blueprint(security_bp, url_prefix='/security')
 
+    from app.backup import bp as backup_bp
+    app.register_blueprint(backup_bp, url_prefix='/backup')
+
     # Add context processor for translations and currency
     @app.context_processor
     def inject_locale():
@@ -164,16 +167,29 @@ def create_app(config_name='default'):
         currency_name_key = currency_name_map.get(currency_code, 'Saudi Riyal')
         currency_name = gettext(currency_name_key)
 
+        # Determine symbol position based on current language
+        lang = session.get('language', 'ar')
+        if lang == 'en':
+            # English (LTR): symbol on the left  e.g. "€ 1,234.56"
+            currency_prefix = currency_symbol + ' '
+            currency_suffix = ''
+        else:
+            # Arabic (RTL): symbol on the right  e.g. "1,234.56 €"
+            currency_prefix = ''
+            currency_suffix = ' ' + currency_symbol
+
         return {
             'currency_code': currency_code,
             'currency_symbol': currency_symbol,
-            'currency_name': currency_name
+            'currency_name': currency_name,
+            'currency_prefix': currency_prefix,
+            'currency_suffix': currency_suffix,
         }
 
     # Add template filter for currency formatting
     @app.template_filter('currency')
     def currency_filter(value):
-        """Format number with currency symbol"""
+        """Format number with currency symbol - position depends on current language"""
         from app.models import Company
 
         try:
@@ -187,10 +203,18 @@ def create_app(config_name='default'):
         except:
             currency_symbol = 'ر.س'
 
+        lang = session.get('language', 'ar')
         try:
-            return f"{float(value):.2f} {currency_symbol}"
+            amount = f"{float(value):,.2f}"
+            if lang == 'en':
+                return f"{currency_symbol} {amount}"
+            else:
+                return f"{amount} {currency_symbol}"
         except (ValueError, TypeError):
-            return f"0.00 {currency_symbol}"
+            if lang == 'en':
+                return f"{currency_symbol} 0.00"
+            else:
+                return f"0.00 {currency_symbol}"
 
     return app
 

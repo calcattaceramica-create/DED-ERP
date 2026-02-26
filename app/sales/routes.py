@@ -10,6 +10,18 @@ from app.utils.bank_helper import create_bank_transaction, reverse_bank_transact
 from app.auth.decorators import permission_required, any_permission_required
 from datetime import datetime, timedelta
 
+def _cleanup_old_quotations():
+    """Keep only the last 15 quotations, auto-delete the rest (with their items)."""
+    try:
+        all_quotations = Quotation.query.order_by(Quotation.created_at.desc()).all()
+        if len(all_quotations) > 15:
+            to_delete = all_quotations[15:]
+            for q in to_delete:
+                db.session.delete(q)
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+
 @bp.route('/customers')
 @login_required
 @permission_required('sales.customers.view')
@@ -123,26 +135,84 @@ def add_customer_ajax():
 @permission_required('sales.invoices.view')
 def invoices():
     """List all sales invoices"""
+    from sqlalchemy import func
+    from app.models import Company
+    from flask import current_app
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')
     status = request.args.get('status', '')
-    
+
     query = SalesInvoice.query
-    
+
     if search:
         query = query.filter(SalesInvoice.invoice_number.contains(search))
-    
+
     if status:
         query = query.filter_by(status=status)
-    
+
     invoices = query.order_by(SalesInvoice.created_at.desc()).paginate(
         page=page, per_page=20, error_out=False
     )
-    
+
+    # --- Chart & summary data (all invoices, no filter) ---
+    all_inv = SalesInvoice.query.all()
+    active_inv = [i for i in all_inv if i.status != 'cancelled']
+    total_count     = len(all_inv)
+    total_amount    = sum(i.total_amount    or 0 for i in active_inv)
+    total_paid      = sum(i.paid_amount     or 0 for i in active_inv)
+    total_remaining = sum(i.remaining_amount or 0 for i in active_inv)
+
+    # Status distribution
+    status_counts = {'draft': 0, 'confirmed': 0, 'paid': 0, 'cancelled': 0}
+    for i in all_inv:
+        if i.status in status_counts:
+            status_counts[i.status] += 1
+
+    # Payment status distribution
+    pay_counts = {'paid': 0, 'partial': 0, 'unpaid': 0}
+    for i in all_inv:
+        if i.payment_status in pay_counts:
+            pay_counts[i.payment_status] += 1
+
+    # Monthly sales last 6 months (including current month)
+    import calendar
+    from datetime import date
+    today = date.today()
+    month_labels, month_data = [], []
+    for m in range(5, -1, -1):
+        month = today.month - m
+        year  = today.year
+        while month <= 0:
+            month += 12
+            year  -= 1
+        first = date(year, month, 1)
+        last  = date(year, month, calendar.monthrange(year, month)[1])
+        total = sum(
+            i.total_amount or 0 for i in all_inv
+            if first <= i.invoice_date <= last and i.status != 'cancelled'
+        )
+        month_labels.append(f"{year}/{month:02d}")
+        month_data.append(round(total, 2))
+
+    # Currency
+    company = Company.query.first()
+    currency_symbol = current_app.config['CURRENCIES'].get(
+        company.currency if company else 'EUR', {}
+    ).get('symbol', '€')
+
     return render_template('sales/invoices.html',
                          invoices=invoices,
                          search=search,
-                         status=status)
+                         status=status,
+                         total_count=total_count,
+                         total_amount=total_amount,
+                         total_paid=total_paid,
+                         total_remaining=total_remaining,
+                         status_counts=status_counts,
+                         pay_counts=pay_counts,
+                         month_labels=month_labels,
+                         month_data=month_data,
+                         currency_symbol=currency_symbol)
 
 @bp.route('/invoices/add', methods=['GET', 'POST'])
 @login_required
@@ -169,11 +239,59 @@ def add_invoice():
 
             print(f"Generated invoice number: {invoice_number}")
 
+            # ── Stock pre-validation (before any DB write) ────────────────
+            import json
+            warehouse_id = request.form.get('warehouse_id', type=int)
+            items_data = request.form.getlist('items')
+            print(f"Items data received: {len(items_data)} items")
+
+            for item_json in items_data:
+                item = json.loads(item_json)
+                product = Product.query.get(item['product_id'])
+                if not product:
+                    raise Exception(f"Product with ID {item['product_id']} not found")
+                if product.track_inventory and warehouse_id:
+                    qty_requested = float(item['quantity'])
+                    stock = Stock.query.filter_by(
+                        product_id=product.id,
+                        warehouse_id=warehouse_id
+                    ).first()
+                    available = stock.quantity if stock else 0
+                    if qty_requested > available:
+                        flash(
+                            _('Insufficient stock for %(name)s. Requested: %(req)s, Available: %(avail)s',
+                              name=product.name,
+                              req=qty_requested,
+                              avail=available),
+                            'error'
+                        )
+                        # Re-render the form without touching DB
+                        customers = Customer.query.filter_by(is_active=True).all()
+                        warehouses = Warehouse.query.filter_by(is_active=True).all()
+                        bank_accounts = BankAccount.query.filter_by(is_active=True).all()
+                        products_query = Product.query.filter_by(is_active=True, is_sellable=True).all()
+                        from app.models import Company
+                        from flask import current_app
+                        company = Company.query.first()
+                        currency_code = company.currency if company else current_app.config.get('DEFAULT_CURRENCY', 'EUR')
+                        currency_symbol = current_app.config['CURRENCIES'].get(currency_code, {}).get('symbol', '€')
+                        today_str = datetime.utcnow().strftime('%Y-%m-%d')
+                        products_list = [{'id': p.id, 'name': p.name, 'code': p.code,
+                                          'selling_price': float(p.selling_price) if p.selling_price else 0,
+                                          'tax_rate': float(p.tax_rate) if p.tax_rate else 15}
+                                         for p in products_query]
+                        return render_template('sales/add_invoice.html',
+                                               customers=customers, warehouses=warehouses,
+                                               bank_accounts=bank_accounts, products=products_list,
+                                               today=today_str, currency_code=currency_code,
+                                               currency_symbol=currency_symbol)
+            # ─────────────────────────────────────────────────────────────
+
             invoice = SalesInvoice(
                 invoice_number=invoice_number,
                 invoice_date=datetime.strptime(request.form.get('invoice_date'), '%Y-%m-%d').date(),
                 customer_id=request.form.get('customer_id', type=int),
-                warehouse_id=request.form.get('warehouse_id', type=int),
+                warehouse_id=warehouse_id,
                 notes=request.form.get('notes'),
                 user_id=current_user.id,
                 status='draft'
@@ -184,15 +302,10 @@ def add_invoice():
 
             print(f"Invoice created with ID: {invoice.id}")
 
-            # Add invoice items
-            items_data = request.form.getlist('items')
-            print(f"Items data received: {len(items_data)} items")
-
             subtotal = 0
             total_tax = 0
 
             for item_json in items_data:
-                import json
                 item = json.loads(item_json)
                 print(f"Processing item: {item}")
 
@@ -293,21 +406,36 @@ def add_invoice():
                          currency_code=currency_code,
                          currency_symbol=currency_symbol)
 
+@bp.route('/api/stock/<int:product_id>/<int:warehouse_id>')
+@login_required
+def get_product_stock(product_id, warehouse_id):
+    """Return available stock quantity for a product in a warehouse (JSON API)."""
+    stock = Stock.query.filter_by(
+        product_id=product_id,
+        warehouse_id=warehouse_id
+    ).first()
+    available = stock.quantity if stock else 0
+    return jsonify({'available': available, 'product_id': product_id, 'warehouse_id': warehouse_id})
+
 @bp.route('/invoices/<int:id>')
 @login_required
 @permission_required('sales.invoices.view')
 def invoice_details(id):
     """View invoice details"""
+    from app.models import Company
     invoice = SalesInvoice.query.get_or_404(id)
-    return render_template('sales/invoice_details.html', invoice=invoice)
+    company = Company.query.first()
+    return render_template('sales/invoice_details.html', invoice=invoice, company=company)
 
 @bp.route('/invoices/<int:id>/customer-receipt')
 @login_required
 @permission_required('sales.invoices.view')
 def customer_receipt(id):
     """Print customer receipt"""
+    from app.models import Company
     invoice = SalesInvoice.query.get_or_404(id)
-    return render_template('sales/customer_receipt.html', invoice=invoice)
+    company = Company.query.first()
+    return render_template('sales/customer_receipt.html', invoice=invoice, company=company)
 
 @bp.route('/invoices/<int:id>/warehouse-paper')
 @login_required
@@ -764,6 +892,7 @@ def add_quotation():
         quotation.total_amount = subtotal + total_tax
 
         db.session.commit()
+        _cleanup_old_quotations()
 
         flash(_('Quotation added successfully'), 'success')
         return redirect(url_for('sales.quotations'))

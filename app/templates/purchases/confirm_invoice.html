@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Confirm Purchase Invoice') }} - {{ _('Inventory Management System') }}{% endblock %}
 
@@ -50,19 +50,19 @@
                             <table class="table table-sm">
                                 <tr>
                                     <th style="width: 40%">{{ _('Subtotal') }}:</th>
-                                    <td>{{ "%.2f"|format(invoice.subtotal) }} {{ currency_symbol }}</td>
+                                    <td>{{ currency_prefix }}{{ "%.2f"|format(invoice.subtotal) }}{{ currency_suffix }}</td>
                                 </tr>
                                 <tr>
                                     <th>{{ _('Discount') }}:</th>
-                                    <td>{{ "%.2f"|format(invoice.discount_amount) }} {{ currency_symbol }}</td>
+                                    <td>{{ currency_prefix }}{{ "%.2f"|format(invoice.discount_amount) }}{{ currency_suffix }}</td>
                                 </tr>
                                 <tr>
                                     <th>{{ _('Tax') }}:</th>
-                                    <td>{{ "%.2f"|format(invoice.tax_amount) }} {{ currency_symbol }}</td>
+                                    <td>{{ currency_prefix }}{{ "%.2f"|format(invoice.tax_amount) }}{{ currency_suffix }}</td>
                                 </tr>
                                 <tr>
                                     <th>{{ _('Total') }}:</th>
-                                    <td><strong class="text-success">{{ "%.2f"|format(invoice.total_amount) }} {{ currency_symbol }}</strong></td>
+                                    <td><strong class="text-success">{{ currency_prefix }}{{ "%.2f"|format(invoice.total_amount) }}{{ currency_suffix }}</strong></td>
                                 </tr>
                             </table>
                         </div>

@@ -9,7 +9,7 @@
             <h2>
                 <i class="fas fa-list text-primary"></i>
                 سجلات الأمان
-                <small class="text-muted">Security Logs</small>
+                <small class="text-muted">{{ _('Security Logs') }}</small>
             </h2>
         </div>
     </div>
@@ -19,9 +19,9 @@
         <div class="card-body">
             <form method="GET" action="{{ url_for('security.logs') }}" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">نوع الحدث - Event Type</label>
+                    <label class="form-label">{{ _('Event Type') }}</label>
                     <select name="event_type" class="form-select">
-                        <option value="">الكل - All</option>
+                        <option value="">{{ _('All') }}</option>
                         <option value="successful_login">تسجيل دخول ناجح</option>
                         <option value="failed_login_wrong_password">كلمة مرور خاطئة</option>
                         <option value="failed_login_unknown_user">مستخدم غير موجود</option>
@@ -34,19 +34,19 @@
                 </div>
                 
                 <div class="col-md-4">
-                    <label class="form-label">مستوى الخطورة - Severity</label>
+                    <label class="form-label">{{ _('Severity') }}</label>
                     <select name="severity" class="form-select">
-                        <option value="">الكل - All</option>
-                        <option value="info">معلومات - Info</option>
-                        <option value="warning">تحذير - Warning</option>
-                        <option value="critical">حرج - Critical</option>
+                        <option value="">{{ _('All') }}</option>
+                        <option value="info">{{ _('Info') }}</option>
+                        <option value="warning">{{ _('Warning') }}</option>
+                        <option value="critical">{{ _('Critical') }}</option>
                     </select>
                 </div>
                 
                 <div class="col-md-4">
                     <label class="form-label">&nbsp;</label>
                     <button type="submit" class="btn btn-primary d-block w-100">
-                        <i class="fas fa-filter"></i> تصفية - Filter
+                        <i class="fas fa-filter"></i> {{ _('Filter') }}
                     </button>
                 </div>
             </form>
@@ -58,7 +58,7 @@
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0">
                 <i class="fas fa-list"></i>
-                السجلات - Logs
+                {{ _('Logs') }}
             </h5>
         </div>
         <div class="card-body p-0">
@@ -98,11 +98,11 @@
                             </td>
                             <td>
                                 {% if log.severity == 'critical' %}
-                                    <span class="badge bg-danger">حرج</span>
+                                    <span class="badge bg-danger">{{ _('Critical') }}</span>
                                 {% elif log.severity == 'warning' %}
-                                    <span class="badge bg-warning text-dark">تحذير</span>
+                                    <span class="badge bg-warning text-dark">{{ _('Warning') }}</span>
                                 {% else %}
-                                    <span class="badge bg-info">معلومات</span>
+                                    <span class="badge bg-info">{{ _('Info') }}</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -110,7 +110,7 @@
                         <tr>
                             <td colspan="6" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                لا توجد سجلات - No logs found
+                                {{ _('No logs found') }}
                             </td>
                         </tr>
                         {% endfor %}

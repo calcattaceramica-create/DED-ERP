@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}الميزانية العمومية - نظام إدارة المخزون{% endblock %}
-{% block page_title %}الميزانية العمومية{% endblock %}
+{% block title %}{{ _('Balance Sheet') }} - {{ _('Inventory Management System') }}{% endblock %}
+{% block page_title %}{{ _('Balance Sheet') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -10,18 +10,18 @@
             <div class="card shadow">
                 <div class="card-header bg-info text-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0"><i class="fas fa-file-invoice-dollar"></i> الميزانية العمومية</h4>
+                        <h4 class="mb-0"><i class="fas fa-file-invoice-dollar"></i> {{ _('Balance Sheet') }}</h4>
                         <button onclick="window.print()" class="btn btn-light">
-                            <i class="fas fa-print"></i> طباعة
+                            <i class="fas fa-print"></i> {{ _('Print') }}
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <!-- Report Header -->
                     <div class="text-center mb-4">
-                        <h3>الميزانية العمومية</h3>
-                        <p class="text-muted">Balance Sheet / Statement of Financial Position</p>
-                        <p>كما في تاريخ: {{ report_date }}</p>
+                        <h3>{{ _('Balance Sheet') }}</h3>
+                        <p class="text-muted">{{ _('Balance Sheet / Statement of Financial Position') }}</p>
+                        <p>{{ _('As of Date:') }} {{ report_date }}</p>
                     </div>
 
                     <div class="row">
@@ -29,13 +29,13 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header bg-success text-white">
-                                    <h5 class="mb-0">الأصول (Assets)</h5>
+                                    <h5 class="mb-0">{{ _('Assets') }}</h5>
                                 </div>
                                 <div class="card-body">
                                     <table class="table table-sm">
                                         <!-- Current Assets -->
                                         <tr class="table-light">
-                                            <td colspan="2"><strong>الأصول المتداولة (Current Assets)</strong></td>
+                                            <td colspan="2"><strong>{{ _('Current Assets') }}</strong></td>
                                         </tr>
                                         {% for account in current_assets %}
                                         <tr>
@@ -44,13 +44,13 @@
                                         </tr>
                                         {% endfor %}
                                         <tr class="fw-bold">
-                                            <td>إجمالي الأصول المتداولة</td>
+                                            <td>{{ _('Total Current Assets') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_current_assets) }}</td>
                                         </tr>
 
                                         <!-- Fixed Assets -->
                                         <tr class="table-light">
-                                            <td colspan="2"><strong>الأصول الثابتة (Fixed Assets)</strong></td>
+                                            <td colspan="2"><strong>{{ _('Fixed Assets') }}</strong></td>
                                         </tr>
                                         {% for account in fixed_assets %}
                                         <tr>
@@ -59,13 +59,13 @@
                                         </tr>
                                         {% endfor %}
                                         <tr class="fw-bold">
-                                            <td>إجمالي الأصول الثابتة</td>
+                                            <td>{{ _('Total Fixed Assets') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_fixed_assets) }}</td>
                                         </tr>
 
                                         <!-- Total Assets -->
                                         <tr class="table-success fw-bold fs-6">
-                                            <td>إجمالي الأصول</td>
+                                            <td>{{ _('Total Assets') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_assets) }}</td>
                                         </tr>
                                     </table>
@@ -77,13 +77,13 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header bg-danger text-white">
-                                    <h5 class="mb-0">الخصوم وحقوق الملكية</h5>
+                                    <h5 class="mb-0">{{ _('Liabilities & Equity') }}</h5>
                                 </div>
                                 <div class="card-body">
                                     <table class="table table-sm">
                                         <!-- Current Liabilities -->
                                         <tr class="table-light">
-                                            <td colspan="2"><strong>الخصوم المتداولة (Current Liabilities)</strong></td>
+                                            <td colspan="2"><strong>{{ _('Current Liabilities') }}</strong></td>
                                         </tr>
                                         {% for account in current_liabilities %}
                                         <tr>
@@ -92,13 +92,13 @@
                                         </tr>
                                         {% endfor %}
                                         <tr class="fw-bold">
-                                            <td>إجمالي الخصوم المتداولة</td>
+                                            <td>{{ _('Total Current Liabilities') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_current_liabilities) }}</td>
                                         </tr>
 
                                         <!-- Long-term Liabilities -->
                                         <tr class="table-light">
-                                            <td colspan="2"><strong>الخصوم طويلة الأجل (Long-term Liabilities)</strong></td>
+                                            <td colspan="2"><strong>{{ _('Long-term Liabilities') }}</strong></td>
                                         </tr>
                                         {% for account in long_term_liabilities %}
                                         <tr>
@@ -107,19 +107,19 @@
                                         </tr>
                                         {% endfor %}
                                         <tr class="fw-bold">
-                                            <td>إجمالي الخصوم طويلة الأجل</td>
+                                            <td>{{ _('Total Long-term Liabilities') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_long_term_liabilities) }}</td>
                                         </tr>
 
                                         <!-- Total Liabilities -->
                                         <tr class="fw-bold">
-                                            <td>إجمالي الخصوم</td>
+                                            <td>{{ _('Total Liabilities') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_liabilities) }}</td>
                                         </tr>
 
                                         <!-- Equity -->
                                         <tr class="table-light">
-                                            <td colspan="2"><strong>حقوق الملكية (Equity)</strong></td>
+                                            <td colspan="2"><strong>{{ _('Equity') }}</strong></td>
                                         </tr>
                                         {% for account in equity_accounts %}
                                         <tr>
@@ -128,13 +128,13 @@
                                         </tr>
                                         {% endfor %}
                                         <tr class="fw-bold">
-                                            <td>إجمالي حقوق الملكية</td>
+                                            <td>{{ _('Total Equity') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_equity) }}</td>
                                         </tr>
 
                                         <!-- Total Liabilities & Equity -->
                                         <tr class="table-danger fw-bold fs-6">
-                                            <td>إجمالي الخصوم وحقوق الملكية</td>
+                                            <td>{{ _('Total Liabilities & Equity') }}</td>
                                             <td class="text-end">{{ "{:,.2f}".format(total_liabilities_equity) }}</td>
                                         </tr>
                                     </table>
@@ -147,9 +147,9 @@
                     <div class="alert {% if total_assets == total_liabilities_equity %}alert-success{% else %}alert-danger{% endif %} mt-4">
                         <i class="fas {% if total_assets == total_liabilities_equity %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
                         {% if total_assets == total_liabilities_equity %}
-                            <strong>الميزانية متوازنة!</strong> إجمالي الأصول يساوي إجمالي الخصوم وحقوق الملكية.
+                            <strong>{{ _('Balance is balanced!') }}</strong> {{ _('Total assets equals total liabilities and equity.') }}
                         {% else %}
-                            <strong>تحذير!</strong> الميزانية غير متوازنة. يوجد فرق بمقدار {{ "{:,.2f}".format(abs(total_assets - total_liabilities_equity)) }} ريال.
+                            <strong>{{ _('Warning!') }}</strong> {{ _('Balance sheet is not balanced. Difference:') }} {{ "{:,.2f}".format(abs(total_assets - total_liabilities_equity)) }}.
                         {% endif %}
                     </div>
 
@@ -158,7 +158,7 @@
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <h6 class="text-muted">نسبة التداول</h6>
+                                    <h6 class="text-muted">{{ _('Current Ratio') }}</h6>
                                     <h3 class="text-primary">
                                         {% if total_current_liabilities > 0 %}
                                             {{ "{:.2f}".format(total_current_assets / total_current_liabilities) }}
@@ -166,14 +166,14 @@
                                             ∞
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Current Ratio</small>
+                                    <small class="text-muted">{{ _('Current Ratio') }}</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <h6 class="text-muted">نسبة المديونية</h6>
+                                    <h6 class="text-muted">{{ _('Debt Ratio') }}</h6>
                                     <h3 class="text-warning">
                                         {% if total_assets > 0 %}
                                             {{ "{:.2f}".format((total_liabilities / total_assets) * 100) }}%
@@ -181,14 +181,14 @@
                                             0.00%
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Debt Ratio</small>
+                                    <small class="text-muted">{{ _('Debt Ratio') }}</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <h6 class="text-muted">نسبة حقوق الملكية</h6>
+                                    <h6 class="text-muted">{{ _('Equity Ratio') }}</h6>
                                     <h3 class="text-success">
                                         {% if total_assets > 0 %}
                                             {{ "{:.2f}".format((total_equity / total_assets) * 100) }}%
@@ -196,7 +196,7 @@
                                             0.00%
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Equity Ratio</small>
+                                    <small class="text-muted">{{ _('Equity Ratio') }}</small>
                                 </div>
                             </div>
                         </div>

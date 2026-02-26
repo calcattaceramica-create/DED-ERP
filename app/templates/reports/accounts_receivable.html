@@ -1,0 +1,234 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ _('Accounts Receivable Report') }} - {{ _('Inventory Management System') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);">
+                    <h4 class="mb-0 text-dark"><i class="fas fa-file-invoice-dollar"></i> {{ _('Accounts Receivable Report') }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports.accounts_receivable') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ _('Customer') }}</label>
+                                <select name="customer_id" class="form-select">
+                                    <option value="">{{ _('All Customers') }}</option>
+                                    {% for c in customers %}
+                                    <option value="{{ c.id }}" {% if customer_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ _('Status') }}</label>
+                                <select name="status" class="form-select">
+                                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All Unpaid') }}</option>
+                                    <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>{{ _('Unpaid') }}</option>
+                                    <option value="partial" {% if status_filter == 'partial' %}selected{% endif %}>{{ _('Partial') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-warning text-dark">
+                                        <i class="fas fa-search"></i> {{ _('Search') }}
+                                    </button>
+                                    <a href="{{ url_for('reports.accounts_receivable') }}" class="btn btn-secondary">
+                                        <i class="fas fa-redo"></i> {{ _('Reset') }}
+                                    </a>
+                                    <button type="button" onclick="window.print()" class="btn btn-dark">
+                                        <i class="fas fa-print"></i> {{ _('Print') }}
+                                    </button>
+                                    <a href="{{ url_for('reports.export_pdf_accounts_receivable', customer_id=customer_id or '', status=status_filter) }}" class="btn btn-danger">
+                                        <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                                    </a>
+                                    <a href="{{ url_for('reports.export_excel_accounts_receivable', customer_id=customer_id or '', status=status_filter) }}" class="btn btn-success">
+                                        <i class="fas fa-file-excel"></i> {{ _('Export Excel') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-lg h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-body d-flex flex-column justify-content-center" style="padding:1.5rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 style="color:white;opacity:.9;margin-bottom:.5rem;"><i class="fas fa-users"></i> {{ _('Customers with Debt') }}</h6>
+                                    <h2 style="color:white;font-weight:bold;margin-bottom:0;">{{ unique_customers }}</h2>
+                                </div>
+                                <div style="color:white;opacity:.4;"><i class="fas fa-users fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-lg h-100" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                        <div class="card-body d-flex flex-column justify-content-center" style="padding:1.5rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 style="color:white;opacity:.9;margin-bottom:.5rem;"><i class="fas fa-file-invoice"></i> {{ _('Total Invoices') }}</h6>
+                                    <h2 style="color:white;font-weight:bold;margin-bottom:0;">{{ total_invoices }}</h2>
+                                </div>
+                                <div style="color:white;opacity:.4;"><i class="fas fa-file-invoice fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-lg h-100" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
+                        <div class="card-body d-flex flex-column justify-content-center" style="padding:1.5rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 style="color:white;opacity:.9;margin-bottom:.5rem;"><i class="fas fa-money-bill-wave"></i> {{ _('Total Receivable') }}</h6>
+                                    <h2 style="color:white;font-weight:bold;margin-bottom:0;">{{ currency_prefix }}{{ "{:,.2f}".format(total_receivable) }}{{ currency_suffix }}</h2>
+                                </div>
+                                <div style="color:white;opacity:.4;"><i class="fas fa-hand-holding-usd fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-lg h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="card-body d-flex flex-column justify-content-center" style="padding:1.5rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 style="color:white;opacity:.9;margin-bottom:.5rem;"><i class="fas fa-calendar-times"></i> {{ _('Overdue > 30 days') }}</h6>
+                                    <h2 style="color:white;font-weight:bold;margin-bottom:0;">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['31_60'] + aging_totals['61_90'] + aging_totals['91_120'] + aging_totals['over_120']) }}{{ currency_suffix }}</h2>
+                                </div>
+                                <div style="color:white;opacity:.4;"><i class="fas fa-exclamation-circle fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aging Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> {{ _('Aging Analysis') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>{{ _('Current (0-30 days)') }}</th>
+                                    <th>{{ _('31-60 days') }}</th>
+                                    <th>{{ _('61-90 days') }}</th>
+                                    <th>{{ _('91-120 days') }}</th>
+                                    <th>{{ _('Over 120 days') }}</th>
+                                    <th>{{ _('Total') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-success fw-bold">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['current']) }}{{ currency_suffix }}</td>
+                                    <td class="text-warning fw-bold">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['31_60']) }}{{ currency_suffix }}</td>
+                                    <td class="fw-bold" style="color:#e67e22;">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['61_90']) }}{{ currency_suffix }}</td>
+                                    <td class="text-danger fw-bold">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['91_120']) }}{{ currency_suffix }}</td>
+                                    <td class="fw-bold" style="color:#c0392b;">{{ currency_prefix }}{{ "{:,.2f}".format(aging_totals['over_120']) }}{{ currency_suffix }}</td>
+                                    <td class="fw-bold fs-5">{{ currency_prefix }}{{ "{:,.2f}".format(total_receivable) }}{{ currency_suffix }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoices Table -->
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> {{ _('Invoice Details') }}</h5>
+                    <span class="badge bg-danger fs-6">{{ total_invoices }} {{ _('invoices') }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if invoice_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>{{ _('Invoice #') }}</th>
+                                    <th>{{ _('Date') }}</th>
+                                    <th>{{ _('Customer') }}</th>
+                                    <th class="text-end">{{ _('Total') }}</th>
+                                    <th class="text-end">{{ _('Paid') }}</th>
+                                    <th class="text-end">{{ _('Remaining') }}</th>
+                                    <th class="text-center">{{ _('Days') }}</th>
+                                    <th class="text-center">{{ _('Status') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in invoice_data %}
+                                {% set inv = d.invoice %}
+                                <tr>
+                                    <td><a href="{{ url_for('sales.view_invoice', id=inv.id) }}" class="text-decoration-none fw-bold">{{ inv.invoice_number }}</a></td>
+                                    <td>{{ inv.invoice_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ inv.customer.name }}</td>
+                                    <td class="text-end">{{ currency_prefix }}{{ "{:,.2f}".format(inv.total_amount) }}{{ currency_suffix }}</td>
+                                    <td class="text-end text-success">{{ currency_prefix }}{{ "{:,.2f}".format(inv.paid_amount or 0) }}{{ currency_suffix }}</td>
+                                    <td class="text-end text-danger fw-bold">{{ currency_prefix }}{{ "{:,.2f}".format(inv.remaining_amount) }}{{ currency_suffix }}</td>
+                                    <td class="text-center">
+                                        {% if d.days_overdue <= 30 %}
+                                            <span class="badge bg-success">{{ d.days_overdue }}</span>
+                                        {% elif d.days_overdue <= 60 %}
+                                            <span class="badge bg-warning text-dark">{{ d.days_overdue }}</span>
+                                        {% elif d.days_overdue <= 90 %}
+                                            <span class="badge" style="background:#e67e22;">{{ d.days_overdue }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ d.days_overdue }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if inv.payment_status == 'unpaid' %}
+                                            <span class="badge bg-danger">{{ _('Unpaid') }}</span>
+                                        {% elif inv.payment_status == 'partial' %}
+                                            <span class="badge bg-warning text-dark">{{ _('Partial') }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-dark">
+                                <tr>
+                                    <td colspan="3"><strong>{{ _('Total') }}</strong></td>
+                                    <td class="text-end"><strong>{{ currency_prefix }}{{ "{:,.2f}".format(total_original) }}{{ currency_suffix }}</strong></td>
+                                    <td class="text-end text-success"><strong>{{ currency_prefix }}{{ "{:,.2f}".format(total_paid) }}{{ currency_suffix }}</strong></td>
+                                    <td class="text-end text-danger"><strong>{{ currency_prefix }}{{ "{:,.2f}".format(total_receivable) }}{{ currency_suffix }}</strong></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3 d-block"></i>
+                        <h5>{{ _('No outstanding receivables found') }}</h5>
+                        <p>{{ _('All invoices are paid or no data matches the filter.') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+@media print {
+    .btn, form, .card-header .badge { display: none !important; }
+}
+</style>
+{% endblock %}

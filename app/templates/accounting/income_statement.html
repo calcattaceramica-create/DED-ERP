@@ -20,7 +20,7 @@
                     <!-- Report Header -->
                     <div class="text-center mb-4">
                         <h3>قائمة الدخل</h3>
-                        <p class="text-muted">Income Statement / Profit & Loss</p>
+                        <p class="text-muted">{{ _('Income Statement / Profit & Loss') }}</p>
                         <p>الفترة: {{ start_date }} إلى {{ end_date }}</p>
                     </div>
 
@@ -30,7 +30,7 @@
                             <tbody>
                                 <!-- Revenue Section -->
                                 <tr class="table-primary">
-                                    <td colspan="2"><strong>الإيرادات (Revenue)</strong></td>
+                                    <td colspan="2"><strong>{{ _('Revenue') }}</strong></td>
                                 </tr>
                                 {% for account in revenue_accounts %}
                                 <tr>
@@ -45,7 +45,7 @@
 
                                 <!-- Cost of Goods Sold -->
                                 <tr class="table-warning">
-                                    <td colspan="2"><strong>تكلفة البضاعة المباعة (Cost of Goods Sold)</strong></td>
+                                    <td colspan="2"><strong>{{ _('Cost of Goods Sold') }}</strong></td>
                                 </tr>
                                 {% for account in cogs_accounts %}
                                 <tr>
@@ -60,13 +60,13 @@
 
                                 <!-- Gross Profit -->
                                 <tr class="table-info fw-bold">
-                                    <td>مجمل الربح (Gross Profit)</td>
+                                    <td>{{ _('Gross Profit') }}</td>
                                     <td class="text-end">{{ "{:,.2f}".format(gross_profit) }}</td>
                                 </tr>
 
                                 <!-- Operating Expenses -->
                                 <tr class="table-danger">
-                                    <td colspan="2"><strong>المصروفات التشغيلية (Operating Expenses)</strong></td>
+                                    <td colspan="2"><strong>{{ _('Operating Expenses') }}</strong></td>
                                 </tr>
                                 {% for account in expense_accounts %}
                                 <tr>
@@ -81,7 +81,7 @@
 
                                 <!-- Net Profit -->
                                 <tr class="table-success fw-bold fs-5">
-                                    <td>صافي الربح (Net Profit)</td>
+                                    <td>{{ _('Net Profit') }}</td>
                                     <td class="text-end {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
                                         {{ "{:,.2f}".format(net_profit) }}
                                     </td>
@@ -103,7 +103,7 @@
                                             0.00%
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Gross Profit Margin</small>
+                                    <small class="text-muted">{{ _('Gross Profit Margin') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -118,7 +118,7 @@
                                             0.00%
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Net Profit Margin</small>
+                                    <small class="text-muted">{{ _('Net Profit Margin') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -133,7 +133,7 @@
                                             0.00%
                                         {% endif %}
                                     </h3>
-                                    <small class="text-muted">Expense Ratio</small>
+                                    <small class="text-muted">{{ _('Expense Ratio') }}</small>
                                 </div>
                             </div>
                         </div>

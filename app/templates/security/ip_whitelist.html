@@ -9,7 +9,7 @@
             <h2>
                 <i class="fas fa-network-wired text-primary"></i>
                 قائمة IP البيضاء
-                <small class="text-muted">IP Whitelist</small>
+                <small class="text-muted">{{ _('IP Whitelist') }}</small>
             </h2>
         </div>
     </div>
@@ -19,13 +19,13 @@
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
                 <i class="fas fa-plus"></i>
-                إضافة IP جديد - Add New IP
+                {{ _('Add New IP') }}
             </h5>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('security.add_ip_whitelist') }}" class="row g-3">
                 <div class="col-md-6">
-                    <label for="ip_address" class="form-label">عنوان IP - IP Address</label>
+                    <label for="ip_address" class="form-label">{{ _('IP Address') }}</label>
                     <input type="text" 
                            class="form-control" 
                            id="ip_address" 
@@ -37,7 +37,7 @@
                 </div>
                 
                 <div class="col-md-6">
-                    <label for="description" class="form-label">الوصف - Description</label>
+                    <label for="description" class="form-label">{{ _('Description') }}</label>
                     <input type="text" 
                            class="form-control" 
                            id="description" 
@@ -48,7 +48,7 @@
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-plus"></i>
-                        إضافة - Add
+                        {{ _('Add') }}
                     </button>
                 </div>
             </form>
@@ -60,7 +60,7 @@
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0">
                 <i class="fas fa-list"></i>
-                قائمة العناوين المصرح بها - Authorized IPs
+                {{ _('Authorized IPs') }}
             </h5>
         </div>
         <div class="card-body p-0">
@@ -91,9 +91,9 @@
                             </td>
                             <td>
                                 {% if ip.is_active %}
-                                    <span class="badge bg-success">نشط - Active</span>
+                                    <span class="badge bg-success">{{ _('Active') }}</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">غير نشط - Inactive</span>
+                                    <span class="badge bg-secondary">{{ _('Inactive') }}</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -109,9 +109,7 @@
                         <tr>
                             <td colspan="6" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                لا توجد عناوين IP في القائمة البيضاء
-                                <br>
-                                No IPs in whitelist
+                                {{ _('No IPs in whitelist') }}
                             </td>
                         </tr>
                         {% endfor %}
@@ -123,12 +121,10 @@
     
     <!-- Info Alert -->
     <div class="alert alert-info mt-4">
-        <h6><i class="fas fa-info-circle"></i> معلومات - Information:</h6>
+        <h6><i class="fas fa-info-circle"></i> {{ _('Information') }}:</h6>
         <ul class="mb-0">
-            <li>قائمة IP البيضاء تسمح فقط للعناوين المدرجة بالوصول إلى المسارات المحمية</li>
-            <li>IP Whitelist allows only listed addresses to access protected routes</li>
-            <li>يمكن استخدام هذه الميزة لحماية المسارات الحساسة</li>
-            <li>This feature can be used to protect sensitive routes</li>
+            <li>{{ _('IP Whitelist allows only listed addresses to access protected routes') }}</li>
+            <li>{{ _('This feature can be used to protect sensitive routes') }}</li>
         </ul>
     </div>
 </div>

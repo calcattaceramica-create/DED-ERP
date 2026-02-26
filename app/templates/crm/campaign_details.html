@@ -45,7 +45,7 @@
     <div class="col-md-3">
         <div class="card bg-info text-white">
             <div class="card-body">
-                <h6>ROI</h6>
+                <h6>{{ _('ROI') }}</h6>
                 <h4>{{ "%.1f"|format(campaign.roi) if campaign.roi else '0' }}%</h4>
             </div>
         </div>
@@ -150,7 +150,7 @@
                                 {% if campaign.leads_generated > 0 %}
                                     {{ (campaign.actual_cost / campaign.leads_generated)|currency }}
                                 {% else %}
-                                    - {{ currency_symbol }}
+                                    {{ currency_prefix }}-{{ currency_suffix }}
                                 {% endif %}
                             </h3>
                         </div>
@@ -162,7 +162,7 @@
                                 {% if campaign.conversions > 0 %}
                                     {{ (campaign.actual_cost / campaign.conversions)|currency }}
                                 {% else %}
-                                    - {{ currency_symbol }}
+                                    {{ currency_prefix }}-{{ currency_suffix }}
                                 {% endif %}
                             </h3>
                         </div>

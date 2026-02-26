@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Purchase Report by Product') }}{% endblock %}
 
@@ -80,7 +80,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-1">{{ _('Total Amount') }}</h6>
-                            <h3 class="mb-0 fw-bold">{{ currency_symbol }} {{ "{:,.2f}".format(total_amount or 0) }}</h3>
+                            <h3 class="mb-0 fw-bold">{{ currency_prefix }}{{ "{:,.2f}".format(total_amount or 0) }}{{ currency_suffix }}</h3>
                         </div>
                         <div class="fs-1 opacity-50">
                             <i class="fas fa-money-bill-wave"></i>
@@ -95,9 +95,14 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ _('Products Details') }}</h5>
-            <button onclick="window.print()" class="btn btn-sm btn-secondary">
-                <i class="fas fa-print"></i> {{ _('Print') }}
-            </button>
+            <div>
+                <button onclick="window.print()" class="btn btn-sm btn-secondary me-1">
+                    <i class="fas fa-print"></i> {{ _('Print') }}
+                </button>
+                <a href="{{ url_for('reports.export_pdf_purchases_by_product', start_date=start_date or '', end_date=end_date or '') }}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -124,9 +129,9 @@
                                     <span class="badge bg-primary">{{ product.invoice_count }}</span>
                                 </td>
                                 <td class="text-end">{{ "{:,.2f}".format(product.total_quantity) }}</td>
-                                <td class="text-end">{{ "{:,.2f}".format(product.total_amount) }} {{ currency_symbol }}</td>
+                                <td class="text-end">{{ currency_prefix }}{{ "{:,.2f}".format(product.total_amount) }}{{ currency_suffix }}</td>
                                 <td class="text-end">
-                                    {{ "{:,.2f}".format(product.total_amount / product.total_quantity) }} {{ currency_symbol }}
+                                    {{ currency_prefix }}{{ "{:,.2f}".format(product.total_amount / product.total_quantity) }}{{ currency_suffix }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -144,7 +149,7 @@
                         <tr>
                             <th colspan="4" class="text-end">{{ _('Total') }}:</th>
                             <th class="text-end">{{ "{:,.2f}".format(total_quantity) }}</th>
-                            <th class="text-end">{{ "{:,.2f}".format(total_amount) }} {{ currency_symbol }}</th>
+                            <th class="text-end">{{ currency_prefix }}{{ "{:,.2f}".format(total_amount) }}{{ currency_suffix }}</th>
                             <th></th>
                         </tr>
                     </tfoot>

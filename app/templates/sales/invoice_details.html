@@ -18,7 +18,7 @@
                 <i class="fas fa-print"></i> {{ _('Print') }}
             </button>
             <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="visually-hidden">Toggle Dropdown</span>
+                <span class="visually-hidden">{{ _('Toggle Dropdown') }}</span>
             </button>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="{{ url_for('sales.customer_receipt', id=invoice.id) }}" target="_blank">
@@ -191,7 +191,7 @@
                     </tr>
                     {% endif %}
                     <tr>
-                        <th>{{ _('Tax (15%)') }}:</th>
+                        <th>{{ _('Tax') }} ({{ "%.0f"|format(company.tax_rate) }}%):</th>
                         <td class="text-end"><strong>{{ invoice.tax_amount|currency }}</strong></td>
                     </tr>
                     <tr class="table-primary">

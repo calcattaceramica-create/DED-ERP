@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _("Sessions - Point of Sale") }}{% endblock %}
 
@@ -33,7 +33,7 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h6 class="card-title">{{ _("Total Sales Today") }}</h6>
-                    <h3>{{ sessions.items|sum(attribute='total_sales')|round(2) }} {{ currency_symbol }}</h3>
+                    <h3>{{ currency_prefix }}{{ sessions.items|sum(attribute='total_sales')|round(2) }}{{ currency_suffix }}</h3>
                 </div>
             </div>
         </div>
@@ -91,15 +91,15 @@
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
-                            <td>{{ session.opening_balance|round(2) }} {{ currency_symbol }}</td>
+                            <td>{{ currency_prefix }}{{ session.opening_balance|round(2) }}{{ currency_suffix }}</td>
                             <td>
                                 {% if session.closing_balance %}
-                                {{ session.closing_balance|round(2) }} {{ currency_symbol }}
+                                {{ currency_prefix }}{{ session.closing_balance|round(2) }}{{ currency_suffix }}
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
-                            <td><strong class="text-success">{{ session.total_sales|round(2) }} {{ currency_symbol }}</strong></td>
+                            <td><strong class="text-success">{{ currency_prefix }}{{ session.total_sales|round(2) }}{{ currency_suffix }}</strong></td>
                             <td>
                                 {% if session.status == 'open' %}
                                 <span class="badge bg-success">{{ _("Open") }}</span>

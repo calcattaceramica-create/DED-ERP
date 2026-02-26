@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Quotations') }} - {{ _('Inventory Management System') }}{% endblock %}
 {% block page_title %}{{ _('Quotations') }}{% endblock %}
@@ -82,7 +82,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ quotation.customer.name }}</td>
-                            <td><strong>{{ "%.2f"|format(quotation.total_amount) }} {{ _('SAR') }}</strong></td>
+                            <td><strong>{{ currency_prefix }}{{ "%.2f"|format(quotation.total_amount) }}{{ currency_suffix }}</strong></td>
                             <td>
                                 {% if quotation.status == 'draft' %}
                                     <span class="badge bg-secondary">{{ _('Draft') }}</span>

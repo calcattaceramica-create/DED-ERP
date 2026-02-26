@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Products') }}{% endblock %}
 {% block page_title %}{{ _('Product Management') }}{% endblock %}
@@ -15,6 +15,74 @@
                 <a href="{{ url_for('inventory.add_product') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">{{ _('Add New Product') }}</span>
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2"><i class="fas fa-boxes fa-2x"></i></div>
+                    <h4 class="fw-bold mb-0">{{ total_products }}</h4>
+                    <small class="text-muted">{{ _('Total Products') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2"><i class="fas fa-check-circle fa-2x"></i></div>
+                    <h4 class="fw-bold mb-0">{{ active_products }}</h4>
+                    <small class="text-muted">{{ _('Active Products') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-danger mb-2"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                    <h4 class="fw-bold mb-0">{{ low_stock_count + out_of_stock_count }}</h4>
+                    <small class="text-muted">{{ _('Low / Out of Stock') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2"><i class="fas fa-coins fa-2x"></i></div>
+                    <h4 class="fw-bold mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_stock_value) }}{{ currency_suffix }}</h4>
+                    <small class="text-muted">{{ _('Total Stock Value') }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent fw-semibold">
+                    <i class="fas fa-tags text-primary me-2"></i>{{ _('Products by Category') }}
+                </div>
+                <div class="card-body">
+                    <div style="height:260px;position:relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent fw-semibold">
+                    <i class="fas fa-warehouse text-success me-2"></i>{{ _('Stock Status') }}
+                </div>
+                <div class="card-body">
+                    <div style="height:260px;position:relative;">
+                        <canvas id="stockStatusChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -81,8 +149,8 @@
                             </td>
                             <td class="hide-on-mobile">{{ product.category.name if product.category else '-' }}</td>
                             <td class="hide-on-mobile">{{ product.unit.name if product.unit else '-' }}</td>
-                            <td class="hide-on-mobile">{{ "%.2f"|format(product.cost_price) }} {{ currency_symbol }}</td>
-                            <td>{{ "%.2f"|format(product.selling_price) }} {{ currency_symbol }}</td>
+                            <td class="hide-on-mobile">{{ currency_prefix }}{{ "%.2f"|format(product.cost_price) }}{{ currency_suffix }}</td>
+                            <td>{{ currency_prefix }}{{ "%.2f"|format(product.selling_price) }}{{ currency_suffix }}</td>
                             <td>
                                 {% set stock = product.get_stock() %}
                                 {% if stock <= product.min_stock %}
@@ -140,7 +208,7 @@
         <ul class="pagination justify-content-center flex-wrap">
             {% if products.has_prev %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('inventory.products', page=products.prev_num, search=search, category=category_id) }}">السابق</a>
+                <a class="page-link" href="{{ url_for('inventory.products', page=products.prev_num, search=search, category=category_id) }}">{{ _('Previous') }}</a>
             </li>
             {% endif %}
 
@@ -158,7 +226,7 @@
 
             {% if products.has_next %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('inventory.products', page=products.next_num, search=search, category=category_id) }}">التالي</a>
+                <a class="page-link" href="{{ url_for('inventory.products', page=products.next_num, search=search, category=category_id) }}">{{ _('Next') }}</a>
             </li>
             {% endif %}
         </ul>
@@ -171,7 +239,7 @@
     <ul class="pagination justify-content-center">
         {% if products.has_prev %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('inventory.products', page=products.prev_num, search=search, category=category_id) }}">السابق</a>
+            <a class="page-link" href="{{ url_for('inventory.products', page=products.prev_num, search=search, category=category_id) }}">{{ _('Previous') }}</a>
         </li>
         {% endif %}
         
@@ -189,7 +257,7 @@
         
         {% if products.has_next %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('inventory.products', page=products.next_num, search=search, category=category_id) }}">التالي</a>
+            <a class="page-link" href="{{ url_for('inventory.products', page=products.next_num, search=search, category=category_id) }}">{{ _('Next') }}</a>
         </li>
         {% endif %}
     </ul>
@@ -200,7 +268,7 @@
     <div class="card-body">
         <p class="mb-0 text-muted">
             <i class="fas fa-info-circle"></i>
-            عرض {{ products.items|length }} من أصل {{ products.total }} منتج
+            {{ _('Showing') }} {{ products.items|length }} {{ _('of') }} {{ products.total }} {{ _('products') }}
         </p>
     </div>
 </div>
@@ -239,7 +307,60 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// --- Category Doughnut Chart ---
+(function() {
+    var catLabels = {{ cat_labels | tojson }};
+    var catData   = {{ cat_data   | tojson }};
+    var ctx = document.getElementById('categoryChart');
+    if (ctx && catLabels.length > 0) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: ['#4f46e5','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+})();
+
+// --- Stock Status Pie Chart ---
+(function() {
+    var inStock  = {{ in_stock_count }};
+    var lowStock = {{ low_stock_count }};
+    var outStock = {{ out_of_stock_count }};
+    var lblIn  = '{{ _("In Stock") }}';
+    var lblLow = '{{ _("Low Stock") }}';
+    var lblOut = '{{ _("Out of Stock") }}';
+    var ctx = document.getElementById('stockStatusChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [lblIn, lblLow, lblOut],
+                datasets: [{
+                    data: [inStock, lowStock, outStock],
+                    backgroundColor: ['#10b981','#f59e0b','#ef4444'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+})();
+
 console.log('🔍 Product Delete Script Loaded!');
 console.log('✅ Bootstrap available:', typeof bootstrap !== 'undefined');
 console.log('✅ Modal element exists:', document.getElementById('deleteModal') !== null);
@@ -252,7 +373,7 @@ function confirmDelete(productId, productName) {
         const productNameElement = document.getElementById('productName');
         if (!productNameElement) {
             console.error('❌ Element with id "productName" not found!');
-            alert('خطأ: عنصر اسم المنتج غير موجود في الصفحة');
+            alert('Error: Product name element not found on the page');
             return;
         }
         productNameElement.textContent = productName;
@@ -262,7 +383,7 @@ function confirmDelete(productId, productName) {
         const form = document.getElementById('deleteForm');
         if (!form) {
             console.error('❌ Form with id "deleteForm" not found!');
-            alert('خطأ: نموذج الحذف غير موجود في الصفحة');
+            alert('Error: Delete form not found on the page');
             return;
         }
         form.action = `/inventory/products/${productId}/delete`;
@@ -271,7 +392,7 @@ function confirmDelete(productId, productName) {
         // Check if bootstrap is available
         if (typeof bootstrap === 'undefined') {
             console.error('❌ Bootstrap is not loaded!');
-            alert('خطأ: Bootstrap غير محمّل. يرجى إعادة تحميل الصفحة');
+            alert('Error: Bootstrap is not loaded. Please reload the page');
             return;
         }
 
@@ -279,7 +400,7 @@ function confirmDelete(productId, productName) {
         const modalElement = document.getElementById('deleteModal');
         if (!modalElement) {
             console.error('❌ Modal element not found!');
-            alert('خطأ: نافذة التأكيد غير موجودة في الصفحة');
+            alert('Error: Confirm modal not found on the page');
             return;
         }
 
@@ -289,7 +410,7 @@ function confirmDelete(productId, productName) {
 
     } catch (error) {
         console.error('❌ Error in confirmDelete:', error);
-        alert('حدث خطأ: ' + error.message);
+        alert('An error occurred: ' + error.message);
     }
 }
 

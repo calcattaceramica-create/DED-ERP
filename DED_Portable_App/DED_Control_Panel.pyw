@@ -11,7 +11,7 @@ from werkzeug.security import generate_password_hash
 class DEDControlPanel:
     def __init__(self, root):
         self.root = root
-        self.root.title("🚀 DED Control Panel - لوحة التحكم")
+        self.root.title("🚀 DED Control Panel")
         self.root.geometry("800x600")
         self.root.resizable(True, True)
         self.root.minsize(700, 500)
@@ -34,11 +34,11 @@ class DEDControlPanel:
 
         self.root.configure(bg=self.colors['bg'])
 
-        # App directory
+        # App directory - DED root folder (parent of DED_Portable_App)
         if getattr(sys, 'frozen', False):
-            self.app_dir = Path(sys.executable).parent
+            self.app_dir = Path(sys.executable).parent.parent
         else:
-            self.app_dir = Path(__file__).parent
+            self.app_dir = Path(__file__).parent.parent
 
         # Flask process
         self.flask_process = None
@@ -82,7 +82,7 @@ class DEDControlPanel:
 
         subtitle = tk.Label(
             header,
-            text="لوحة التحكم في نظام DED",
+            text="DED System Control Panel",
             font=("Segoe UI", 12),
             bg=self.colors['bg'],
             fg=self.colors['text_gray']
@@ -98,7 +98,7 @@ class DEDControlPanel:
 
         tk.Label(
             status_inner,
-            text="حالة التطبيق - Application Status",
+            text="Application Status",
             font=("Segoe UI", 14, "bold"),
             bg=self.colors['card'],
             fg=self.colors['text']
@@ -106,7 +106,7 @@ class DEDControlPanel:
 
         self.status_label = tk.Label(
             status_inner,
-            text="⚫ غير مشغّل - Not Running",
+            text="⚫ Not Running",
             font=("Segoe UI", 16, "bold"),
             bg=self.colors['card'],
             fg=self.colors['danger']
@@ -120,7 +120,7 @@ class DEDControlPanel:
         # Start Button
         self.start_btn = tk.Button(
             btn_frame,
-            text="▶️ تشغيل التطبيق\nStart Application",
+            text="▶️ Start Application",
             font=("Segoe UI", 12, "bold"),
             bg=self.colors['success'],
             fg='white',
@@ -136,7 +136,7 @@ class DEDControlPanel:
         # Stop Button
         self.stop_btn = tk.Button(
             btn_frame,
-            text="⏹️ إيقاف التطبيق\nStop Application",
+            text="⏹️ Stop Application",
             font=("Segoe UI", 12, "bold"),
             bg=self.colors['danger'],
             fg='white',
@@ -152,7 +152,7 @@ class DEDControlPanel:
         # Browser Button
         browser_btn = tk.Button(
             main,
-            text="🌐 فتح المتصفح\nOpen Browser",
+            text="🌐 Open Browser",
             font=("Segoe UI", 12, "bold"),
             bg=self.colors['accent'],
             fg='white',
@@ -174,7 +174,7 @@ class DEDControlPanel:
 
         tk.Label(
             db_inner,
-            text="أدوات قاعدة البيانات - Database Tools",
+            text="Database Tools",
             font=("Segoe UI", 14, "bold"),
             bg=self.colors['card'],
             fg=self.colors['text']
@@ -183,7 +183,7 @@ class DEDControlPanel:
         # Reset Admin Password Button
         reset_btn = tk.Button(
             db_inner,
-            text="🔑 إعادة تعيين كلمة مرور المدير\nReset Admin Password",
+            text="🔑 Reset Admin Password",
             font=("Segoe UI", 11),
             bg=self.colors['card'],
             fg=self.colors['text'],
@@ -205,9 +205,9 @@ class DEDControlPanel:
             )
             self.is_running = True
             self.update_status()
-            messagebox.showinfo("نجح - Success", "تم تشغيل التطبيق!\nApplication started!")
+            messagebox.showinfo("Success", "Application started!")
         except Exception as e:
-            messagebox.showerror("خطأ - Error", f"فشل تشغيل التطبيق:\n{str(e)}")
+            messagebox.showerror("Error", f"Failed to start the application:\n{str(e)}")
 
     def stop_app(self):
         """Stop the Flask application"""
@@ -223,15 +223,14 @@ class DEDControlPanel:
 
         self.is_running = False
         self.update_status()
-        messagebox.showinfo("نجح - Success", "تم إيقاف التطبيق!\nApplication stopped!")
+        messagebox.showinfo("Success", "Application stopped!")
 
     def open_browser(self):
         """Open browser to the application"""
         if not self.is_running:
             response = messagebox.askyesno(
-                "تحذير - Warning",
-                "⚠️ التطبيق غير مشغّل!\nApplication is not running!\n\n"
-                "هل تريد تشغيله الآن؟\nDo you want to start it now?"
+                "Warning",
+                "⚠️ Application is not running!\n\nDo you want to start it now?"
             )
             if response:
                 self.start_app()
@@ -266,14 +265,14 @@ class DEDControlPanel:
         """Update status display"""
         if self.is_running:
             self.status_label.config(
-                text="🟢 مشغّل - Running",
+                text="🟢 Running",
                 fg=self.colors['success']
             )
             self.start_btn.config(state=tk.DISABLED)
             self.stop_btn.config(state=tk.NORMAL)
         else:
             self.status_label.config(
-                text="⚫ غير مشغّل - Not Running",
+                text="⚫ Not Running",
                 fg=self.colors['danger']
             )
             self.start_btn.config(state=tk.NORMAL)
@@ -281,12 +280,12 @@ class DEDControlPanel:
 
     def reset_admin_password(self):
         """Reset admin password in database"""
-        db_path = self.app_dir / "instance" / "ded.db"
+        db_path = self.app_dir / "erp_system.db"
 
         if not db_path.exists():
             messagebox.showerror(
-                "خطأ - Error",
-                "قاعدة البيانات غير موجودة!\nDatabase not found!"
+                "Error",
+                "Database not found!"
             )
             return
 
@@ -307,26 +306,25 @@ class DEDControlPanel:
             conn.close()
 
             messagebox.showinfo(
-                "نجح - Success",
-                f"تم إعادة تعيين كلمة المرور!\nPassword reset successfully!\n\n"
-                f"Username: admin\nPassword: {new_password}"
+                "Success",
+                f"Password reset successfully!\n\nUsername: admin\nPassword: {new_password}"
             )
         except Exception as e:
             messagebox.showerror(
-                "خطأ - Error",
-                f"فشل إعادة تعيين كلمة المرور:\n{str(e)}"
+                "Error",
+                f"Failed to reset password:\n{str(e)}"
             )
 
     def on_closing(self):
         """Handle window close event"""
         if self.is_running:
             response = messagebox.askyesnocancel(
-                "تأكيد - Confirm",
-                "التطبيق لا يزال يعمل!\nApplication is still running!\n\n"
-                "هل تريد إيقافه قبل الإغلاق؟\nDo you want to stop it before closing?\n\n"
-                "نعم = إيقاف وإغلاق | Yes = Stop & Close\n"
-                "لا = إغلاق فقط | No = Close only\n"
-                "إلغاء = العودة | Cancel = Go back"
+                "Confirm",
+                "Application is still running!\n\n"
+                "Do you want to stop it before closing?\n\n"
+                "Yes = Stop & Close\n"
+                "No = Close only\n"
+                "Cancel = Go back"
             )
 
             if response is None:  # Cancel

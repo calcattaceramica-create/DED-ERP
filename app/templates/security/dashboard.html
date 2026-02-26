@@ -9,7 +9,7 @@
             <h2>
                 <i class="fas fa-shield-alt text-primary"></i>
                 لوحة التحكم الأمنية
-                <small class="text-muted">Security Dashboard</small>
+                <small class="text-muted">{{ _('Security Dashboard') }}</small>
             </h2>
         </div>
     </div>
@@ -23,7 +23,7 @@
                         <div>
                             <h6 class="card-title mb-0">إجمالي السجلات</h6>
                             <h2 class="mb-0">{{ total_logs }}</h2>
-                            <small>Total Logs</small>
+                            <small>{{ _('Total Logs') }}</small>
                         </div>
                         <i class="fas fa-list fa-3x opacity-50"></i>
                     </div>
@@ -38,7 +38,7 @@
                         <div>
                             <h6 class="card-title mb-0">محاولات فاشلة اليوم</h6>
                             <h2 class="mb-0">{{ failed_logins_today }}</h2>
-                            <small>Failed Logins Today</small>
+                            <small>{{ _('Failed Logins Today') }}</small>
                         </div>
                         <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
                     </div>
@@ -53,7 +53,7 @@
                         <div>
                             <h6 class="card-title mb-0">الجلسات النشطة</h6>
                             <h2 class="mb-0">{{ active_sessions }}</h2>
-                            <small>Active Sessions</small>
+                            <small>{{ _('Active Sessions') }}</small>
                         </div>
                         <i class="fas fa-users fa-3x opacity-50"></i>
                     </div>
@@ -68,7 +68,7 @@
                         <div>
                             <h6 class="card-title mb-0">حسابات مقفلة</h6>
                             <h2 class="mb-0">{{ locked_accounts }}</h2>
-                            <small>Locked Accounts</small>
+                            <small>{{ _('Locked Accounts') }}</small>
                         </div>
                         <i class="fas fa-lock fa-3x opacity-50"></i>
                     </div>

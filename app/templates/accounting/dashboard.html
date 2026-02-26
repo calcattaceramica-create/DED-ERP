@@ -114,28 +114,28 @@
                             <div class="border-start border-primary border-4 ps-3">
                                 <h6 class="text-muted mb-1">نسبة التداول</h6>
                                 <h4 class="mb-0 text-primary">{{ "{:.2f}".format(current_ratio) }}</h4>
-                                <small class="text-muted">Current Ratio</small>
+                                <small class="text-muted">{{ _('Current Ratio') }}</small>
                             </div>
                         </div>
                         <div class="col-6 mb-3">
                             <div class="border-start border-success border-4 ps-3">
                                 <h6 class="text-muted mb-1">هامش الربح</h6>
                                 <h4 class="mb-0 text-success">{{ "{:.1f}".format(profit_margin) }}%</h4>
-                                <small class="text-muted">Profit Margin</small>
+                                <small class="text-muted">{{ _('Profit Margin') }}</small>
                             </div>
                         </div>
                         <div class="col-6 mb-3">
                             <div class="border-start border-warning border-4 ps-3">
                                 <h6 class="text-muted mb-1">نسبة المديونية</h6>
                                 <h4 class="mb-0 text-warning">{{ "{:.1f}".format(debt_ratio) }}%</h4>
-                                <small class="text-muted">Debt Ratio</small>
+                                <small class="text-muted">{{ _('Debt Ratio') }}</small>
                             </div>
                         </div>
                         <div class="col-6 mb-3">
                             <div class="border-start border-danger border-4 ps-3">
-                                <h6 class="text-muted mb-1">العائد على الأصول</h6>
+                                <h6 class="text-muted mb-1">{{ _('Return on Assets') }}</h6>
                                 <h4 class="mb-0 text-danger">{{ "{:.1f}".format(roa) }}%</h4>
-                                <small class="text-muted">ROA</small>
+                                <small class="text-muted">{{ _('ROA') }}</small>
                             </div>
                         </div>
                     </div>

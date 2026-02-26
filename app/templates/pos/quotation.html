@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ session.get('language', 'ar') }}" dir="{{ 'rtl' if session.get('language', 'ar') == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -710,9 +710,9 @@
                             {% endif %}
                         </td>
                         <td>{{ item.quantity }}</td>
-                        <td>{{ "%.2f"|format(item.unit_price) }} {{ currency_symbol }}</td>
+                        <td>{{ currency_prefix }}{{ "%.2f"|format(item.unit_price) }}{{ currency_suffix }}</td>
                         <td>{{ item.tax_rate }}%</td>
-                        <td><strong>{{ "%.2f"|format(item.total) }} {{ currency_symbol }}</strong></td>
+                        <td><strong>{{ currency_prefix }}{{ "%.2f"|format(item.total) }}{{ currency_suffix }}</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -727,7 +727,7 @@
                         <i class="fas fa-calculator"></i>
                         <span>{{ _('Subtotal') }}</span>
                     </div>
-                    <div class="total-value">{{ "%.2f"|format(quotation.subtotal) }} {{ currency_symbol }}</div>
+                    <div class="total-value">{{ currency_prefix }}{{ "%.2f"|format(quotation.subtotal) }}{{ currency_suffix }}</div>
                 </div>
 
                 {% if quotation.discount_amount > 0 %}
@@ -736,7 +736,7 @@
                         <i class="fas fa-percent"></i>
                         <span>{{ _('Discount') }}</span>
                     </div>
-                    <div class="total-value">- {{ "%.2f"|format(quotation.discount_amount) }} {{ currency_symbol }}</div>
+                    <div class="total-value">- {{ currency_prefix }}{{ "%.2f"|format(quotation.discount_amount) }}{{ currency_suffix }}</div>
                 </div>
                 {% endif %}
 
@@ -745,7 +745,7 @@
                         <i class="fas fa-receipt"></i>
                         <span>{{ _('Tax') }} ({{ company.tax_rate if company else 15 }}%)</span>
                     </div>
-                    <div class="total-value">{{ "%.2f"|format(quotation.tax_amount) }} {{ currency_symbol }}</div>
+                    <div class="total-value">{{ currency_prefix }}{{ "%.2f"|format(quotation.tax_amount) }}{{ currency_suffix }}</div>
                 </div>
 
                 <div class="grand-total">
@@ -754,7 +754,7 @@
                             <i class="fas fa-money-bill-wave"></i>
                             <span>{{ _('Grand Total') }}</span>
                         </div>
-                        <div class="total-value">{{ "%.2f"|format(quotation.total_amount) }} {{ currency_symbol }}</div>
+                        <div class="total-value">{{ currency_prefix }}{{ "%.2f"|format(quotation.total_amount) }}{{ currency_suffix }}</div>
                     </div>
                 </div>
             </div>

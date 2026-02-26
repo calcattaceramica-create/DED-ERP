@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Add Sales Invoice') }} - {{ _('Inventory Management System') }}{% endblock %}
 {% block page_title %}{{ _('Add Sales Invoice') }}{% endblock %}
@@ -55,7 +55,7 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">{{ _('Warehouse') }} <span class="text-danger">*</span></label>
-                                <select class="form-select" name="warehouse_id" required>
+                                <select class="form-select" name="warehouse_id" id="warehouse_id" required onchange="onWarehouseChange()">
                                     <option value="">{{ _('Select Warehouse') }}</option>
                                     {% for warehouse in warehouses %}
                                     <option value="{{ warehouse.id }}">{{ warehouse.name }}</option>
@@ -100,13 +100,14 @@
                         <table class="table table-bordered" id="itemsTable">
                             <thead>
                                 <tr>
-                                    <th style="width: 30%;">{{ _('Product') }}</th>
+                                    <th style="width: 28%;">{{ _('Product') }}</th>
                                     <th style="width: 10%;">{{ _('Quantity') }}</th>
-                                    <th style="width: 15%;">{{ _('Unit Price') }}</th>
-                                    <th style="width: 10%;">{{ _('Discount %') }}</th>
-                                    <th style="width: 15%;">{{ _('Subtotal Before Tax') }}</th>
-                                    <th style="width: 10%;">{{ _('Tax') }}</th>
-                                    <th style="width: 15%;">{{ _('Total') }}</th>
+                                    <th style="width: 9%;" class="text-center text-success">{{ _('Available') }}</th>
+                                    <th style="width: 13%;">{{ _('Unit Price') }}</th>
+                                    <th style="width: 8%;">{{ _('Discount %') }}</th>
+                                    <th style="width: 13%;">{{ _('Subtotal Before Tax') }}</th>
+                                    <th style="width: 8%;">{{ _('Tax') }}</th>
+                                    <th style="width: 11%;">{{ _('Total') }}</th>
                                     <th style="width: 5%;" class="text-center">{{ _('Actions') }}</th>
                                 </tr>
                             </thead>
@@ -129,15 +130,15 @@
                             <table class="table table-sm">
                                 <tr>
                                     <th>{{ _('Subtotal Before Tax') }}:</th>
-                                    <td class="text-end"><strong id="subtotalDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="subtotalDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr>
                                     <th>{{ _('Tax (18%)') }}:</th>
-                                    <td class="text-end"><strong id="taxDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="taxDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                                 <tr class="table-primary">
                                     <th>{{ _('Grand Total') }}:</th>
-                                    <td class="text-end"><strong id="totalDisplay">0.00 {{ currency_symbol }}</strong></td>
+                                    <td class="text-end"><strong id="totalDisplay">{{ currency_prefix }}0.00{{ currency_suffix }}</strong></td>
                                 </tr>
                             </table>
                         </div>
@@ -248,6 +249,76 @@
 let itemCounter = 0;
 const products = {{ products|tojson }};
 const currencySymbol = '{{ currency_symbol }}';
+const currentLang = '{{ session.get("language", "ar") }}';
+// Cache: { 'productId_warehouseId': available_qty }
+const stockCache = {};
+
+function formatAmount(value) {
+    const formatted = parseFloat(value).toFixed(2);
+    return currentLang === 'en' ? currencySymbol + ' ' + formatted : formatted + ' ' + currencySymbol;
+}
+
+// Fetch available stock and update the display + validation for one row
+function fetchAndValidateStock(index) {
+    const productSelect = document.querySelector(`select[name="product_id_${index}"]`);
+    const warehouseSelect = document.getElementById('warehouse_id');
+    const stockCell = document.getElementById(`stock_${index}`);
+    const qtyInput = document.querySelector(`input[name="quantity_${index}"]`);
+
+    if (!productSelect || !warehouseSelect || !stockCell || !qtyInput) return;
+
+    const productId = productSelect.value;
+    const warehouseId = warehouseSelect.value;
+
+    if (!productId || !warehouseId) {
+        stockCell.textContent = '-';
+        stockCell.className = 'text-muted text-center';
+        qtyInput.classList.remove('is-invalid');
+        return;
+    }
+
+    const cacheKey = `${productId}_${warehouseId}`;
+    if (stockCache[cacheKey] !== undefined) {
+        applyStockValidation(index, stockCache[cacheKey]);
+        return;
+    }
+
+    fetch(`{{ url_for('sales.get_product_stock', product_id=0, warehouse_id=0) }}`.replace('/0/0', `/${productId}/${warehouseId}`))
+        .then(r => r.json())
+        .then(data => {
+            stockCache[cacheKey] = data.available;
+            applyStockValidation(index, data.available);
+        })
+        .catch(() => {
+            stockCell.textContent = '?';
+        });
+}
+
+function applyStockValidation(index, available) {
+    const stockCell = document.getElementById(`stock_${index}`);
+    const qtyInput = document.querySelector(`input[name="quantity_${index}"]`);
+    if (!stockCell || !qtyInput) return;
+
+    const qty = parseFloat(qtyInput.value) || 0;
+    stockCell.textContent = available.toFixed(2);
+
+    if (qty > available) {
+        stockCell.className = 'text-danger fw-bold text-center';
+        qtyInput.classList.add('is-invalid');
+    } else {
+        stockCell.className = available > 0 ? 'text-success fw-bold text-center' : 'text-warning fw-bold text-center';
+        qtyInput.classList.remove('is-invalid');
+    }
+}
+
+function onWarehouseChange() {
+    // Clear cache and re-validate all rows when warehouse changes
+    Object.keys(stockCache).forEach(k => delete stockCache[k]);
+    for (let i = 0; i < itemCounter; i++) {
+        const row = document.getElementById(`item-${i}`);
+        if (row) fetchAndValidateStock(i);
+    }
+}
 
 // Update customer information when customer is selected
 function updateCustomerInfo() {
@@ -266,7 +337,7 @@ function addItem() {
     const tbody = document.getElementById('itemsBody');
     const row = document.createElement('tr');
     row.id = `item-${itemCounter}`;
-    
+
     row.innerHTML = `
         <td>
             <select class="form-select form-select-sm" name="product_id_${itemCounter}" onchange="updateItemPrice(${itemCounter})" required>
@@ -274,7 +345,8 @@ function addItem() {
                 ${products.map(p => `<option value="${p.id}" data-price="${p.selling_price}" data-tax="${p.tax_rate}">${p.name}</option>`).join('')}
             </select>
         </td>
-        <td><input type="number" class="form-control form-control-sm" name="quantity_${itemCounter}" value="1" min="0.01" step="0.01" onchange="calculateItem(${itemCounter})" required></td>
+        <td><input type="number" class="form-control form-control-sm" name="quantity_${itemCounter}" value="1" min="0.01" step="0.01" oninput="calculateItem(${itemCounter}); fetchAndValidateStock(${itemCounter});" required></td>
+        <td id="stock_${itemCounter}" class="text-muted text-center">-</td>
         <td><input type="number" class="form-control form-control-sm" name="unit_price_${itemCounter}" value="0" min="0" step="0.01" onchange="calculateItem(${itemCounter})" required></td>
         <td><input type="number" class="form-control form-control-sm" name="discount_${itemCounter}" value="0" min="0" max="100" step="0.01" onchange="calculateItem(${itemCounter})"></td>
         <td><span id="subtotal_${itemCounter}">0.00</span></td>
@@ -286,7 +358,7 @@ function addItem() {
             </button>
         </td>
     `;
-    
+
     tbody.appendChild(row);
     itemCounter++;
 }
@@ -299,12 +371,15 @@ function updateItemPrice(index) {
     if (!option || !option.value) {
         // Reset if no product selected
         document.querySelector(`input[name="unit_price_${index}"]`).value = 0;
+        const stockCell = document.getElementById(`stock_${index}`);
+        if (stockCell) { stockCell.textContent = '-'; stockCell.className = 'text-muted text-center'; }
         calculateItem(index);
         return;
     }
 
     const price = parseFloat(option.getAttribute('data-price')) || 0;
     document.querySelector(`input[name="unit_price_${index}"]`).value = price.toFixed(2);
+    fetchAndValidateStock(index);
     calculateItem(index);
 }
 
@@ -397,9 +472,9 @@ function calculateTotals() {
     const taxDisplay = document.getElementById('taxDisplay');
     const totalDisplay = document.getElementById('totalDisplay');
 
-    if (subtotalDisplay) subtotalDisplay.textContent = subtotal.toFixed(2) + ' ' + currencySymbol;
-    if (taxDisplay) taxDisplay.textContent = tax.toFixed(2) + ' ' + currencySymbol;
-    if (totalDisplay) totalDisplay.textContent = total.toFixed(2) + ' ' + currencySymbol;
+    if (subtotalDisplay) subtotalDisplay.textContent = formatAmount(subtotal);
+    if (taxDisplay) taxDisplay.textContent = formatAmount(tax);
+    if (totalDisplay) totalDisplay.textContent = formatAmount(total);
 
     console.log('Totals calculated:', { subtotal, tax, total }); // Debug log
 }
@@ -432,6 +507,15 @@ document.getElementById('invoiceForm').addEventListener('submit', function(e) {
         alert('{{ _("Please add at least one product") }}');
         return;
     }
+
+    // ── Stock validation before submit ────────────────────────────────────
+    const invalidQty = document.querySelectorAll('#itemsBody input[type="number"].is-invalid');
+    if (invalidQty.length > 0) {
+        alert('{{ _("One or more items exceed the available stock. Please adjust the quantities before saving.") }}');
+        invalidQty[0].focus();
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     // Add items to form
     items.forEach(item => {

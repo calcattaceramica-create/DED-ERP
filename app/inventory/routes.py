@@ -8,6 +8,7 @@ from app.models_sales import SalesInvoiceItem, QuotationItem
 from app.models_purchases import PurchaseInvoiceItem, PurchaseOrderItem, PurchaseReturnItem
 from app.models_pos import POSOrderItem
 from app.auth.decorators import permission_required, any_permission_required
+from app.tenant_mixin import TenantMixin
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
@@ -74,6 +75,36 @@ def products():
     currency_symbol = current_app.config['CURRENCIES'].get(currency_code, {}).get('symbol', 'ر.س')
     currency_name = current_app.config['CURRENCIES'].get(currency_code, {}).get('name', 'ريال سعودي')
 
+    # --- Dashboard summary data ---
+    all_products = Product.query.all()
+    total_products   = len(all_products)
+    active_products  = sum(1 for p in all_products if p.is_active)
+    inactive_products = total_products - active_products
+
+    low_stock_count = 0
+    out_of_stock_count = 0
+    total_stock_value = 0.0
+    for p in all_products:
+        if not p.is_active:
+            continue
+        stock_qty = p.get_stock()
+        total_stock_value += stock_qty * (p.cost_price or 0)
+        if stock_qty <= 0:
+            out_of_stock_count += 1
+        elif p.min_stock and stock_qty <= p.min_stock:
+            low_stock_count += 1
+
+    # Category distribution (name → product count)
+    cat_labels, cat_data = [], []
+    for cat in Category.query.filter_by(is_active=True).all():
+        count = Product.query.filter_by(category_id=cat.id, is_active=True).count()
+        if count > 0:
+            cat_labels.append(cat.name)
+            cat_data.append(count)
+
+    # Stock status distribution
+    in_stock_count = active_products - low_stock_count - out_of_stock_count
+
     return render_template('inventory/products.html',
                          products=products,
                          categories=categories,
@@ -81,7 +112,16 @@ def products():
                          category_id=category_id,
                          currency_symbol=currency_symbol,
                          currency_name=currency_name,
-                         currency_code=currency_code)
+                         currency_code=currency_code,
+                         total_products=total_products,
+                         active_products=active_products,
+                         inactive_products=inactive_products,
+                         low_stock_count=low_stock_count,
+                         out_of_stock_count=out_of_stock_count,
+                         in_stock_count=in_stock_count,
+                         total_stock_value=total_stock_value,
+                         cat_labels=cat_labels,
+                         cat_data=cat_data)
 
 @bp.route('/products/add', methods=['GET', 'POST'])
 @login_required
@@ -413,7 +453,13 @@ def categories():
 def add_category():
     """Add new category"""
     try:
+        # Get tenant_id
+        tenant_id = TenantMixin.get_current_tenant_id()
+        if tenant_id is None and hasattr(current_user, 'tenant_id'):
+            tenant_id = current_user.tenant_id
+
         category = Category(
+            tenant_id=tenant_id,
             name=request.form.get('name'),
             description=request.form.get('description'),
             is_active=bool(request.form.get('is_active'))

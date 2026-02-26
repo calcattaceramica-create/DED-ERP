@@ -1,42 +1,45 @@
 {% extends "base.html" %}
 
-{% block title %}تقرير المبيعات حسب المنتج - نظام إدارة المخزون{% endblock %}
-{% block page_title %}تقرير المبيعات حسب المنتج{% endblock %}
+{% block title %}{{ _('Sales Report by Product') }}{% endblock %}
+{% block page_title %}{{ _('Sales Report by Product') }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h3><i class="fas fa-chart-line"></i> تقرير المبيعات حسب المنتج</h3>
-    <p class="text-muted mb-0">تحليل المبيعات لكل منتج</p>
+    <h3><i class="fas fa-chart-line"></i> {{ _('Sales Report by Product') }}</h3>
+    <p class="text-muted mb-0">{{ _('Sales Analysis by Product') }}</p>
 </div>
 
 <!-- Filters -->
 <div class="card shadow mb-4">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-filter"></i> الفترة الزمنية</h5>
+        <h5 class="mb-0"><i class="fas fa-filter"></i> {{ _('Time Period') }}</h5>
     </div>
     <div class="card-body">
         <form method="GET" action="{{ url_for('reports.sales_by_product') }}">
             <div class="row">
                 <div class="col-md-4">
-                    <label class="form-label">من تاريخ</label>
+                    <label class="form-label">{{ _('From Date') }}</label>
                     <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">إلى تاريخ</label>
+                    <label class="form-label">{{ _('To Date') }}</label>
                     <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">&nbsp;</label>
                     <div>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> بحث
+                            <i class="fas fa-search"></i> {{ _('Search') }}
                         </button>
                         <a href="{{ url_for('reports.sales_by_product') }}" class="btn btn-secondary">
-                            <i class="fas fa-redo"></i> إعادة تعيين
+                            <i class="fas fa-redo"></i> {{ _('Reset') }}
                         </a>
                         <button type="button" onclick="window.print()" class="btn btn-info">
-                            <i class="fas fa-print"></i> طباعة
+                            <i class="fas fa-print"></i> {{ _('Print') }}
                         </button>
+                        <a href="{{ url_for('reports.export_pdf_sales_by_product', start_date=start_date or '', end_date=end_date or '') }}" class="btn btn-danger">
+                            <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -49,16 +52,16 @@
     <div class="col-md-6">
         <div class="card bg-gradient-primary text-white shadow">
             <div class="card-body">
-                <h6 class="text-white-50 mb-1">إجمالي الكمية المباعة</h6>
+                <h6 class="text-white-50 mb-1">{{ _('Total Quantity Sold') }}</h6>
                 <h3 class="mb-0">{{ "{:,.0f}".format(total_qty) }}</h3>
-                <small>وحدة</small>
+                <small>{{ _('Unit') }}</small>
             </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card bg-gradient-success text-white shadow">
             <div class="card-body">
-                <h6 class="text-white-50 mb-1">إجمالي قيمة المبيعات</h6>
+                <h6 class="text-white-50 mb-1">{{ _('Total Sales Value') }}</h6>
                 <h3 class="mb-0">{{ "{:,.2f}".format(total_amount) }}</h3>
                 <small>{{ currency_name }}</small>
             </div>
@@ -69,7 +72,7 @@
 <!-- Results -->
 <div class="card shadow">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-list"></i> المنتجات ({{ results|length }})</h5>
+        <h5 class="mb-0"><i class="fas fa-list"></i> {{ _('Products') }} ({{ results|length }})</h5>
     </div>
     <div class="card-body">
         {% if results %}
@@ -78,11 +81,11 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>كود المنتج</th>
-                        <th>اسم المنتج</th>
-                        <th>الكمية المباعة</th>
-                        <th>إجمالي المبيعات</th>
-                        <th>النسبة</th>
+                        <th>{{ _('Product Code') }}</th>
+                        <th>{{ _('Product Name') }}</th>
+                        <th>{{ _('Quantity Sold') }}</th>
+                        <th>{{ _('Total Sales') }}</th>
+                        <th>{{ _('Percentage') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,7 +109,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th colspan="3">الإجمالي</th>
+                        <th colspan="3">{{ _('Total') }}</th>
                         <th>{{ "{:,.0f}".format(total_qty) }}</th>
                         <th>{{ total_amount|currency }}</th>
                         <th>100%</th>
@@ -117,7 +120,7 @@
         {% else %}
         <div class="alert alert-info text-center">
             <i class="fas fa-info-circle"></i>
-            لا توجد مبيعات في الفترة المحددة
+            {{ _('No sales in the selected period') }}
         </div>
         {% endif %}
     </div>

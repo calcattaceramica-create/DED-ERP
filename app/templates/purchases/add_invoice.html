@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Add Purchase Invoice') }} - {{ _('Inventory Management System') }}{% endblock %}
 
@@ -134,20 +134,20 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>{{ _('Subtotal') }}:</span>
-                                            <strong id="subtotal">0.00 {{ currency_symbol }}</strong>
+                                            <strong id="subtotal">{{ currency_prefix }}0.00{{ currency_suffix }}</strong>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>{{ _('Discount') }}:</span>
-                                            <strong id="totalDiscount">0.00 {{ currency_symbol }}</strong>
+                                            <strong id="totalDiscount">{{ currency_prefix }}0.00{{ currency_suffix }}</strong>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>{{ _('Tax') }}:</span>
-                                            <strong id="totalTax">0.00 {{ currency_symbol }}</strong>
+                                            <strong id="totalTax">{{ currency_prefix }}0.00{{ currency_suffix }}</strong>
                                         </div>
                                         <hr>
                                         <div class="d-flex justify-content-between">
                                             <h5>{{ _('Total') }}:</h5>
-                                            <h5 class="text-success" id="grandTotal">0.00 {{ currency_symbol }}</h5>
+                                            <h5 class="text-success" id="grandTotal">{{ currency_prefix }}0.00{{ currency_suffix }}</h5>
                                         </div>
                                     </div>
                                 </div>

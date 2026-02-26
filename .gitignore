@@ -64,4 +64,19 @@ migrations/versions/*.pyc
 # Backups
 *.backup
 *.bak
+backups/
+*.zip
+
+# Flask Session files
+flask_session/
+
+# SSL Certificates (sensitive)
+ssl/
+
+# Run output
+run_output.txt
+
+# Compiled Python
+*.pyc
+*.pyo
 

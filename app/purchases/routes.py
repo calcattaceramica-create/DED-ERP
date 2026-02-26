@@ -113,26 +113,84 @@ def edit_supplier(id):
 @permission_required('purchases.invoices.view')
 def invoices():
     """List all purchase invoices"""
+    from app.models import Company
+    from flask import current_app
+    from datetime import date, timedelta
+    import calendar
+
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')
     status = request.args.get('status', '')
-    
+
     query = PurchaseInvoice.query
-    
+
     if search:
         query = query.filter(PurchaseInvoice.invoice_number.contains(search))
-    
+
     if status:
         query = query.filter_by(status=status)
-    
+
     invoices = query.order_by(PurchaseInvoice.created_at.desc()).paginate(
         page=page, per_page=20, error_out=False
     )
-    
+
+    # --- Chart & summary data ---
+    all_inv = PurchaseInvoice.query.all()
+    active_inv = [i for i in all_inv if i.status != 'cancelled']
+    total_count     = len(all_inv)
+    total_amount    = sum(i.total_amount    or 0 for i in active_inv)
+    total_paid      = sum(i.paid_amount     or 0 for i in active_inv)
+    total_remaining = sum(i.remaining_amount or 0 for i in active_inv)
+
+    # Status distribution
+    status_counts = {'draft': 0, 'confirmed': 0, 'paid': 0, 'cancelled': 0}
+    for i in all_inv:
+        if i.status in status_counts:
+            status_counts[i.status] += 1
+
+    # Payment status distribution
+    pay_counts = {'paid': 0, 'partial': 0, 'unpaid': 0}
+    for i in all_inv:
+        if i.payment_status in pay_counts:
+            pay_counts[i.payment_status] += 1
+
+    # Monthly purchases last 6 months (including current month)
+    today = date.today()
+    month_labels, month_data = [], []
+    for m in range(5, -1, -1):
+        month = today.month - m
+        year  = today.year
+        while month <= 0:
+            month += 12
+            year  -= 1
+        first = date(year, month, 1)
+        last  = date(year, month, calendar.monthrange(year, month)[1])
+        total = sum(
+            i.total_amount or 0 for i in all_inv
+            if first <= i.invoice_date <= last and i.status != 'cancelled'
+        )
+        month_labels.append(f"{year}/{month:02d}")
+        month_data.append(round(total, 2))
+
+    # Currency
+    company = Company.query.first()
+    currency_symbol = current_app.config['CURRENCIES'].get(
+        company.currency if company else 'EUR', {}
+    ).get('symbol', '€')
+
     return render_template('purchases/invoices.html',
                          invoices=invoices,
                          search=search,
-                         status=status)
+                         status=status,
+                         total_count=total_count,
+                         total_amount=total_amount,
+                         total_paid=total_paid,
+                         total_remaining=total_remaining,
+                         status_counts=status_counts,
+                         pay_counts=pay_counts,
+                         month_labels=month_labels,
+                         month_data=month_data,
+                         currency_symbol=currency_symbol)
 
 @bp.route('/invoices/add', methods=['GET', 'POST'])
 @login_required

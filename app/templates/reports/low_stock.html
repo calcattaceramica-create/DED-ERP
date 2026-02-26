@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}تقرير المنتجات منخفضة المخزون - نظام إدارة المخزون{% endblock %}
-{% block page_title %}تقرير المنتجات منخفضة المخزون{% endblock %}
+{% block title %}{{ _('Low Stock Products Report') }}{% endblock %}
+{% block page_title %}{{ _('Low Stock Products Report') }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h3><i class="fas fa-exclamation-triangle text-danger"></i> تقرير المنتجات منخفضة المخزون</h3>
-    <p class="text-muted mb-0">المنتجات التي وصلت أو تجاوزت حد المخزون الأدنى</p>
+    <h3><i class="fas fa-exclamation-triangle text-danger"></i> {{ _('Low Stock Products Report') }}</h3>
+    <p class="text-muted mb-0">{{ _('Products that reached or exceeded minimum stock level') }}</p>
 </div>
 
 <div class="card shadow">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-list"></i> قائمة المنتجات</h5>
+        <h5 class="mb-0"><i class="fas fa-list"></i> {{ _('Product List') }}</h5>
         <div>
-            <button onclick="window.print()" class="btn btn-sm btn-primary">
-                <i class="fas fa-print"></i> طباعة
+            <button onclick="window.print()" class="btn btn-sm btn-primary me-1">
+                <i class="fas fa-print"></i> {{ _('Print') }}
             </button>
+            <a href="{{ url_for('reports.export_pdf_low_stock') }}" class="btn btn-sm btn-danger me-1">
+                <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+            </a>
             <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-secondary">
-                <i class="fas fa-arrow-right"></i> رجوع
+                <i class="fas fa-arrow-right"></i> {{ _('Back') }}
             </a>
         </div>
     </div>
@@ -25,7 +28,7 @@
         {% if low_stock_products %}
         <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle"></i>
-            <strong>تنبيه:</strong> يوجد {{ low_stock_products|length }} منتج منخفض المخزون
+            <strong>{{ _('Warning') }}:</strong> {{ low_stock_products|length }} {{ _('low stock products') }}
         </div>
         
         <div class="table-responsive">
@@ -33,13 +36,13 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>كود المنتج</th>
-                        <th>اسم المنتج</th>
-                        <th>المخزون الحالي</th>
-                        <th>الحد الأدنى</th>
-                        <th>النقص</th>
-                        <th>الحالة</th>
-                        <th>إجراءات</th>
+                        <th>{{ _('Product Code') }}</th>
+                        <th>{{ _('Product Name') }}</th>
+                        <th>{{ _('Current Stock') }}</th>
+                        <th>{{ _('Minimum') }}</th>
+                        <th>{{ _('Shortage') }}</th>
+                        <th>{{ _('Status') }}</th>
+                        <th>{{ _('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,13 +60,13 @@
                         </td>
                         <td>
                             {% if item.current_stock == 0 %}
-                                <span class="badge bg-danger">نفذ المخزون</span>
+                                <span class="badge bg-danger">{{ _('Out of Stock') }}</span>
                             {% else %}
-                                <span class="badge bg-warning">منخفض</span>
+                                <span class="badge bg-warning">{{ _('Low') }}</span>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('purchases.add_invoice') }}" class="btn btn-sm btn-primary" title="إنشاء طلب شراء">
+                            <a href="{{ url_for('purchases.add_invoice') }}" class="btn btn-sm btn-primary" title="{{ _('Create Purchase Order') }}">
                                 <i class="fas fa-shopping-cart"></i>
                             </a>
                         </td>
@@ -75,8 +78,8 @@
         {% else %}
         <div class="alert alert-success text-center">
             <i class="fas fa-check-circle fa-3x mb-3"></i>
-            <h5>ممتاز! جميع المنتجات في المخزون الآمن</h5>
-            <p class="mb-0">لا توجد منتجات منخفضة المخزون حالياً</p>
+            <h5>{{ _('Excellent! All products are at safe stock levels') }}</h5>
+            <p class="mb-0">{{ _('No low stock products currently') }}</p>
         </div>
         {% endif %}
     </div>

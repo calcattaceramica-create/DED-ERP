@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ session.get('language', 'ar') }}" dir="{{ 'rtl' if session.get('language', 'ar') == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
@@ -226,7 +226,7 @@
             border-left: 1px solid #dee2e6;
             border-radius: 0 8px 8px 0;
             font-weight: 700;
-            color: #667eea;
+            color: var(--primary-color, #667eea);
         }
 
         /* ========== الإجماليات ========== */
@@ -278,7 +278,7 @@
             color: white;
             padding: 12px 15px;
             margin-top: 8px;
-            box-shadow: 0 3px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 3px 15px var(--primary-shadow, rgba(102, 126, 234, 0.3));
         }
 
         .total-row.grand .total-label,
@@ -292,7 +292,7 @@
         .payment-section {
             padding: 15px 30px;
             background: white;
-            border-top: 2px solid #667eea;
+            border-top: 2px solid var(--primary-color, #667eea);
         }
 
         .payment-grid {
@@ -703,8 +703,8 @@
                     <tr>
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>{{ item.unit_price|round(2) }} {{ currency_symbol }}</td>
-                        <td>{{ (item.unit_price * item.quantity)|round(2) }} {{ currency_symbol }}</td>
+                        <td>{{ currency_prefix }}{{ item.unit_price|round(2) }}{{ currency_suffix }}</td>
+                        <td>{{ currency_prefix }}{{ (item.unit_price * item.quantity)|round(2) }}{{ currency_suffix }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -719,7 +719,7 @@
                         <i class="fas fa-calculator"></i>
                         <span>{{ _('Subtotal') }}</span>
                     </div>
-                    <div class="total-value">{{ order.subtotal|round(2) }} {{ currency_symbol }}</div>
+                    <div class="total-value">{{ currency_prefix }}{{ order.subtotal|round(2) }}{{ currency_suffix }}</div>
                 </div>
 
                 {% if order.discount_amount > 0 %}
@@ -728,7 +728,7 @@
                         <i class="fas fa-tag"></i>
                         <span>{{ _('Discount') }}</span>
                     </div>
-                    <div class="total-value">-{{ order.discount_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="total-value">-{{ currency_prefix }}{{ order.discount_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
                 {% endif %}
 
@@ -737,7 +737,7 @@
                         <i class="fas fa-percent"></i>
                         <span>{{ _('VAT') }} ({{ company.tax_rate|int }}%)</span>
                     </div>
-                    <div class="total-value">{{ order.tax_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="total-value">{{ currency_prefix }}{{ order.tax_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
 
                 <div class="total-row grand">
@@ -745,7 +745,7 @@
                         <i class="fas fa-money-bill-wave"></i>
                         <span>{{ _('Grand Total') }}</span>
                     </div>
-                    <div class="total-value">{{ order.total_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="total-value">{{ currency_prefix }}{{ order.total_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
             </div>
         </div>
@@ -783,25 +783,25 @@
                 {% if order.payment_method == 'cash' %}
                 <div class="payment-card">
                     <div class="payment-label">{{ _('Amount Paid') }}</div>
-                    <div class="payment-value">{{ order.cash_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="payment-value">{{ currency_prefix }}{{ order.cash_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
 
                 {% if order.change_amount > 0 %}
                 <div class="payment-card">
                     <div class="payment-label">{{ _('Change') }}</div>
-                    <div class="payment-value">{{ order.change_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="payment-value">{{ currency_prefix }}{{ order.change_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
                 {% endif %}
 
                 {% elif order.payment_method == 'mixed' %}
                 <div class="payment-card">
                     <div class="payment-label">{{ _('Cash') }}</div>
-                    <div class="payment-value">{{ order.cash_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="payment-value">{{ currency_prefix }}{{ order.cash_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
 
                 <div class="payment-card">
                     <div class="payment-label">{{ _('Card') }}</div>
-                    <div class="payment-value">{{ order.card_amount|round(2) }} {{ currency_symbol }}</div>
+                    <div class="payment-value">{{ currency_prefix }}{{ order.card_amount|round(2) }}{{ currency_suffix }}</div>
                 </div>
                 {% endif %}
             </div>

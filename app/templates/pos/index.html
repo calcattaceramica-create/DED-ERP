@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Point of Sale') }} - POS{% endblock %}
 
@@ -365,6 +365,11 @@
         color: white;
     }
 
+    .btn-view-quotations {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+    }
+
     .btn-hold {
         background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
         color: white;
@@ -488,11 +493,7 @@
                         <div class="card-body">
                             <h6 class="card-title">{{ product.name }}</h6>
                             <div class="product-price">
-                                {% if session.get('language', 'ar') == 'ar' %}
-                                    {{ product.selling_price }} {{ currency_symbol }}
-                                {% else %}
-                                    {{ currency_symbol }} {{ product.selling_price }}
-                                {% endif %}
+                                {{ currency_prefix }}{{ product.selling_price }}{{ currency_suffix }}
                             </div>
                             <div class="product-stock">
                                 <i class="fas fa-barcode"></i> {{ product.code }}
@@ -564,7 +565,7 @@
                             <option value="{{ customer.id }}">{{ customer.name }} - {{ customer.phone }}</option>
                             {% endfor %}
                         </select>
-                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="{{ _('Add New Customer') }}">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -653,6 +654,11 @@
                         <i class="fas fa-file-invoice"></i>
                         <span>{{ _('Create Quotation') }}</span>
                     </button>
+
+                    <a href="{{ url_for('sales.quotations') }}" class="btn-pos btn-view-quotations" style="text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <i class="fas fa-list-alt"></i>
+                        <span>{{ _('Quotations List') }}</span>
+                    </a>
 
                     <button class="btn-pos btn-hold" onclick="holdOrder()">
                         <i class="fas fa-pause-circle"></i>
@@ -1242,7 +1248,7 @@ async function addNewCustomer() {
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addCustomerModalLabel">
-                    <i class="fas fa-user-plus"></i> Add New Customer
+                    <i class="fas fa-user-plus"></i> {{ _('Add New Customer') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1251,75 +1257,75 @@ async function addNewCustomer() {
                     <div class="row g-3">
                         <!-- Name -->
                         <div class="col-md-6">
-                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ _('Name') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" required>
                         </div>
 
                         <!-- Name in English -->
                         <div class="col-md-6">
-                            <label class="form-label">Name in English</label>
+                            <label class="form-label">{{ _('Name in English') }}</label>
                             <input type="text" class="form-control" name="name_en">
                         </div>
 
                         <!-- Mobile Number -->
                         <div class="col-md-6">
-                            <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ _('Mobile Number') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="phone" required>
                         </div>
 
                         <!-- Phone Number -->
                         <div class="col-md-6">
-                            <label class="form-label">Phone Number</label>
+                            <label class="form-label">{{ _('Phone Number') }}</label>
                             <input type="text" class="form-control" name="mobile">
                         </div>
 
                         <!-- Email -->
                         <div class="col-md-6">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">{{ _('Email') }}</label>
                             <input type="email" class="form-control" name="email">
                         </div>
 
                         <!-- Customer Type -->
                         <div class="col-md-6">
-                            <label class="form-label">Customer Type</label>
+                            <label class="form-label">{{ _('Customer Type') }}</label>
                             <select class="form-select" name="customer_type">
-                                <option value="individual">Individual</option>
-                                <option value="company">Company</option>
+                                <option value="individual">{{ _('Individual') }}</option>
+                                <option value="company">{{ _('Company') }}</option>
                             </select>
                         </div>
 
                         <!-- Address -->
                         <div class="col-md-12">
-                            <label class="form-label">Address</label>
+                            <label class="form-label">{{ _('Address') }}</label>
                             <textarea class="form-control" name="address" rows="2"></textarea>
                         </div>
 
                         <!-- City -->
                         <div class="col-md-6">
-                            <label class="form-label">City</label>
+                            <label class="form-label">{{ _('City') }}</label>
                             <input type="text" class="form-control" name="city">
                         </div>
 
                         <!-- Country -->
                         <div class="col-md-6">
-                            <label class="form-label">Country</label>
+                            <label class="form-label">{{ _('Country') }}</label>
                             <input type="text" class="form-control" name="country">
                         </div>
 
                         <!-- Tax Number -->
                         <div class="col-md-6">
-                            <label class="form-label">Tax Number</label>
+                            <label class="form-label">{{ _('Tax Number') }}</label>
                             <input type="text" class="form-control" name="tax_number">
                         </div>
 
                         <!-- Category -->
                         <div class="col-md-6">
-                            <label class="form-label">Category</label>
+                            <label class="form-label">{{ _('Category') }}</label>
                             <select class="form-select" name="category">
-                                <option value="">Choose Category</option>
-                                <option value="vip">VIP</option>
-                                <option value="regular">Regular</option>
-                                <option value="wholesale">Wholesale</option>
+                                <option value="">{{ _('Choose Category') }}</option>
+                                <option value="vip">{{ _('VIP') }}</option>
+                                <option value="regular">{{ _('Regular') }}</option>
+                                <option value="wholesale">{{ _('Wholesale') }}</option>
                             </select>
                         </div>
                     </div>
@@ -1327,10 +1333,10 @@ async function addNewCustomer() {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancel
+                    <i class="fas fa-times"></i> {{ _('Cancel') }}
                 </button>
                 <button type="button" class="btn btn-primary" onclick="addNewCustomer()">
-                    <i class="fas fa-save"></i> Save Customer
+                    <i class="fas fa-save"></i> {{ _('Save Customer') }}
                 </button>
             </div>
         </div>

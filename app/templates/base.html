@@ -282,14 +282,14 @@
                         {% if current_user.has_permission('pos.access') %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="posDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-cash-register"></i> {{ _('نقاط البيع') }}
+                                <i class="fas fa-cash-register"></i> {{ _('Point of Sale') }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="posDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('pos.index') }}"><i class="fas fa-shopping-cart"></i> {{ _('شاشة نقطة البيع') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('pos.sessions') }}"><i class="fas fa-history"></i> {{ _('الجلسات') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('pos.index') }}"><i class="fas fa-shopping-cart"></i> {{ _('POS Screen') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('pos.sessions') }}"><i class="fas fa-history"></i> {{ _('Sessions') }}</a></li>
                                 {% if current_user.has_permission('pos.session.manage') %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('pos.open_session') }}"><i class="fas fa-door-open"></i> {{ _('فتح جلسة جديدة') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('pos.open_session') }}"><i class="fas fa-door-open"></i> {{ _('Open New Session') }}</a></li>
                                 {% endif %}
                             </ul>
                         </li>
@@ -298,27 +298,27 @@
                         {% if current_user.has_permission('accounting.view') %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="accountingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-calculator"></i> المحاسبة
+                                <i class="fas fa-calculator"></i> {{ _('Accounting') }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="accountingDropdown">
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.accounts') }}">
-                                    <i class="fas fa-list"></i> دليل الحسابات
+                                    <i class="fas fa-list"></i> {{ _('Chart of Accounts') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.journal_entries') }}">
-                                    <i class="fas fa-book"></i> القيود اليومية
+                                    <i class="fas fa-book"></i> {{ _('Journal Entries') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.bank_accounts') }}">
-                                    <i class="fas fa-university"></i> الحسابات البنكية
+                                    <i class="fas fa-university"></i> {{ _('Bank Accounts') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.expenses') }}">
-                                    <i class="fas fa-receipt"></i> المصروفات
+                                    <i class="fas fa-receipt"></i> {{ _('Expenses') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.payments') }}">
-                                    <i class="fas fa-money-bill-wave"></i> المدفوعات
+                                    <i class="fas fa-money-bill-wave"></i> {{ _('Payments') }}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('accounting.reports') }}">
-                                    <i class="fas fa-chart-line"></i> التقارير المالية
+                                    <i class="fas fa-chart-line"></i> {{ _('Financial Reports') }}
                                 </a></li>
                             </ul>
                         </li>
@@ -328,21 +328,21 @@
                         {% if current_user.has_permission('accounting.view') %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="bankingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-university"></i> 💳 Banking
+                                <i class="fas fa-university"></i> 💳 {{ _('Banking') }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="bankingDropdown">
                                 <li><a class="dropdown-item" href="{{ url_for('banking.add_bank') }}">
-                                    <i class="fas fa-plus-circle"></i> ➕ Add Bank
+                                    <i class="fas fa-plus-circle"></i> ➕ {{ _('Add Bank') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('banking.bank_list') }}">
-                                    <i class="fas fa-list-alt"></i> 📄 Bank List
+                                    <i class="fas fa-list-alt"></i> 📄 {{ _('Bank List') }}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('banking.add_manual_transaction') }}">
-                                    <i class="fas fa-exchange-alt"></i> ➕ Add Manual Transaction
+                                    <i class="fas fa-exchange-alt"></i> ➕ {{ _('Add Manual Transaction') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('banking.bank_statement') }}">
-                                    <i class="fas fa-file-invoice-dollar"></i> 📊 Bank Statement
+                                    <i class="fas fa-file-invoice-dollar"></i> 📊 {{ _('Bank Statement') }}
                                 </a></li>
                             </ul>
                         </li>
@@ -368,6 +368,13 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('settings.index') }}">
                                 <i class="fas fa-cog"></i> {{ _('Settings') }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.has_permission('settings.manage') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('backup.index') }}">
+                                <i class="fas fa-database"></i> {{ _('Backup') }}
                             </a>
                         </li>
                         {% endif %}
@@ -422,7 +429,7 @@
                             <!-- User Menu -->
                             <div class="dropdown me-3">
                                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user"></i> {{ current_user.full_name }}
+                                    <i class="fas fa-user"></i> {{ current_user.display_name }}
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="{{ url_for('settings.profile') }}"><i class="fas fa-user-edit"></i> {{ _('Profile') }}</a></li>

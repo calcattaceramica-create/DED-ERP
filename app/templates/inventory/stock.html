@@ -178,7 +178,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <strong>{{ "%.2f"|format(stock.quantity * stock.product.cost_price) }}</strong> {{ currency_symbol }}
+                                {{ currency_prefix }}<strong>{{ "%.2f"|format(stock.quantity * stock.product.cost_price) }}</strong>{{ currency_suffix }}
                             </td>
                         </tr>
                         {% else %}

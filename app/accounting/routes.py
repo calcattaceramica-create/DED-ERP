@@ -245,10 +245,6 @@ def delete_journal_entry(id):
     try:
         entry = JournalEntry.query.get_or_404(id)
 
-        if entry.status == 'posted':
-            flash('لا يمكن حذف قيد تم ترحيله', 'danger')
-            return redirect(url_for('accounting.journal_entry_details', id=id))
-
         db.session.delete(entry)
         db.session.commit()
 
@@ -703,25 +699,47 @@ def trial_balance():
 @permission_required('reports.financial')
 def balance_sheet():
     """Balance sheet report - الميزانية العمومية"""
-    # Assets
-    assets = Account.query.filter_by(account_type='asset', is_active=True).order_by(Account.code).all()
-    total_assets = sum(acc.current_balance for acc in assets)
+    from datetime import date
 
-    # Liabilities
-    liabilities = Account.query.filter_by(account_type='liability', is_active=True).order_by(Account.code).all()
-    total_liabilities = sum(acc.current_balance for acc in liabilities)
+    report_date = date.today().strftime('%Y-%m-%d')
+
+    # Assets - split into current (codes < '15') and fixed (codes >= '15')
+    all_assets = Account.query.filter_by(account_type='asset', is_active=True).order_by(Account.code).all()
+    current_assets = [a for a in all_assets if a.code < '15']
+    fixed_assets   = [a for a in all_assets if a.code >= '15']
+    total_current_assets = sum(a.debit_balance for a in current_assets)
+    total_fixed_assets   = sum(a.debit_balance for a in fixed_assets)
+    total_assets         = total_current_assets + total_fixed_assets
+
+    # Liabilities - split into current (codes < '25') and long-term (codes >= '25')
+    all_liabilities = Account.query.filter_by(account_type='liability', is_active=True).order_by(Account.code).all()
+    current_liabilities      = [l for l in all_liabilities if l.code < '25']
+    long_term_liabilities    = [l for l in all_liabilities if l.code >= '25']
+    total_current_liabilities   = sum(l.credit_balance for l in current_liabilities)
+    total_long_term_liabilities = sum(l.credit_balance for l in long_term_liabilities)
+    total_liabilities           = total_current_liabilities + total_long_term_liabilities
 
     # Equity
-    equity = Account.query.filter_by(account_type='equity', is_active=True).order_by(Account.code).all()
-    total_equity = sum(acc.current_balance for acc in equity)
+    equity_accounts = Account.query.filter_by(account_type='equity', is_active=True).order_by(Account.code).all()
+    total_equity = sum(e.credit_balance for e in equity_accounts)
+
+    total_liabilities_equity = total_liabilities + total_equity
 
     return render_template('accounting/balance_sheet.html',
-                         assets=assets,
-                         liabilities=liabilities,
-                         equity=equity,
+                         report_date=report_date,
+                         current_assets=current_assets,
+                         fixed_assets=fixed_assets,
+                         total_current_assets=total_current_assets,
+                         total_fixed_assets=total_fixed_assets,
                          total_assets=total_assets,
+                         current_liabilities=current_liabilities,
+                         long_term_liabilities=long_term_liabilities,
+                         total_current_liabilities=total_current_liabilities,
+                         total_long_term_liabilities=total_long_term_liabilities,
                          total_liabilities=total_liabilities,
-                         total_equity=total_equity)
+                         equity_accounts=equity_accounts,
+                         total_equity=total_equity,
+                         total_liabilities_equity=total_liabilities_equity)
 
 @bp.route('/reports/income-statement')
 @login_required

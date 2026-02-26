@@ -147,13 +147,11 @@ function editCategory(id, name, description, isActive) {
 
 function deleteCategory(id, name) {
     if (confirm(`{{ _('Are you sure you want to delete the category') }} "${name}"?`)) {
-        fetch(`/inventory/delete_category/${id}`, {
-            method: 'POST'
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            }
-        });
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/inventory/delete_category/${id}`;
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 </script>

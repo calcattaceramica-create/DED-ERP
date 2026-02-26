@@ -133,7 +133,7 @@ def update_invoice_template():
         template = request.form.get('template', 'modern')
 
         # Validate template
-        valid_templates = ['modern', 'classic', 'minimal', 'elegant']
+        valid_templates = ['modern', 'classic', 'minimal', 'elegant', 'dark', 'ocean', 'sunset', 'corporate']
         if template not in valid_templates:
             flash('شكل الفاتورة غير صحيح', 'danger')
             return redirect(url_for('settings.invoice_templates'))
@@ -142,10 +142,14 @@ def update_invoice_template():
         db.session.commit()
 
         template_names = {
-            'modern': 'عصري (Modern)',
-            'classic': 'كلاسيكي (Classic)',
-            'minimal': 'بسيط (Minimal)',
-            'elegant': 'أنيق (Elegant)'
+            'modern':    'عصري (Modern)',
+            'classic':   'كلاسيكي (Classic)',
+            'minimal':   'بسيط (Minimal)',
+            'elegant':   'أنيق (Elegant)',
+            'dark':      'داكن (Dark)',
+            'ocean':     'محيطي (Ocean)',
+            'sunset':    'غروب (Sunset)',
+            'corporate': 'مؤسسي (Corporate)',
         }
 
         flash(f'تم تحديث شكل الفاتورة إلى: {template_names.get(template, template)}', 'success')
@@ -546,6 +550,7 @@ def profile():
     """User profile"""
     if request.method == 'POST':
         current_user.full_name = request.form.get('full_name')
+        current_user.full_name_en = request.form.get('full_name_en') or None
         current_user.email = request.form.get('email')
         current_user.phone = request.form.get('phone')
         current_user.language = request.form.get('language', 'ar')

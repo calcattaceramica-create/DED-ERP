@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), nullable=False, index=True)  # Removed unique constraint
     password_hash = db.Column(db.String(256))
     full_name = db.Column(db.String(128))
+    full_name_en = db.Column(db.String(128))
     phone = db.Column(db.String(20))
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
@@ -44,6 +45,15 @@ class User(UserMixin, db.Model):
     tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='users')
     branch = db.relationship('Branch', foreign_keys=[branch_id], backref='users')
     role = db.relationship('Role', backref='users', lazy='joined')
+
+    @property
+    def display_name(self):
+        """Return name based on current session language"""
+        from flask import session
+        lang = session.get('language', 'ar')
+        if lang == 'en' and self.full_name_en:
+            return self.full_name_en
+        return self.full_name or self.username
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

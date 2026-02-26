@@ -128,5 +128,93 @@
         border-color: #f5576c;
     }
 </style>
+
+{# Dark Template #}
+{% elif template == 'dark' %}
+<style>
+    :root {
+        --primary-color: #e94560;
+        --primary-dark: #c73652;
+        --primary-light: #ff6b84;
+    }
+    .pos-container {
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    }
+    .product-card:hover { border-color: #e94560; }
+    .search-box input:focus {
+        border-color: #e94560;
+        box-shadow: 0 0 0 3px rgba(233,69,96,0.2);
+    }
+    .qty-control button { color: #e94560; }
+    .qty-control button:hover { background: #e94560; }
+    .total-row:last-child { color: #e94560; }
+    .cart-item:hover { border-color: #e94560; }
+</style>
+
+{# Ocean Template #}
+{% elif template == 'ocean' %}
+<style>
+    :root {
+        --primary-color: #0077b6;
+        --primary-dark: #03045e;
+        --primary-light: #00b4d8;
+    }
+    .pos-container {
+        background: linear-gradient(135deg, #03045e 0%, #0077b6 100%);
+    }
+    .product-card:hover { border-color: #0077b6; }
+    .search-box input:focus {
+        border-color: #0077b6;
+        box-shadow: 0 0 0 3px rgba(0,119,182,0.15);
+    }
+    .qty-control button { color: #0077b6; }
+    .qty-control button:hover { background: #0077b6; }
+    .total-row:last-child { color: #0077b6; }
+    .cart-item:hover { border-color: #0077b6; }
+</style>
+
+{# Sunset Template #}
+{% elif template == 'sunset' %}
+<style>
+    :root {
+        --primary-color: #f77f00;
+        --primary-dark: #d62828;
+        --primary-light: #fcbf49;
+    }
+    .pos-container {
+        background: linear-gradient(135deg, #d62828 0%, #f77f00 100%);
+    }
+    .product-card:hover { border-color: #f77f00; }
+    .search-box input:focus {
+        border-color: #f77f00;
+        box-shadow: 0 0 0 3px rgba(247,127,0,0.15);
+    }
+    .qty-control button { color: #f77f00; }
+    .qty-control button:hover { background: #f77f00; }
+    .total-row:last-child { color: #f77f00; }
+    .cart-item:hover { border-color: #f77f00; }
+</style>
+
+{# Corporate Template #}
+{% elif template == 'corporate' %}
+<style>
+    :root {
+        --primary-color: #1e3a5f;
+        --primary-dark: #1b4332;
+        --primary-light: #2d6a4f;
+    }
+    .pos-container {
+        background: linear-gradient(135deg, #1e3a5f 0%, #1b4332 100%);
+    }
+    .product-card:hover { border-color: #1e3a5f; }
+    .search-box input:focus {
+        border-color: #1e3a5f;
+        box-shadow: 0 0 0 3px rgba(30,58,95,0.15);
+    }
+    .qty-control button { color: #1e3a5f; }
+    .qty-control button:hover { background: #1e3a5f; }
+    .total-row:last-child { color: #1e3a5f; }
+    .cart-item:hover { border-color: #1e3a5f; }
+</style>
 {% endif %}
 

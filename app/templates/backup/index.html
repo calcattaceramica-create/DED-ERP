@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Backup Management') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                    <h4 class="mb-0 text-white"><i class="fas fa-database"></i> {{ _('Backup Management') }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">{{ _('Create and manage database backups. Each backup includes the PostgreSQL database dump and uploaded files.') }}</p>
+                    <form method="POST" action="{{ url_for('backup.create_backup') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                        <button type="submit" class="btn btn-success btn-lg" onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> جاري الإنشاء...'; this.form.submit();">
+                            <i class="fas fa-plus-circle"></i> {{ _('Create New Backup') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Backups -->
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-archive"></i> {{ _('Existing Backups') }}</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary fs-6">{{ backups|length }} {{ _('files') }}</span>
+                        <a href="{{ url_for('backup.export_excel') }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-excel"></i> {{ _('Export Excel') }}
+                        </a>
+                        <a href="{{ url_for('backup.export_pdf') }}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-file-pdf"></i> {{ _('Export PDF') }}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if backups %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fas fa-file-archive"></i> {{ _('File Name') }}</th>
+                                    <th class="text-center">{{ _('Size') }}</th>
+                                    <th class="text-center">{{ _('Created At') }}</th>
+                                    <th class="text-center">{{ _('Actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-file-archive text-warning me-2"></i>
+                                        <strong>{{ backup.filename }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ backup.size_mb }} MB</span>
+                                    </td>
+                                    <td class="text-center text-muted">
+                                        {{ backup.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ url_for('backup.download_backup', filename=backup.filename) }}"
+                                           class="btn btn-sm btn-primary me-1">
+                                            <i class="fas fa-download"></i> {{ _('Download') }}
+                                        </a>
+                                        <form method="POST" action="{{ url_for('backup.delete_backup', filename=backup.filename) }}"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('{{ _('Are you sure you want to delete this backup?') }}')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> {{ _('Delete') }}
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-database fa-3x mb-3 d-block"></i>
+                        <h5>{{ _('No backups found') }}</h5>
+                        <p>{{ _('Click "Create New Backup" to create your first backup.') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+

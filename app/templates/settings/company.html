@@ -135,8 +135,13 @@
                                     <option value="USD" {% if company.currency == 'USD' %}selected{% endif %}>{{ _('US Dollar') }} ($)</option>
                                     <option value="EUR" {% if company.currency == 'EUR' %}selected{% endif %}>{{ _('Euro') }} (€)</option>
                                     <option value="AED" {% if company.currency == 'AED' %}selected{% endif %}>{{ _('UAE Dirham') }} (د.إ)</option>
-                                    <option value="KWD" {% if company.currency == 'KWD' %}selected{% endif %}>{{ _('Kuwaiti Dinar') }} (د.ك)</option>
-                                    <option value="BHD" {% if company.currency == 'BHD' %}selected{% endif %}>{{ _('Bahraini Dinar') }} (د.ب)</option>
+                                    <option value="KWD" {% if company.currency == 'KWD' %}selected{% endif %}>دينار كويتي (د.ك)</option>
+                                    <option value="BHD" {% if company.currency == 'BHD' %}selected{% endif %}>دينار بحريني (د.ب)</option>
+                                    <option value="JOD" {% if company.currency == 'JOD' %}selected{% endif %}>دينار أردني (د.أ)</option>
+                                    <option value="IQD" {% if company.currency == 'IQD' %}selected{% endif %}>دينار عراقي (ع.د)</option>
+                                    <option value="LYD" {% if company.currency == 'LYD' %}selected{% endif %}>دينار ليبي (د.ل)</option>
+                                    <option value="TND" {% if company.currency == 'TND' %}selected{% endif %}>دينار تونسي (د.ت)</option>
+                                    <option value="DZD" {% if company.currency == 'DZD' %}selected{% endif %}>دينار جزائري (د.ج)</option>
                                     <option value="OMR" {% if company.currency == 'OMR' %}selected{% endif %}>{{ _('Omani Rial') }} (ر.ع)</option>
                                     <option value="QAR" {% if company.currency == 'QAR' %}selected{% endif %}>{{ _('Qatari Riyal') }} (ر.ق)</option>
                                     <option value="EGP" {% if company.currency == 'EGP' %}selected{% endif %}>{{ _('Egyptian Pound') }} (ج.م)</option>

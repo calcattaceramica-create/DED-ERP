@@ -262,6 +262,25 @@ def create_order():
         # Add order items
         session = POSSession.query.get(data['session_id'])
 
+        # ── Stock pre-validation for POS ─────────────────────────────────
+        from app.models_inventory import Product as ProductModel
+        for item_data in data['items']:
+            product = ProductModel.query.get(item_data['productId'])
+            if product and product.track_inventory and session:
+                qty_requested = float(item_data['quantity'])
+                stock_check = Stock.query.filter_by(
+                    product_id=item_data['productId'],
+                    warehouse_id=session.warehouse_id
+                ).first()
+                available = stock_check.quantity if stock_check else 0
+                if qty_requested > available:
+                    db.session.rollback()
+                    return jsonify({
+                        'success': False,
+                        'error': f'الكمية المطلوبة من "{product.name}" ({qty_requested}) تتجاوز المخزون المتاح ({available})'
+                    }), 400
+        # ─────────────────────────────────────────────────────────────────
+
         for item_data in data['items']:
             item = POSOrderItem(
                 order_id=order.id,
@@ -478,6 +497,16 @@ def create_quotation():
             db.session.add(quotation_item)
 
         db.session.commit()
+
+        # Auto-cleanup: keep only last 15 quotations
+        try:
+            all_quotations = Quotation.query.order_by(Quotation.created_at.desc()).all()
+            if len(all_quotations) > 15:
+                for q in all_quotations[15:]:
+                    db.session.delete(q)
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
 
         return jsonify({
             'success': True,

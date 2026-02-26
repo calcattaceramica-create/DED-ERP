@@ -74,13 +74,18 @@ class Config:
         'AED': {'name': 'درهم إماراتي', 'symbol': 'د.إ'},
         'KWD': {'name': 'دينار كويتي', 'symbol': 'د.ك'},
         'BHD': {'name': 'دينار بحريني', 'symbol': 'د.ب'},
+        'JOD': {'name': 'دينار أردني', 'symbol': 'د.أ'},
+        'IQD': {'name': 'دينار عراقي', 'symbol': 'ع.د'},
+        'LYD': {'name': 'دينار ليبي', 'symbol': 'د.ل'},
+        'TND': {'name': 'دينار تونسي', 'symbol': 'د.ت'},
+        'DZD': {'name': 'دينار جزائري', 'symbol': 'د.ج'},
         'OMR': {'name': 'ريال عماني', 'symbol': 'ر.ع'},
         'QAR': {'name': 'ريال قطري', 'symbol': 'ر.ق'},
         'EGP': {'name': 'جنيه مصري', 'symbol': 'ج.م'},
     }
     
     # Tax
-    DEFAULT_TAX_RATE = 15.0  # VAT 15%
+    DEFAULT_TAX_RATE = 18.0  # VAT 18%
     
     @staticmethod
     def init_app(app):

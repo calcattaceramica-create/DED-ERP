@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('Supplier History Report') }} - {{ supplier.name }}{% endblock %}
 
@@ -56,11 +56,11 @@
                 <p class="mb-1"><strong>{{ _('Payment Terms') }}:</strong> {{ supplier.payment_terms or 0 }} {{ _('days') }}</p>
                 <p class="mb-1"><strong>{{ _('Current Balance') }}:</strong> 
                     {% if supplier.current_balance > 0 %}
-                        <span class="text-danger">{{ "{:,.2f}".format(supplier.current_balance) }} {{ currency_symbol }}</span>
+                        <span class="text-danger">{{ currency_prefix }}{{ "{:,.2f}".format(supplier.current_balance) }}{{ currency_suffix }}</span>
                     {% elif supplier.current_balance < 0 %}
-                        <span class="text-success">{{ "{:,.2f}".format(abs(supplier.current_balance)) }} {{ currency_symbol }}</span>
+                        <span class="text-success">{{ currency_prefix }}{{ "{:,.2f}".format(abs(supplier.current_balance)) }}{{ currency_suffix }}</span>
                     {% else %}
-                        <span class="text-muted">0.00 {{ currency_symbol }}</span>
+                        <span class="text-muted">{{ currency_prefix }}0.00{{ currency_suffix }}</span>
                     {% endif %}
                 </p>
             </div>
@@ -93,7 +93,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-1">{{ _('Total Purchases') }}</h6>
-                            <h3 class="mb-0">{{ "{:,.2f}".format(total_purchases) }} {{ currency_symbol }}</h3>
+                            <h3 class="mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_purchases) }}{{ currency_suffix }}</h3>
                         </div>
                         <div class="fs-1">
                             <i class="fas fa-shopping-cart"></i>
@@ -110,7 +110,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-1">{{ _('Total Paid') }}</h6>
-                            <h3 class="mb-0">{{ "{:,.2f}".format(total_paid) }} {{ currency_symbol }}</h3>
+                            <h3 class="mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_paid) }}{{ currency_suffix }}</h3>
                         </div>
                         <div class="fs-1">
                             <i class="fas fa-check-circle"></i>
@@ -127,7 +127,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-1">{{ _('Total Remaining') }}</h6>
-                            <h3 class="mb-0">{{ "{:,.2f}".format(total_remaining) }} {{ currency_symbol }}</h3>
+                            <h3 class="mb-0">{{ currency_prefix }}{{ "{:,.2f}".format(total_remaining) }}{{ currency_suffix }}</h3>
                         </div>
                         <div class="fs-1">
                             <i class="fas fa-clock"></i>
@@ -167,11 +167,11 @@
                             <td><strong>{{ invoice.invoice_number }}</strong></td>
                             <td>{{ invoice.invoice_date.strftime('%Y-%m-%d') if invoice.invoice_date else '-' }}</td>
                             <td>{{ invoice.warehouse.name if invoice.warehouse else '-' }}</td>
-                            <td>{{ "{:,.2f}".format(invoice.subtotal) }} {{ currency_symbol }}</td>
-                            <td>{{ "{:,.2f}".format(invoice.tax_amount or 0) }} {{ currency_symbol }}</td>
-                            <td><strong>{{ "{:,.2f}".format(invoice.total_amount) }} {{ currency_symbol }}</strong></td>
-                            <td>{{ "{:,.2f}".format(invoice.paid_amount or 0) }} {{ currency_symbol }}</td>
-                            <td>{{ "{:,.2f}".format(invoice.remaining_amount or 0) }} {{ currency_symbol }}</td>
+                            <td>{{ currency_prefix }}{{ "{:,.2f}".format(invoice.subtotal) }}{{ currency_suffix }}</td>
+                            <td>{{ currency_prefix }}{{ "{:,.2f}".format(invoice.tax_amount or 0) }}{{ currency_suffix }}</td>
+                            <td><strong>{{ currency_prefix }}{{ "{:,.2f}".format(invoice.total_amount) }}{{ currency_suffix }}</strong></td>
+                            <td>{{ currency_prefix }}{{ "{:,.2f}".format(invoice.paid_amount or 0) }}{{ currency_suffix }}</td>
+                            <td>{{ currency_prefix }}{{ "{:,.2f}".format(invoice.remaining_amount or 0) }}{{ currency_suffix }}</td>
                             <td>
                                 {% if invoice.status == 'confirmed' %}
                                     <span class="badge bg-success">{{ _('Confirmed') }}</span>

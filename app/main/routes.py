@@ -141,6 +141,12 @@ def index():
     # Get recent bank transactions
     recent_bank_transactions = BankTransaction.query.order_by(BankTransaction.created_at.desc()).limit(5).all()
 
+    # Get last 15 quotations
+    recent_quotations = Quotation.query.order_by(Quotation.created_at.desc()).limit(15).all()
+
+    # Get active warehouses for convert modal
+    warehouses = Warehouse.query.filter_by(is_active=True).all()
+
     # Get expenses this month
     expenses_this_month = db.session.query(func.sum(Expense.amount)).filter(
         Expense.expense_date >= first_day,
@@ -157,7 +163,9 @@ def index():
                          chart_labels=chart_labels,
                          top_products=top_products,
                          bank_accounts=bank_accounts,
-                         recent_bank_transactions=recent_bank_transactions)
+                         recent_bank_transactions=recent_bank_transactions,
+                         recent_quotations=recent_quotations,
+                         warehouses=warehouses)
 
 @bp.route('/about')
 def about():

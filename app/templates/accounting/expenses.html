@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}المصروفات - نظام إدارة المخزون{% endblock %}
 {% block page_title %}المصروفات{% endblock %}
@@ -21,7 +21,7 @@
                             <div class="card bg-danger text-white">
                                 <div class="card-body text-center">
                                     <h5>إجمالي المصروفات</h5>
-                                    <h2>{{ "{:,.2f}".format(total_expenses) }} {{ currency_symbol }}</h2>
+                                    <h2>{{ currency_prefix }}{{ "{:,.2f}".format(total_expenses) }}{{ currency_suffix }}</h2>
                                 </div>
                             </div>
                         </div>

@@ -93,10 +93,10 @@ def add_employee():
                 employee_number=employee_number,
                 first_name=request.form.get('first_name'),
                 last_name=request.form.get('last_name'),
-                first_name_en=request.form.get('first_name_en'),
-                last_name_en=request.form.get('last_name_en'),
-                national_id=request.form.get('national_id'),
-                passport_number=request.form.get('passport_number'),
+                first_name_en=request.form.get('first_name_en') or None,
+                last_name_en=request.form.get('last_name_en') or None,
+                national_id=request.form.get('national_id') or None,
+                passport_number=request.form.get('passport_number') or None,
                 date_of_birth=datetime.strptime(request.form.get('date_of_birth'), '%Y-%m-%d').date() if request.form.get('date_of_birth') else None,
                 gender=request.form.get('gender'),
                 marital_status=request.form.get('marital_status'),
@@ -173,10 +173,10 @@ def edit_employee(id):
         try:
             employee.first_name = request.form.get('first_name')
             employee.last_name = request.form.get('last_name')
-            employee.first_name_en = request.form.get('first_name_en')
-            employee.last_name_en = request.form.get('last_name_en')
-            employee.national_id = request.form.get('national_id')
-            employee.passport_number = request.form.get('passport_number')
+            employee.first_name_en = request.form.get('first_name_en') or None
+            employee.last_name_en = request.form.get('last_name_en') or None
+            employee.national_id = request.form.get('national_id') or None
+            employee.passport_number = request.form.get('passport_number') or None
             employee.date_of_birth = datetime.strptime(request.form.get('date_of_birth'), '%Y-%m-%d').date() if request.form.get('date_of_birth') else None
             employee.gender = request.form.get('gender')
             employee.marital_status = request.form.get('marital_status')

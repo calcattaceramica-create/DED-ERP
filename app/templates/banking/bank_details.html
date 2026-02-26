@@ -10,41 +10,41 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-university"></i> معلومات البنك - Bank Information</h5>
+                    <h5 class="mb-0"><i class="fas fa-university"></i> {{ _('Bank Information') }}</h5>
                     <div class="btn-group">
                         <a href="{{ url_for('banking.edit_bank', id=bank.id) }}" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i> تعديل - Edit
+                            <i class="fas fa-edit"></i> {{ _('Edit') }}
                         </a>
                         <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <i class="fas fa-trash"></i> حذف - Delete
+                            <i class="fas fa-trash"></i> {{ _('Delete') }}
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <strong>اسم الحساب - Account Name:</strong><br>
+                            <strong>{{ _('Account Name') }}:</strong><br>
                             {{ bank.account_name }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <strong>اسم البنك - Bank Name:</strong><br>
+                            <strong>{{ _('Bank Name') }}:</strong><br>
                             {{ bank.bank_name }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <strong>رقم الحساب - Account Number:</strong><br>
+                            <strong>{{ _('Account Number') }}:</strong><br>
                             <code>{{ bank.account_number }}</code>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <strong>الفرع - Branch:</strong><br>
-                            {{ bank.branch or 'غير محدد - N/A' }}
+                            <strong>{{ _('Branch') }}:</strong><br>
+                            {{ bank.branch or _('N/A') }}
                         </div>
                         <div class="col-md-6 mb-3">
                             <strong>IBAN:</strong><br>
-                            <code>{{ bank.iban or 'غير محدد - N/A' }}</code>
+                            <code>{{ bank.iban or _('N/A') }}</code>
                         </div>
                         <div class="col-md-6 mb-3">
                             <strong>SWIFT Code:</strong><br>
-                            <code>{{ bank.swift_code or 'غير محدد - N/A' }}</code>
+                            <code>{{ bank.swift_code or _('N/A') }}</code>
                         </div>
                     </div>
                 </div>
@@ -55,26 +55,26 @@
         <div class="col-md-4">
             <div class="card shadow-lg border-0 mb-3">
                 <div class="card-body bg-gradient-success text-white text-center">
-                    <h6>الرصيد الافتتاحي - Opening Balance</h6>
+                    <h6>{{ _('Opening Balance') }}</h6>
                     <h3>{{ "{:,.2f}".format(bank.opening_balance) }}</h3>
                     <small>{{ bank.currency }}</small>
                 </div>
             </div>
             <div class="card shadow-lg border-0 mb-3">
                 <div class="card-body bg-gradient-primary text-white text-center">
-                    <h6>الرصيد الحالي - Current Balance</h6>
+                    <h6>{{ _('Current Balance') }}</h6>
                     <h2>{{ "{:,.2f}".format(bank.current_balance) }}</h2>
                     <small>{{ bank.currency }}</small>
                 </div>
             </div>
             <div class="card shadow-lg border-0">
                 <div class="card-body bg-gradient-info text-white text-center">
-                    <h6>الحالة - Status</h6>
+                    <h6>{{ _('Status') }}</h6>
                     <h4>
                         {% if bank.is_active %}
-                            <i class="fas fa-check-circle"></i> نشط - Active
+                            <i class="fas fa-check-circle"></i> {{ _('Active') }}
                         {% else %}
-                            <i class="fas fa-times-circle"></i> غير نشط - Inactive
+                            <i class="fas fa-times-circle"></i> {{ _('Inactive') }}
                         {% endif %}
                     </h4>
                 </div>
@@ -87,7 +87,7 @@
         <div class="col-md-4">
             <div class="card shadow border-0">
                 <div class="card-body bg-gradient-success text-white text-center">
-                    <h6><i class="fas fa-arrow-down"></i> إجمالي الإيداعات - Total Deposits</h6>
+                    <h6><i class="fas fa-arrow-down"></i> {{ _('Total Deposits') }}</h6>
                     <h3>{{ "{:,.2f}".format(total_deposits) }}</h3>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <div class="col-md-4">
             <div class="card shadow border-0">
                 <div class="card-body bg-gradient-danger text-white text-center">
-                    <h6><i class="fas fa-arrow-up"></i> إجمالي السحوبات - Total Withdrawals</h6>
+                    <h6><i class="fas fa-arrow-up"></i> {{ _('Total Withdrawals') }}</h6>
                     <h3>{{ "{:,.2f}".format(total_withdrawals) }}</h3>
                 </div>
             </div>
@@ -103,7 +103,7 @@
         <div class="col-md-4">
             <div class="card shadow border-0">
                 <div class="card-body bg-gradient-info text-white text-center">
-                    <h6><i class="fas fa-list"></i> عدد الحركات - Total Transactions</h6>
+                    <h6><i class="fas fa-list"></i> {{ _('Total Transactions') }}</h6>
                     <h3>{{ transactions|length }}</h3>
                 </div>
             </div>
@@ -115,29 +115,29 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="fas fa-filter"></i> فلترة الحركات - Filter Transactions</h6>
+                    <h6 class="mb-0"><i class="fas fa-filter"></i> {{ _('Filter Transactions') }}</h6>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ url_for('banking.bank_details', id=bank.id) }}" class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">من تاريخ - From Date</label>
+                            <label class="form-label">{{ _('From Date') }}</label>
                             <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">إلى تاريخ - To Date</label>
+                            <label class="form-label">{{ _('To Date') }}</label>
                             <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">نوع الحركة - Transaction Type</label>
+                            <label class="form-label">{{ _('Transaction Type') }}</label>
                             <select name="transaction_type" class="form-select">
-                                <option value="all" {% if not transaction_type or transaction_type == 'all' %}selected{% endif %}>الكل - All</option>
-                                <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>إيداع - Deposit</option>
-                                <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>سحب - Withdrawal</option>
+                                <option value="all" {% if not transaction_type or transaction_type == 'all' %}selected{% endif %}>{{ _('All') }}</option>
+                                <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>{{ _('Deposit') }}</option>
+                                <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>{{ _('Withdrawal') }}</option>
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-search"></i> بحث - Search
+                                <i class="fas fa-search"></i> {{ _('Search') }}
                             </button>
                         </div>
                     </form>
@@ -151,13 +151,13 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> حركات الحساب - Account Transactions</h5>
+                    <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> {{ _('Account Transactions') }}</h5>
                     <div>
                         <a href="{{ url_for('banking.add_manual_transaction') }}?bank_id={{ bank.id }}" class="btn btn-light btn-sm me-2">
-                            <i class="fas fa-plus"></i> إضافة حركة
+                            <i class="fas fa-plus"></i> {{ _('Add Transaction') }}
                         </a>
                         <a href="{{ url_for('banking.bank_list') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> رجوع
+                            <i class="fas fa-arrow-left"></i> {{ _('Back') }}
                         </a>
                     </div>
                 </div>
@@ -168,13 +168,13 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>#</th>
-                                    <th>رقم الحركة - Transaction #</th>
-                                    <th>التاريخ - Date</th>
-                                    <th>النوع - Type</th>
-                                    <th>المبلغ - Amount</th>
-                                    <th>المرجع - Reference</th>
-                                    <th>الوصف - Description</th>
-                                    <th>الرصيد بعد - Balance After</th>
+                                    <th>{{ _('Transaction #') }}</th>
+                                    <th>{{ _('Date') }}</th>
+                                    <th>{{ _('Type') }}</th>
+                                    <th>{{ _('Amount') }}</th>
+                                    <th>{{ _('Reference') }}</th>
+                                    <th>{{ _('Description') }}</th>
+                                    <th>{{ _('Balance After') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -185,9 +185,9 @@
                                     <td>{{ trans.transaction_date.strftime('%Y-%m-%d') }}</td>
                                     <td>
                                         {% if trans.transaction_type == 'deposit' %}
-                                            <span class="badge bg-success"><i class="fas fa-arrow-down"></i> إيداع</span>
+                                            <span class="badge bg-success"><i class="fas fa-arrow-down"></i> {{ _('Deposit') }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger"><i class="fas fa-arrow-up"></i> سحب</span>
+                                            <span class="badge bg-danger"><i class="fas fa-arrow-up"></i> {{ _('Withdrawal') }}</span>
                                         {% endif %}
                                     </td>
                                     <td class="{% if trans.transaction_type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
@@ -203,7 +203,7 @@
                     </div>
                     {% else %}
                     <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle"></i> لا توجد حركات - No transactions found
+                        <i class="fas fa-info-circle"></i> {{ _('No transactions found') }}
                     </div>
                     {% endif %}
                 </div>
@@ -218,37 +218,35 @@
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle"></i> تأكيد الحذف - Confirm Delete
+                    <i class="fas fa-exclamation-triangle"></i> {{ _('Confirm Delete') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p class="mb-3">
-                    <strong>هل أنت متأكد من حذف هذا الحساب البنكي؟</strong><br>
-                    <strong>Are you sure you want to delete this bank account?</strong>
+                    <strong>{{ _('Are you sure you want to delete this bank account?') }}</strong>
                 </p>
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>تحذير - Warning:</strong>
+                    <strong>{{ _('Warning') }}:</strong>
                     <ul class="mb-0 mt-2">
-                        <li><strong>سيتم حذف جميع المعاملات المرتبطة بهذا الحساب ({{ transactions|length }} معاملة)</strong></li>
-                        <li><strong>All transactions related to this account will be deleted ({{ transactions|length }} transactions)</strong></li>
-                        <li>هذا الإجراء لا يمكن التراجع عنه - This action cannot be undone</li>
+                        <li><strong>{{ _('All transactions related to this account will be deleted') }} ({{ transactions|length }})</strong></li>
+                        <li>{{ _('This action cannot be undone') }}</li>
                     </ul>
                 </div>
                 <p class="text-muted">
-                    الحساب: <strong>{{ bank.account_name }}</strong><br>
-                    البنك: <strong>{{ bank.bank_name }}</strong><br>
-                    الرصيد الحالي: <strong>{{ "{:,.2f}".format(bank.current_balance) }} {{ bank.currency }}</strong>
+                    {{ _('Account') }}: <strong>{{ bank.account_name }}</strong><br>
+                    {{ _('Bank') }}: <strong>{{ bank.bank_name }}</strong><br>
+                    {{ _('Current Balance') }}: <strong>{{ "{:,.2f}".format(bank.current_balance) }} {{ bank.currency }}</strong>
                 </p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> إلغاء - Cancel
+                    <i class="fas fa-times"></i> {{ _('Cancel') }}
                 </button>
                 <form method="POST" action="{{ url_for('banking.delete_bank', id=bank.id) }}" style="display: inline;">
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> حذف نهائياً - Delete Permanently
+                        <i class="fas fa-trash"></i> {{ _('Delete Permanently') }}
                     </button>
                 </form>
             </div>

@@ -27,11 +27,11 @@
                                 <label for="account_type" class="form-label">نوع الحساب <span class="text-danger">*</span></label>
                                 <select class="form-select" id="account_type" name="account_type" required>
                                     <option value="">-- اختر النوع --</option>
-                                    <option value="asset">أصول (Assets)</option>
-                                    <option value="liability">خصوم (Liabilities)</option>
-                                    <option value="equity">حقوق ملكية (Equity)</option>
-                                    <option value="revenue">إيرادات (Revenue)</option>
-                                    <option value="expense">مصروفات (Expenses)</option>
+                                    <option value="asset">{{ _('Assets') }}</option>
+                                    <option value="liability">{{ _('Liabilities') }}</option>
+                                    <option value="equity">{{ _('Equity') }}</option>
+                                    <option value="revenue">{{ _('Revenue') }}</option>
+                                    <option value="expense">{{ _('Expenses') }}</option>
                                 </select>
                             </div>
 
@@ -46,7 +46,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="name_en" class="form-label">اسم الحساب (إنجليزي)</label>
                                 <input type="text" class="form-control" id="name_en" name="name_en" 
-                                       placeholder="Example: Cash">
+                                       placeholder="{{ _('Example: Cash') }}">
                             </div>
 
                             <!-- Parent Account -->
