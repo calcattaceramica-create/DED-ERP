@@ -302,6 +302,7 @@ def register():
 
             flash(f'تم إنشاء شركتك "{company_name}" بنجاح! لديك فترة تجريبية مجانية لمدة 30 يوم.', 'success')
             flash(f'اسم المستخدم: {admin_username} | رمز الشركة: {company_code}', 'info')
+            flash(f'رابط شركتك: https://{subdomain}.calcatta-ceramica.sbs', 'warning')
 
             # Redirect to the new company's own subdomain so the tenant
             # middleware can correctly identify it (subdomain takes priority

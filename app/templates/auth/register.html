@@ -129,13 +129,21 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label required-field">اسم الشركة (بالعربية)</label>
-                            <input type="text" class="form-control" name="company_name" required>
+                            <input type="text" class="form-control" name="company_name" id="company_name" required>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">اسم الشركة (بالإنجليزية)</label>
-                            <input type="text" class="form-control" name="company_name_en">
+                            <input type="text" class="form-control" name="company_name_en" id="company_name_en">
                         </div>
+                    </div>
+
+                    <!-- URL Preview Box -->
+                    <div class="alert alert-info py-2 mb-3" id="url-preview-box" style="display:none;">
+                        <i class="fas fa-link me-1"></i>
+                        <strong>رابط شركتك سيكون:</strong>
+                        <span id="url-preview" class="text-primary fw-bold ms-1" dir="ltr"></span>
+                        <small class="text-muted d-block mt-1">احفظ هذا الرابط — ستستخدمه للدخول لشركتك دائماً</small>
                     </div>
                     
                     <div class="row">
@@ -241,6 +249,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    // Live URL preview as user types company name
+    function toSubdomain(name) {
+        // Same logic as Python: keep only alphanumeric, lowercase, max 20 chars
+        return name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+    }
+
+    function updatePreview() {
+        var arName = document.getElementById('company_name').value.trim();
+        var enName = document.getElementById('company_name_en').value.trim();
+        // Prefer English name for subdomain if available (cleaner URLs)
+        var base = enName || arName;
+        var sub  = toSubdomain(base);
+        var box  = document.getElementById('url-preview-box');
+        var lbl  = document.getElementById('url-preview');
+
+        if (sub.length > 0) {
+            lbl.textContent = 'https://' + sub + '.calcatta-ceramica.sbs';
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    document.getElementById('company_name').addEventListener('input', updatePreview);
+    document.getElementById('company_name_en').addEventListener('input', updatePreview);
+    </script>
 </body>
 </html>
 
