@@ -65,16 +65,36 @@ class TenantMiddleware:
             if not tenant.is_active:
                 abort(403, description="Tenant account is inactive")
 
-            # Subscription check – only warn, don't hard-redirect (route may not exist)
-            # In a production SaaS you would redirect to a payment page here.
-
             set_current_tenant(tenant.id)
             g.current_tenant = tenant
+
+            # ── Cross-Tenant Session Guard ────────────────────────────────────
+            # If the logged-in user belongs to a DIFFERENT tenant than the one
+            # identified from the subdomain, silently log them out so they are
+            # shown the login page for the correct company.
+            # This handles the case where:
+            #   • User logged into company-B, then navigates to company-A subdomain.
+            #   • Without this guard they would be stuck or see wrong data.
+            try:
+                from flask_login import current_user, logout_user
+                if current_user and current_user.is_authenticated:
+                    user_tenant_id = getattr(current_user, 'tenant_id', None)
+                    if user_tenant_id and user_tenant_id != tenant.id:
+                        # Log out gracefully (no DB write – keep it lightweight)
+                        logout_user()
+                        session.pop('tenant_id', None)
+                        session.pop('session_log_id', None)
+                        # Let the request continue; @login_required will redirect
+                        # to /auth/login which is already scoped to this subdomain.
+            except Exception:
+                pass
+            # ──────────────────────────────────────────────────────────────────
+
         else:
             # No tenant found - allow access without tenant for backward compatibility
             # The auto-query filter will simply not apply when tenant_id is not set.
             pass
-        
+
         return None
     
     @staticmethod

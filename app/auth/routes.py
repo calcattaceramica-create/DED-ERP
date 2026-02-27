@@ -45,7 +45,22 @@ def log_security_event(user_id, event_type, details=None, severity='info'):
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        # Make sure the logged-in user actually belongs to the current tenant
+        # (subdomain).  If they don't, the middleware already logged them out,
+        # but as a safety net we check here too.
+        from flask import g
+        current_tenant = getattr(g, 'current_tenant', None)
+        if current_tenant:
+            user_tenant_id = getattr(current_user, 'tenant_id', None)
+            if user_tenant_id and user_tenant_id != current_tenant.id:
+                # Wrong tenant – fall through to show the login form
+                from flask_login import logout_user as _logout
+                _logout()
+                session.pop('tenant_id', None)
+            else:
+                return redirect(url_for('main.index'))
+        else:
+            return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         username = request.form.get('username')
