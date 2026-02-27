@@ -53,10 +53,10 @@ def login():
         if current_tenant:
             user_tenant_id = getattr(current_user, 'tenant_id', None)
             if user_tenant_id and user_tenant_id != current_tenant.id:
-                # Wrong tenant – fall through to show the login form
+                # Wrong tenant – clear entire session and show login form
                 from flask_login import logout_user as _logout
                 _logout()
-                session.pop('tenant_id', None)
+                session.clear()
             else:
                 return redirect(url_for('main.index'))
         else:
@@ -293,28 +293,15 @@ def register():
             log_security_event(admin_user.id, 'company_registration',
                              f'New company registered: {company_name} (Code: {company_code})', 'info')
 
-            # Auto-login the admin user
-            login_user(admin_user, remember=False)
+            # NOTE: We intentionally do NOT call login_user() here.
+            # The register form may be submitted from a different company's subdomain,
+            # so calling login_user() would store the new company's session data in
+            # the wrong subdomain's cookie – causing cross-tenant session pollution.
+            # Instead we redirect to the new subdomain's login page so the user
+            # authenticates fresh in the correct session context.
 
-            # Store tenant_id in session
-            session['tenant_id'] = tenant.id
-
-            # Create session log
-            session_id = str(uuid.uuid4())
-            session_log = SessionLog(
-                user_id=admin_user.id,
-                session_id=session_id,
-                ip_address=get_client_ip(),
-                user_agent=get_user_agent(),
-                is_active=True
-            )
-            db.session.add(session_log)
-            db.session.commit()
-
-            session['session_log_id'] = session_log.id
-
-            flash(f'مرحباً بك! تم إنشاء شركتك "{company_name}" بنجاح. لديك فترة تجريبية مجانية لمدة 30 يوم.', 'success')
-            flash(f'رمز الشركة: {company_code} | النطاق الفرعي: {subdomain}', 'info')
+            flash(f'تم إنشاء شركتك "{company_name}" بنجاح! لديك فترة تجريبية مجانية لمدة 30 يوم.', 'success')
+            flash(f'اسم المستخدم: {admin_username} | رمز الشركة: {company_code}', 'info')
 
             # Redirect to the new company's own subdomain so the tenant
             # middleware can correctly identify it (subdomain takes priority

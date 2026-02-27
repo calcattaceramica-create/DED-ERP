@@ -80,10 +80,10 @@ class TenantMiddleware:
                 if current_user and current_user.is_authenticated:
                     user_tenant_id = getattr(current_user, 'tenant_id', None)
                     if user_tenant_id and user_tenant_id != tenant.id:
-                        # Log out gracefully (no DB write – keep it lightweight)
+                        # Log out gracefully and wipe the entire session to avoid
+                        # any stale data from the previous company's session.
                         logout_user()
-                        session.pop('tenant_id', None)
-                        session.pop('session_log_id', None)
+                        session.clear()
                         # Let the request continue; @login_required will redirect
                         # to /auth/login which is already scoped to this subdomain.
             except Exception:
