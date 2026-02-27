@@ -136,8 +136,10 @@ def setup_tenant_query_filter():
 
         # Build per-class criteria: filter by tenant_id only for models that have it,
         # and never filter the Tenant table itself (to avoid recursion).
-        # track_on=(tenant_id,) tells SQLAlchemy to use the tenant_id value
-        # as part of the lambda cache key so it knows when to recompute.
+        # track_closure_variables=False: tells SQLAlchemy not to cache-key
+        # the query based on the closure variable `tenant_id` (it changes
+        # per request). The bind value is still read from the closure on
+        # every execution, so isolation is maintained correctly.
         def _make_criteria(cls):
             if (hasattr(cls, 'tenant_id')
                     and getattr(cls, '__tablename__', None) != 'tenants'):
@@ -149,7 +151,7 @@ def setup_tenant_query_filter():
                 db.Model,
                 _make_criteria,
                 include_aliases=True,
-                track_on=(tenant_id,),
+                track_closure_variables=False,
             )
         )
 
