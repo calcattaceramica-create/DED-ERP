@@ -301,7 +301,29 @@ def register():
             flash(f'مرحباً بك! تم إنشاء شركتك "{company_name}" بنجاح. لديك فترة تجريبية مجانية لمدة 30 يوم.', 'success')
             flash(f'رمز الشركة: {company_code} | النطاق الفرعي: {subdomain}', 'info')
 
-            return redirect(url_for('main.index'))
+            # Redirect to the new company's own subdomain so the tenant
+            # middleware can correctly identify it (subdomain takes priority
+            # over session in the middleware chain).
+            host = request.host.lower()
+            port_suffix = ''
+            if ':' in host:
+                host_clean, port_val = host.rsplit(':', 1)
+                port_suffix = f':{port_val}'
+            else:
+                host_clean = host
+
+            host_parts = host_clean.split('.')
+            if len(host_parts) >= 2:
+                # e.g. ddb.calcatta-ceramica.sbs → calcatta-ceramica.sbs
+                base_domain = '.'.join(host_parts[1:])
+                new_host = f"{subdomain}.{base_domain}{port_suffix}"
+            else:
+                # Local / bare hostname (development) – stay on same host
+                new_host = host
+
+            scheme = 'https' if request.is_secure else request.scheme
+            new_url = f"{scheme}://{new_host}/"
+            return redirect(new_url)
 
         except Exception as e:
             db.session.rollback()
