@@ -304,23 +304,41 @@ def register():
             # Redirect to the new company's own subdomain so the tenant
             # middleware can correctly identify it (subdomain takes priority
             # over session in the middleware chain).
-            host = request.host.lower()
+
+            # Sanitize request.host: take only the first value before any
+            # comma (some proxy configurations may produce comma-separated
+            # host strings, e.g. "ddb.example.com,example.com").
+            raw_host = request.host.lower().split(',')[0].strip()
+
             port_suffix = ''
-            if ':' in host:
-                host_clean, port_val = host.rsplit(':', 1)
+            if ':' in raw_host:
+                host_clean, port_val = raw_host.rsplit(':', 1)
                 port_suffix = f':{port_val}'
             else:
-                host_clean = host
+                host_clean = raw_host
 
-            host_parts = host_clean.split('.')
-            if len(host_parts) >= 2:
+            # Prefer the explicitly configured BASE_DOMAIN from the environment
+            # (set in .env as BASE_DOMAIN=calcatta-ceramica.sbs).  This avoids
+            # any ambiguity coming from request.host under reverse-proxy setups.
+            base_domain = current_app.config.get('BASE_DOMAIN', '').strip()
+
+            if not base_domain:
+                # Fallback: strip the leftmost label (current subdomain) to get
+                # the root domain.  Use the last 2 labels so that accessing from
+                # the root domain (no subdomain) also works correctly.
                 # e.g. ddb.calcatta-ceramica.sbs → calcatta-ceramica.sbs
-                base_domain = '.'.join(host_parts[1:])
-                new_host = f"{subdomain}.{base_domain}{port_suffix}"
-            else:
-                # Local / bare hostname (development) – stay on same host
-                new_host = host
+                #      calcatta-ceramica.sbs     → calcatta-ceramica.sbs (same)
+                host_parts = host_clean.split('.')
+                if len(host_parts) >= 3:
+                    # Has a subdomain: strip the first label
+                    base_domain = '.'.join(host_parts[1:])
+                elif len(host_parts) == 2:
+                    # Already at root domain – use as-is
+                    base_domain = host_clean
+                else:
+                    base_domain = host_clean
 
+            new_host = f"{subdomain}.{base_domain}{port_suffix}"
             scheme = 'https' if request.is_secure else request.scheme
             new_url = f"{scheme}://{new_host}/"
             return redirect(new_url)

@@ -22,6 +22,8 @@ class Config:
 
     # Application
     APP_NAME = os.environ.get('APP_NAME') or 'نظام إدارة المخزون المتكامل'
+    # Base domain used for building tenant subdomain URLs (e.g. calcatta-ceramica.sbs)
+    BASE_DOMAIN = os.environ.get('BASE_DOMAIN', '')
     DEFAULT_LANGUAGE = 'ar'
     BABEL_DEFAULT_LOCALE = 'ar'
     BABEL_DEFAULT_TIMEZONE = 'Asia/Riyadh'
