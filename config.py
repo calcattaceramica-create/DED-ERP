@@ -33,9 +33,10 @@ class Config:
         'en': {'name': 'English', 'flag': '🇬🇧', 'dir': 'ltr'}
     }
 
-    # Session Security
-    SESSION_TYPE = 'filesystem'  # Use filesystem for session storage
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=2)  # Session expires after 2 hours
+    # Session Security – using Flask's built-in signed-cookie sessions
+    # (Flask-Session filesystem mode caused data loss across Gunicorn workers)
+    SESSION_PERMANENT = True
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)  # Session expires after 8 hours
 
     # Auto-detect HTTPS: Check if SSL certificates exist
     _ssl_cert_exists = os.path.exists(os.path.join(basedir, 'ssl', 'cert.pem'))

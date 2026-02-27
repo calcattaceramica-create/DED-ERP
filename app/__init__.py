@@ -58,9 +58,11 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     migrate.init_app(app, db)
 
-    # Initialize Flask-Session (for Render deployment)
-    app.config['SESSION_SQLALCHEMY'] = db
-    sess.init_app(app)
+    # NOTE: Flask-Session (filesystem mode) was causing session loss across
+    # Gunicorn workers. Using Flask's built-in signed-cookie sessions instead:
+    # they are simpler, work reliably across all workers, and are signed with
+    # SECRET_KEY so they cannot be tampered with by the client.
+    # sess.init_app(app)  ← disabled
 
     # Initialize Babel with absolute path
     app.config['BABEL_DEFAULT_LOCALE'] = 'ar'
