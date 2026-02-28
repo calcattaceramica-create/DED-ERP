@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DED ERP — إدارة أعمالك بذكاء</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root { --primary:#2c3e50; --accent:#3498db; --green:#27ae60; }
+body { font-family:'Segoe UI',Tahoma,sans-serif; color:#222; }
+
+/* Navbar */
+.navbar-landing { background:rgba(255,255,255,.97); backdrop-filter:blur(10px);
+  box-shadow:0 2px 12px rgba(0,0,0,.08); position:sticky; top:0; z-index:1000; }
+
+/* Hero */
+.hero { background:linear-gradient(135deg,var(--primary) 0%,#1a6ea8 100%);
+  min-height:92vh; display:flex; align-items:center; color:#fff; padding:80px 0; }
+.hero h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; line-height:1.2; }
+.hero .lead { font-size:1.2rem; opacity:.88; }
+.hero-badge { display:inline-block; background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.3); border-radius:20px;
+  padding:5px 16px; font-size:.85rem; margin-bottom:18px; }
+.btn-cta { background:#f39c12; color:#fff; border:none; padding:14px 36px;
+  border-radius:50px; font-size:1.1rem; font-weight:700;
+  box-shadow:0 8px 24px rgba(243,156,18,.4); transition:.2s; }
+.btn-cta:hover { background:#e67e22; color:#fff; transform:translateY(-2px); }
+.btn-outline-light { border-radius:50px; padding:14px 36px; font-size:1.1rem; }
+.hero-stats span { font-size:1.6rem; font-weight:800; display:block; }
+.hero-stats small { opacity:.75; font-size:.82rem; }
+
+/* Sections */
+section { padding:80px 0; }
+.section-label { color:var(--accent); font-weight:700; font-size:.88rem;
+  letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.section-title { font-size:clamp(1.6rem,3vw,2.2rem); font-weight:800;
+  color:var(--primary); margin-bottom:12px; }
+
+/* Feature cards */
+.feature-card { border:none; border-radius:16px; padding:32px 24px; height:100%;
+  box-shadow:0 4px 20px rgba(0,0,0,.06); transition:.25s; background:#fff; }
+.feature-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(0,0,0,.12); }
+.feature-icon { width:60px; height:60px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:18px; }
+
+/* Steps */
+.steps-section { background:linear-gradient(135deg,#f8f9fa 0%,#e9f4ff 100%); }
+.step-num { width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff; font-size:1.3rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+.step-connector { position:absolute; top:26px; width:100%; height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+  left:-50%; z-index:0; }
+
+/* Pricing */
+.pricing-section { background:var(--primary); color:#fff; }
+.plan-box { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  border-radius:20px; padding:40px 32px; text-align:center; transition:.25s; }
+.plan-box:hover { background:rgba(255,255,255,.13); transform:translateY(-4px); }
+.plan-box.featured { background:rgba(255,255,255,.18);
+  border-color:rgba(255,255,255,.5); }
+.plan-badge { background:#f39c12; color:#fff; border-radius:20px;
+  padding:3px 14px; font-size:.78rem; font-weight:700; }
+.plan-price { font-size:3rem; font-weight:900; }
+.plan-price sup { font-size:1.2rem; }
+.plan-price span { font-size:1rem; font-weight:400; opacity:.7; }
+.plan-trial { border:2px dashed rgba(255,255,255,.35);
+  border-radius:20px; padding:30px; text-align:center; }
+
+/* Specialist */
+.specialist-section { background:#f8f9fa; }
+.specialist-card { background:#fff; border-radius:20px; padding:48px 40px;
+  box-shadow:0 8px 32px rgba(0,0,0,.08); }
+
+/* Articles */
+.article-card { border:none; border-radius:16px; overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,.06); height:100%; transition:.2s; }
+.article-card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(0,0,0,.1); }
+.article-img { height:180px; object-fit:cover; width:100%; }
+.article-tag { font-size:.75rem; font-weight:700; padding:3px 10px;
+  border-radius:12px; display:inline-block; }
+
+/* Footer */
+.footer-cta { background:linear-gradient(135deg,var(--accent) 0%,var(--primary) 100%);
+  padding:80px 0; color:#fff; text-align:center; }
+.footer-bottom { background:#1a252f; color:rgba(255,255,255,.55);
+  padding:20px 0; font-size:.85rem; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav class="navbar navbar-landing navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand fw-bold fs-4" href="/" style="color:var(--primary)">
+      <i class="fas fa-warehouse me-2" style="color:var(--accent)"></i>DED ERP
+    </a>
+    <div class="d-flex gap-2 ms-auto">
+      <a href="/auth/login" class="btn btn-outline-secondary btn-sm px-4">تسجيل الدخول</a>
+      <a href="/auth/register" class="btn btn-sm px-4"
+         style="background:var(--accent);color:#fff;border-radius:20px">ابدأ مجاناً</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge">🚀 نظام ERP متكامل للشركات الصغيرة والمتوسطة</div>
+        <h1>أدِر أعمالك بالكامل<br>من مكان <span style="color:#f39c12">واحد</span></h1>
+        <p class="lead mt-3 mb-4">
+          مبيعات · مشتريات · مخزون · محاسبة · موارد بشرية · نقطة بيع<br>
+          كل ما تحتاجه بتكلفة لا تتجاوز <strong>€29 / شهر</strong>
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/auth/register" class="btn btn-cta">
+            <i class="fas fa-rocket me-2"></i>ابدأ تجربتك المجانية 14 يوم
+          </a>
+          <a href="#features" class="btn btn-outline-light">
+            <i class="fas fa-play-circle me-2"></i>اكتشف المزايا
+          </a>
+        </div>
+        <div class="row mt-5 g-4">
+          <div class="col-4 hero-stats text-center">
+            <span>+500</span><small>شركة تثق بنا</small>
+          </div>
+          <div class="col-4 hero-stats text-center">
+            <span>14 يوم</span><small>تجربة مجانية</small>
+          </div>
+          <div class="col-4 hero-stats text-center">
+            <span>€29</span><small>فقط / شهر</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center d-none d-lg-block">
+        <div style="background:rgba(255,255,255,.1);border-radius:24px;padding:48px;border:1px solid rgba(255,255,255,.2)">
+          <i class="fas fa-chart-line fa-8x" style="color:rgba(255,255,255,.25)"></i>
+          <div class="row g-3 mt-3">
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:16px">
+                <i class="fas fa-shopping-cart mb-2 text-warning"></i><br>
+                <small>المبيعات اليوم</small><br><strong>€4,280</strong>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:16px">
+                <i class="fas fa-boxes mb-2" style="color:#a29bfe"></i><br>
+                <small>المخزون</small><br><strong>1,842 صنف</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══════════════ FEATURES ═══════════════ -->
+<section id="features" style="background:#f8f9fa">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">المزايا</div>
+      <h2 class="section-title">كل ما تحتاجه في منصة واحدة</h2>
+      <p class="text-muted">بدون تعقيد، بدون تكاليف مخفية</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#dbeafe"><i class="fas fa-shopping-cart" style="color:#3498db"></i></div>
+        <h5 class="fw-bold">إدارة المبيعات</h5>
+        <p class="text-muted small mb-0">فواتير، عروض أسعار، تتبع العملاء، وتقارير مبيعات تفصيلية لحظية.</p>
+      </div></div>
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#dcfce7"><i class="fas fa-truck" style="color:#27ae60"></i></div>
+        <h5 class="fw-bold">إدارة المشتريات</h5>
+        <p class="text-muted small mb-0">أوامر شراء، متابعة الموردين، فواتير الاستلام وإدارة المدفوعات.</p>
+      </div></div>
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#fef9c3"><i class="fas fa-boxes" style="color:#f39c12"></i></div>
+        <h5 class="fw-bold">إدارة المخزون</h5>
+        <p class="text-muted small mb-0">مستودعات متعددة، تتبع الحركات، تنبيهات المخزون المنخفض.</p>
+      </div></div>
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#fce7f3"><i class="fas fa-calculator" style="color:#e91e8c"></i></div>
+        <h5 class="fw-bold">المحاسبة المالية</h5>
+        <p class="text-muted small mb-0">دليل حسابات، قيود يومية، ميزانية عمومية، وقائمة أرباح وخسائر.</p>
+      </div></div>
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#ede9fe"><i class="fas fa-users" style="color:#7c3aed"></i></div>
+        <h5 class="fw-bold">الموارد البشرية</h5>
+        <p class="text-muted small mb-0">ملفات الموظفين، الحضور والانصراف، الرواتب والإجازات.</p>
+      </div></div>
+      <div class="col-md-4 col-sm-6"><div class="feature-card">
+        <div class="feature-icon" style="background:#ffedd5"><i class="fas fa-cash-register" style="color:#ea580c"></i></div>
+        <h5 class="fw-bold">نقطة البيع POS</h5>
+        <p class="text-muted small mb-0">واجهة سريعة للبيع، طباعة الإيصالات، إدارة الجلسات والصناديق.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STEPS ═══════════════ -->
+<section class="steps-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">كيف تبدأ</div>
+      <h2 class="section-title">3 خطوات وأنت جاهز</h2>
+    </div>
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="step-num">1</div>
+        <h5 class="fw-bold mt-3">سجّل شركتك</h5>
+        <p class="text-muted">أدخل بيانات شركتك في أقل من دقيقتين واحصل على رابطك الخاص فوراً.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="step-num">2</div>
+        <h5 class="fw-bold mt-3">أضِف بياناتك</h5>
+        <p class="text-muted">استورد منتجاتك وعملاءك وموردينك، أو أضفهم يدوياً بسهولة.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="step-num">3</div>
+        <h5 class="fw-bold mt-3">ابدأ الإدارة</h5>
+        <p class="text-muted">أصدر فواتيرك، تابع مخزونك، وراقب أرباحك من لوحة تحكم واحدة.</p>
+      </div>
+    </div>
+    <div class="text-center mt-5">
+      <a href="/auth/register" class="btn btn-cta"><i class="fas fa-rocket me-2"></i>ابدأ الآن مجاناً</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PRICING ═══════════════ -->
+<section class="pricing-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label" style="color:#f39c12">الأسعار</div>
+      <h2 class="section-title text-white">إدارة احترافية بتكلفة منخفضة</h2>
+      <p style="color:rgba(255,255,255,.7)">جرّب مجاناً 14 يوماً بدون بطاقة ائتمان</p>
+    </div>
+    <div class="row justify-content-center g-4">
+      <div class="col-md-4"><div class="plan-box">
+        <h4 class="fw-bold mb-1">Trial</h4>
+        <p style="color:rgba(255,255,255,.6);font-size:.9rem">تجربة مجانية</p>
+        <div class="plan-price">مجاناً</div>
+        <p style="color:rgba(255,255,255,.6);margin-top:4px">لمدة 14 يوم</p>
+        <ul class="list-unstyled mt-3 mb-4" style="color:rgba(255,255,255,.8);text-align:right">
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>وصول كامل للنظام</li>
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>بيانات حقيقية</li>
+          <li><i class="fas fa-check text-warning me-2"></i>بدون بطاقة</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-outline-light w-100" style="border-radius:12px">ابدأ التجربة</a>
+      </div></div>
+      <div class="col-md-4"><div class="plan-box featured">
+        <div class="text-center mb-2"><span class="plan-badge">الأكثر شيوعاً</span></div>
+        <h4 class="fw-bold mb-1">Monthly</h4>
+        <p style="color:rgba(255,255,255,.6);font-size:.9rem">الخطة الشهرية</p>
+        <div class="plan-price"><sup>€</sup>29<span>/mo</span></div>
+        <ul class="list-unstyled mt-3 mb-4" style="color:rgba(255,255,255,.8);text-align:right">
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>جميع الأقسام</li>
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>دعم فني 24/7</li>
+          <li><i class="fas fa-check text-warning me-2"></i>نسخ احتياطية</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-cta w-100">اشترك الآن</a>
+      </div></div>
+      <div class="col-md-4"><div class="plan-box">
+        <h4 class="fw-bold mb-1">Yearly</h4>
+        <p style="color:rgba(255,255,255,.6);font-size:.9rem">الخطة السنوية</p>
+        <div class="plan-price"><sup>€</sup>290<span>/yr</span></div>
+        <p style="color:#a8e6cf;font-size:.85rem;margin-top:4px">وفّر €58 مقارنةً بالشهري</p>
+        <ul class="list-unstyled mt-3 mb-4" style="color:rgba(255,255,255,.8);text-align:right">
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>كل مزايا الشهري</li>
+          <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>شهران مجانيان</li>
+          <li><i class="fas fa-check text-warning me-2"></i>تقارير متقدمة</li>
+        </ul>
+        <a href="/auth/register" class="btn btn-outline-light w-100" style="border-radius:12px">اشترك سنوياً</a>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SPECIALIST ═══════════════ -->
+<section class="specialist-section" id="contact">
+  <div class="container">
+    <div class="specialist-card">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+          <div class="section-label">تحدث مع مختص</div>
+          <h2 class="section-title mb-3">هل لديك سؤال قبل البدء؟</h2>
+          <p class="text-muted mb-4">فريقنا جاهز لمساعدتك في اختيار الخطة المناسبة من اليوم الأول.</p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-primary px-4" style="border-radius:12px">
+              <i class="fas fa-envelope me-2"></i>راسلنا الآن
+            </a>
+            <a href="https://wa.me/1234567890" class="btn px-4"
+               style="background:#25D366;color:#fff;border-radius:12px" target="_blank">
+              <i class="fab fa-whatsapp me-2"></i>واتساب
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-5 text-center">
+          <div style="background:linear-gradient(135deg,#eaf2ff,#e8f8ee);border-radius:20px;padding:40px">
+            <i class="fas fa-headset fa-4x mb-3" style="color:var(--accent)"></i>
+            <p class="fw-bold mb-1">دعم فوري</p>
+            <p class="text-muted small mb-0">نرد خلال ساعة في أوقات العمل</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ARTICLES ═══════════════ -->
+<section style="background:#f8f9fa" id="articles">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">المدونة</div>
+      <h2 class="section-title">مقالات تساعدك على النجاح</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="card article-card">
+        <div class="article-img d-flex align-items-center justify-content-center"
+             style="background:linear-gradient(135deg,#dbeafe,#ede9fe)">
+          <i class="fas fa-chart-bar fa-4x" style="color:#3498db;opacity:.4"></i></div>
+        <div class="card-body">
+          <span class="article-tag" style="background:#dbeafe;color:#1d4ed8">المحاسبة</span>
+          <h6 class="fw-bold mt-2">كيف تُعد تقارير مالية احترافية في دقائق؟</h6>
+          <p class="text-muted small">دليل عملي خطوة بخطوة لاستخراج التقارير المالية من النظام.</p>
+        </div>
+      </div></div>
+      <div class="col-md-4"><div class="card article-card">
+        <div class="article-img d-flex align-items-center justify-content-center"
+             style="background:linear-gradient(135deg,#dcfce7,#fef9c3)">
+          <i class="fas fa-boxes fa-4x" style="color:#27ae60;opacity:.4"></i></div>
+        <div class="card-body">
+          <span class="article-tag" style="background:#dcfce7;color:#166534">المخزون</span>
+          <h6 class="fw-bold mt-2">5 نصائح لتحسين إدارة المخزون وتقليل الهدر</h6>
+          <p class="text-muted small">تعلّم كيف تتحكم في مخزونك وتتجنب نقص المنتجات.</p>
+        </div>
+      </div></div>
+      <div class="col-md-4"><div class="card article-card">
+        <div class="article-img d-flex align-items-center justify-content-center"
+             style="background:linear-gradient(135deg,#ffedd5,#fce7f3)">
+          <i class="fas fa-cash-register fa-4x" style="color:#ea580c;opacity:.4"></i></div>
+        <div class="card-body">
+          <span class="article-tag" style="background:#ffedd5;color:#9a3412">نقطة البيع</span>
+          <h6 class="fw-bold mt-2">كيف يُسرّع POS المبيعات ويزيد رضا العملاء؟</h6>
+          <p class="text-muted small">استكشف كيف تحسّن تجربة البيع في متجرك.</p>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER CTA ═══════════════ -->
+<section class="footer-cta">
+  <div class="container">
+    <h2 class="fw-bold mb-3" style="font-size:2rem">جاهز لتحويل طريقة إدارة أعمالك؟</h2>
+    <p class="mb-4" style="font-size:1.1rem;opacity:.85">
+      انضم لمئات الشركات التي تثق بـ DED ERP — ابدأ مجاناً اليوم
+    </p>
+    <a href="/auth/register" class="btn btn-cta btn-lg">
+      <i class="fas fa-rocket me-2"></i>ابدأ تجربتك المجانية
+    </a>
+  </div>
+</section>
+
+<div class="footer-bottom">
+  <div class="container">
+    <span>© 2026 DED ERP · جميع الحقوق محفوظة</span>
+    <span class="mx-3">·</span>
+    <a href="mailto:support@calcatta-ceramica.sbs" style="color:rgba(255,255,255,.5)">الدعم الفني</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

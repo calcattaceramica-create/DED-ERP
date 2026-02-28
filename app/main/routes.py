@@ -19,8 +19,7 @@ def add_cache_headers(response):
         response.headers['Expires'] = '0'
     return response
 
-@bp.route('/')
-@bp.route('/index')
+@bp.route('/dashboard')
 @login_required
 @permission_required('dashboard.view')
 def index():

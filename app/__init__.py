@@ -82,7 +82,11 @@ def create_app(config_name='default'):
     # Register blueprints
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    
+
+    # Public landing page — registered before main so '/' serves the landing
+    from app.public import bp as public_bp
+    app.register_blueprint(public_bp)
+
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
     
