@@ -35,10 +35,41 @@
 
                     <hr class="my-4">
 
+                    {% if current_user.is_admin or current_user.is_super_admin %}
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="card border-primary h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="fw-bold text-primary">شهري</h5>
+                                    <p class="text-muted small">30 يوماً</p>
+                                    <a href="{{ url_for('billing.activate_plan', plan='monthly') }}"
+                                       class="btn btn-primary w-100"
+                                       onclick="return confirm('تفعيل الخطة الشهرية؟')">
+                                        <i class="fas fa-check-circle me-1"></i> تفعيل
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="fw-bold text-success">سنوي</h5>
+                                    <p class="text-muted small">365 يوماً</p>
+                                    <a href="{{ url_for('billing.activate_plan', plan='yearly') }}"
+                                       class="btn btn-success w-100"
+                                       onclick="return confirm('تفعيل الخطة السنوية؟')">
+                                        <i class="fas fa-check-circle me-1"></i> تفعيل
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="d-grid gap-3">
-                        <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-primary btn-lg">
+                        <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-outline-primary">
                             <i class="fas fa-envelope me-2"></i>
-                            تواصل مع الدعم لتجديد الاشتراك
+                            تواصل مع الدعم
                         </a>
                         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-sign-out-alt me-2"></i>
