@@ -122,6 +122,9 @@ def create_app(config_name='default'):
     from app.backup import bp as backup_bp
     app.register_blueprint(backup_bp, url_prefix='/backup')
 
+    from app.billing import bp as billing_bp
+    app.register_blueprint(billing_bp, url_prefix='/billing')
+
     # ─── Multi-Tenant: register middleware and automatic query filtering ───
     from app.tenant_middleware import TenantMiddleware
     TenantMiddleware(app)
@@ -129,6 +132,42 @@ def create_app(config_name='default'):
     from app.tenant_mixin import init_tenant_support
     with app.app_context():
         init_tenant_support(app)
+    # ──────────────────────────────────────────────────────────────────────
+
+    # ─── License Enforcement ──────────────────────────────────────────────
+    @app.before_request
+    def check_license():
+        from flask_login import current_user
+        from flask import redirect, url_for, request as req
+
+        # Only check authenticated users
+        if not current_user.is_authenticated:
+            return None
+
+        # Super-admins bypass license checks
+        if getattr(current_user, 'is_super_admin', False):
+            return None
+
+        # Allow static files, all auth routes, and billing routes (avoid redirect loops)
+        endpoint = req.endpoint or ''
+        if endpoint == 'static' or endpoint.startswith('auth.') or endpoint.startswith('billing.'):
+            return None
+
+        # Check license via tenant_id (direct query — avoids company intermediary)
+        from app.models_license import License
+        tenant_id = getattr(current_user, 'tenant_id', None)
+        if not tenant_id:
+            return None  # No tenant context — allow (backward compat)
+
+        lic = License.query.filter_by(tenant_id=tenant_id).first()
+
+        if not lic:
+            return redirect(url_for('billing.upgrade'))
+
+        if not lic.is_active():
+            return redirect(url_for('billing.upgrade'))
+
+        return None
     # ──────────────────────────────────────────────────────────────────────
 
     # Add context processor for translations and currency

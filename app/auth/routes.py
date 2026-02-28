@@ -3,7 +3,8 @@ from flask_login import login_user, logout_user, current_user
 from flask_babel import gettext as _
 from app import db
 from app.auth import bp
-from app.models import User, SecurityLog, SessionLog
+from app.models import User, SecurityLog, SessionLog, Company
+from app.models_license import License
 from app.models_tenant import Tenant
 from datetime import datetime, timedelta
 import uuid
@@ -286,6 +287,33 @@ def register():
 
             # Link admin user to tenant
             tenant.admin_user_id = admin_user.id
+
+            # Create Company record for this tenant (using registration form data)
+            new_company = Company(
+                tenant_id=tenant.id,
+                name=company_name,
+                name_en=company_name_en or company_name,
+                email=company_email,
+                phone=company_phone,
+                address=company_address,
+                city=company_city,
+                tax_number=tax_number,
+                currency='SAR',
+                tax_rate=15.0
+            )
+            db.session.add(new_company)
+            db.session.flush()  # Get new_company.id
+
+            # Create 14-day trial license linked to the new company
+            trial_license = License(
+                tenant_id=tenant.id,
+                company_id=new_company.id,
+                plan="trial",
+                status="active",
+                start_date=datetime.utcnow(),
+                end_date=datetime.utcnow() + timedelta(days=14)
+            )
+            db.session.add(trial_license)
 
             db.session.commit()
 

@@ -236,8 +236,9 @@ class Company(db.Model):
     invoice_template = db.Column(db.String(50), default='modern')  # modern, classic, minimal, elegant
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationship
+    # Relationships
     tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='companies')
+    license = db.relationship("License", backref="company", uselist=False)
 
     def __repr__(self):
         return f'<Company {self.name}>'
@@ -290,4 +291,5 @@ from app.models_hr import Employee, Department, Position, Attendance, Leave, Lea
 from app.models_pos import POSSession, POSOrder, POSOrderItem
 from app.models_settings import SystemSettings, AccountingSettings
 from app.models_crm import Lead, Interaction, Opportunity, Task, Campaign, Contact
+from app.models_license import License
 

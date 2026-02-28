@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}انتهت صلاحية الرخصة - DED ERP{% endblock %}
+{% block page_title %}🔒 الرخصة{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card text-center shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-lock fa-5x text-danger"></i>
+                    </div>
+
+                    {% if not license %}
+                    <h2 class="card-title fw-bold text-danger">لا توجد رخصة مرتبطة بحسابك</h2>
+                    <p class="card-text text-muted fs-5 mt-3">
+                        لم يتم العثور على رخصة لشركتك. يرجى التواصل مع الدعم الفني لتفعيل اشتراكك.
+                    </p>
+                    {% else %}
+                    <h2 class="card-title fw-bold text-danger">انتهت صلاحية رخصتك</h2>
+                    <p class="card-text text-muted fs-5 mt-3">
+                        انتهت فترة الاشتراك الخاصة بشركتك.
+                        يرجى تجديد الاشتراك للاستمرار في استخدام النظام.
+                    </p>
+                    {% if license.end_date %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-calendar-times me-2"></i>
+                        تاريخ انتهاء الصلاحية:
+                        <strong>{{ license.end_date.strftime('%Y-%m-%d') }}</strong>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-3">
+                        <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>
+                            تواصل مع الدعم لتجديد الاشتراك
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            تسجيل الخروج
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
