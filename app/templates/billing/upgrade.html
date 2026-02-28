@@ -1,85 +1,218 @@
 {% extends "base.html" %}
 
-{% block title %}انتهت صلاحية الرخصة - DED ERP{% endblock %}
-{% block page_title %}🔒 الرخصة{% endblock %}
+{% block title %}ترقية الاشتراك - DED ERP{% endblock %}
+{% block page_title %}<i class="fas fa-crown me-2 text-warning"></i>ترقية الاشتراك{% endblock %}
+
+{% block extra_css %}
+<style>
+.upgrade-hero {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    border-radius: 16px;
+    padding: 40px;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 36px;
+}
+.upgrade-hero .badge-expired {
+    display: inline-block;
+    background: rgba(231,76,60,0.2);
+    border: 1px solid rgba(231,76,60,0.5);
+    color: #ff6b6b;
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: .85rem;
+    margin-bottom: 16px;
+    letter-spacing: .5px;
+}
+.plan-card {
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    transition: all .25s ease;
+    background: #fff;
+    position: relative;
+    height: 100%;
+}
+.plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+}
+.plan-card.popular {
+    border-color: #3498db;
+}
+.plan-card.popular .popular-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 20px;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.plan-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 20px;
+}
+.plan-price {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.plan-price sup {
+    font-size: 1.2rem;
+    font-weight: 600;
+    vertical-align: super;
+}
+.plan-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #6c757d;
+}
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    text-align: start;
+}
+.feature-list li {
+    padding: 6px 0;
+    color: #495057;
+    font-size: .92rem;
+}
+.feature-list li i {
+    color: #27ae60;
+    width: 18px;
+}
+.savings-badge {
+    display: inline-block;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 12px;
+    padding: 3px 12px;
+    font-size: .8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card text-center shadow-lg border-0">
-                <div class="card-body p-5">
-                    <div class="mb-4">
-                        <i class="fas fa-lock fa-5x text-danger"></i>
-                    </div>
+<div class="container py-4">
 
-                    {% if not license %}
-                    <h2 class="card-title fw-bold text-danger">لا توجد رخصة مرتبطة بحسابك</h2>
-                    <p class="card-text text-muted fs-5 mt-3">
-                        لم يتم العثور على رخصة لشركتك. يرجى التواصل مع الدعم الفني لتفعيل اشتراكك.
-                    </p>
-                    {% else %}
-                    <h2 class="card-title fw-bold text-danger">انتهت صلاحية رخصتك</h2>
-                    <p class="card-text text-muted fs-5 mt-3">
-                        انتهت فترة الاشتراك الخاصة بشركتك.
-                        يرجى تجديد الاشتراك للاستمرار في استخدام النظام.
-                    </p>
-                    {% if license.end_date %}
-                    <div class="alert alert-warning mt-3">
-                        <i class="fas fa-calendar-times me-2"></i>
-                        تاريخ انتهاء الصلاحية:
-                        <strong>{{ license.end_date.strftime('%Y-%m-%d') }}</strong>
-                    </div>
-                    {% endif %}
-                    {% endif %}
+    <!-- Hero Banner -->
+    <div class="upgrade-hero">
+        <div class="badge-expired">
+            {% if not license %}
+                <i class="fas fa-exclamation-circle me-1"></i> لا توجد رخصة
+            {% elif license.end_date %}
+                <i class="fas fa-clock me-1"></i>
+                انتهت الصلاحية في {{ license.end_date.strftime('%Y-%m-%d') }}
+            {% else %}
+                <i class="fas fa-lock me-1"></i> الرخصة غير فعّالة
+            {% endif %}
+        </div>
+        <h1 class="fw-bold mb-2" style="font-size:2rem;">
+            <i class="fas fa-crown me-2 text-warning"></i>
+            Upgrade Your Subscription
+        </h1>
+        <p class="mb-0 opacity-75" style="font-size:1.05rem;">
+            اختر الخطة المناسبة واستمر في إدارة أعمالك بدون انقطاع
+        </p>
+    </div>
 
-                    <hr class="my-4">
+    <!-- Plan Cards -->
+    {% if current_user.is_admin or current_user.is_super_admin %}
+    <div class="row justify-content-center g-4 mb-5">
 
-                    {% if current_user.is_admin or current_user.is_super_admin %}
-                    <div class="row g-3 mb-4">
-                        <div class="col-6">
-                            <div class="card border-primary h-100">
-                                <div class="card-body text-center">
-                                    <h5 class="fw-bold text-primary">شهري</h5>
-                                    <p class="text-muted small">30 يوماً</p>
-                                    <a href="{{ url_for('billing.activate_plan', plan='monthly') }}"
-                                       class="btn btn-primary w-100"
-                                       onclick="return confirm('تفعيل الخطة الشهرية؟')">
-                                        <i class="fas fa-check-circle me-1"></i> تفعيل
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card border-success h-100">
-                                <div class="card-body text-center">
-                                    <h5 class="fw-bold text-success">سنوي</h5>
-                                    <p class="text-muted small">365 يوماً</p>
-                                    <a href="{{ url_for('billing.activate_plan', plan='yearly') }}"
-                                       class="btn btn-success w-100"
-                                       onclick="return confirm('تفعيل الخطة السنوية؟')">
-                                        <i class="fas fa-check-circle me-1"></i> تفعيل
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <div class="d-grid gap-3">
-                        <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-outline-primary">
-                            <i class="fas fa-envelope me-2"></i>
-                            تواصل مع الدعم
-                        </a>
-                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-sign-out-alt me-2"></i>
-                            تسجيل الخروج
-                        </a>
-                    </div>
+        <!-- Monthly Plan -->
+        <div class="col-md-5">
+            <div class="plan-card">
+                <div class="plan-icon bg-primary bg-opacity-10">
+                    <i class="fas fa-calendar-alt text-primary"></i>
                 </div>
+                <h3 class="fw-bold mb-1">Monthly Plan</h3>
+                <p class="text-muted mb-3">الخطة الشهرية</p>
+                <div class="plan-price text-primary">
+                    <sup>€</sup>29<span> / month</span>
+                </div>
+                <ul class="feature-list mt-3">
+                    <li><i class="fas fa-check me-2"></i>وصول كامل لجميع الأقسام</li>
+                    <li><i class="fas fa-check me-2"></i>دعم فني على مدار الساعة</li>
+                    <li><i class="fas fa-check me-2"></i>نسخ احتياطية تلقائية</li>
+                    <li><i class="fas fa-check me-2"></i>تحديثات مستمرة</li>
+                </ul>
+                <a href="{{ url_for('billing.activate_plan', plan='monthly') }}"
+                   class="btn btn-outline-primary btn-lg w-100 mt-2"
+                   onclick="return confirm('تفعيل الخطة الشهرية بـ €29 / شهر؟')">
+                    <i class="fas fa-bolt me-2"></i>Choose Plan
+                </a>
+            </div>
+        </div>
+
+        <!-- Yearly Plan -->
+        <div class="col-md-5">
+            <div class="plan-card popular">
+                <div class="popular-badge">
+                    <i class="fas fa-star me-1"></i>الأكثر توفيراً
+                </div>
+                <div class="plan-icon bg-success bg-opacity-10">
+                    <i class="fas fa-calendar-check text-success"></i>
+                </div>
+                <h3 class="fw-bold mb-1">Yearly Plan</h3>
+                <p class="text-muted mb-3">الخطة السنوية</p>
+                <div class="savings-badge">وفّر €58 مقارنةً بالشهري</div>
+                <div class="plan-price text-success">
+                    <sup>€</sup>290<span> / year</span>
+                </div>
+                <ul class="feature-list mt-3">
+                    <li><i class="fas fa-check me-2"></i>كل مزايا الخطة الشهرية</li>
+                    <li><i class="fas fa-check me-2"></i>شهران مجانيان</li>
+                    <li><i class="fas fa-check me-2"></i>أولوية في الدعم الفني</li>
+                    <li><i class="fas fa-check me-2"></i>تقارير متقدمة</li>
+                </ul>
+                <a href="{{ url_for('billing.activate_plan', plan='yearly') }}"
+                   class="btn btn-success btn-lg w-100 mt-2"
+                   onclick="return confirm('تفعيل الخطة السنوية بـ €290 / سنة؟')">
+                    <i class="fas fa-crown me-2"></i>Choose Plan
+                </a>
+            </div>
+        </div>
+
+    </div>
+    {% else %}
+    <!-- Non-admin message -->
+    <div class="alert alert-info text-center mb-5" style="border-radius:12px;">
+        <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
+        يرجى التواصل مع مدير الشركة لتجديد الاشتراك.
+    </div>
+    {% endif %}
+
+    <!-- Footer Actions -->
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <p class="text-muted mb-3">هل تحتاج مساعدة؟ فريق الدعم جاهز</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="mailto:support@calcatta-ceramica.sbs" class="btn btn-outline-primary">
+                    <i class="fas fa-envelope me-2"></i>support@calcatta-ceramica.sbs
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                </a>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
 
