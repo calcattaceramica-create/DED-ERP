@@ -5,7 +5,7 @@ from app.main import bp
 from app import db
 from app.models import *
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
 import json
 from pathlib import Path
@@ -48,8 +48,9 @@ def index():
     recent_purchases = PurchaseInvoice.query.order_by(PurchaseInvoice.created_at.desc()).limit(5).all()
 
     # Sales this month
-    today = datetime.utcnow()
+    today = date.today()
     first_day = today.replace(day=1)
+
     sales_this_month = db.session.query(func.sum(SalesInvoice.total_amount)).filter(
         SalesInvoice.invoice_date >= first_day,
         SalesInvoice.status != 'cancelled'
@@ -85,8 +86,16 @@ def index():
     chart_labels = []
 
     for i in range(5, -1, -1):
-        month_date = today - timedelta(days=30*i)
-        month_start = month_date.replace(day=1)
+        # Correct month arithmetic — timedelta(days=30*i) is inaccurate
+        # because months have 28-31 days, causing duplicate or skipped months.
+        raw_month = today.month - i
+        if raw_month <= 0:
+            target_year = today.year - 1
+            target_month = raw_month + 12
+        else:
+            target_year = today.year
+            target_month = raw_month
+        month_start = date(target_year, target_month, 1)
 
         # Get last day of month
         last_day = calendar.monthrange(month_start.year, month_start.month)[1]

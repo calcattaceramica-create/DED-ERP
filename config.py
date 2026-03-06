@@ -89,6 +89,22 @@ class Config:
     
     # Tax
     DEFAULT_TAX_RATE = 18.0  # VAT 18%
+
+    # Admin Panel IP Restriction (optional)
+    # Comma-separated IPs allowed to access /settings and /admin routes.
+    # Leave empty to allow all IPs (default).
+    # Example: ADMIN_IP_WHITELIST=192.168.1.10,10.0.0.5
+    _raw_ips = os.environ.get('ADMIN_IP_WHITELIST', '')
+    ADMIN_IP_WHITELIST = [ip.strip() for ip in _raw_ips.split(',') if ip.strip()]
+
+    # Stripe
+    STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+    STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    STRIPE_PLAN_PRICE_IDS = {
+        'monthly': os.environ.get('STRIPE_PRICE_MONTHLY', ''),
+        'yearly':  os.environ.get('STRIPE_PRICE_YEARLY',  ''),
+    }
     
     @staticmethod
     def init_app(app):
@@ -102,7 +118,11 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
+    TESTING = False
     SESSION_COOKIE_SECURE = True
+    TEMPLATES_AUTO_RELOAD = False   # no hot-reload in production
+    SEND_FILE_MAX_AGE_DEFAULT = 86400  # cache static files for 24h
+    SQLALCHEMY_ECHO = False         # no SQL logging in production
 
 class TestingConfig(Config):
     """Testing configuration"""

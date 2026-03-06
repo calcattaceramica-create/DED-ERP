@@ -1,5 +1,5 @@
-from datetime import datetime
 from app import db
+from app.utils.datetime_helper import utcnow
 
 class Tenant(db.Model):
     """
@@ -56,8 +56,8 @@ class Tenant(db.Model):
     subscription_ends_at = db.Column(db.DateTime)
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
     
     # Database Schema (for future schema-based multi-tenancy if needed)
     db_schema = db.Column(db.String(63))  # Optional: for PostgreSQL schema-based isolation
@@ -98,11 +98,11 @@ class Tenant(db.Model):
             return False
         
         if self.is_trial:
-            if self.trial_ends_at and datetime.utcnow() > self.trial_ends_at:
+            if self.trial_ends_at and utcnow() > self.trial_ends_at:
                 return False
             return True
         
-        if self.subscription_ends_at and datetime.utcnow() > self.subscription_ends_at:
+        if self.subscription_ends_at and utcnow() > self.subscription_ends_at:
             return False
         
         return True

@@ -152,10 +152,9 @@
                     <li><i class="fas fa-check me-2"></i>نسخ احتياطية تلقائية</li>
                     <li><i class="fas fa-check me-2"></i>تحديثات مستمرة</li>
                 </ul>
-                <a href="{{ url_for('billing.activate_plan', plan='monthly') }}"
-                   class="btn btn-outline-primary btn-lg w-100 mt-2"
-                   onclick="return confirm('تفعيل الخطة الشهرية بـ €29 / شهر؟')">
-                    <i class="fas fa-bolt me-2"></i>Choose Plan
+                <a href="{{ url_for('payment.checkout', plan='monthly') }}"
+                   class="btn btn-outline-primary btn-lg w-100 mt-2">
+                    <i class="fab fa-stripe me-2"></i>اشترك الآن
                 </a>
             </div>
         </div>
@@ -181,10 +180,9 @@
                     <li><i class="fas fa-check me-2"></i>أولوية في الدعم الفني</li>
                     <li><i class="fas fa-check me-2"></i>تقارير متقدمة</li>
                 </ul>
-                <a href="{{ url_for('billing.activate_plan', plan='yearly') }}"
-                   class="btn btn-success btn-lg w-100 mt-2"
-                   onclick="return confirm('تفعيل الخطة السنوية بـ €290 / سنة؟')">
-                    <i class="fas fa-crown me-2"></i>Choose Plan
+                <a href="{{ url_for('payment.checkout', plan='yearly') }}"
+                   class="btn btn-success btn-lg w-100 mt-2">
+                    <i class="fab fa-stripe me-2"></i>اشترك الآن
                 </a>
             </div>
         </div>

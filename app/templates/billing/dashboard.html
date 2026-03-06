@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Billing') }} - DED ERP{% endblock %}
+{% block page_title %}<i class="fas fa-credit-card me-2 text-primary"></i>{{ _('Billing') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.billing-hero {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    border-radius: 16px; padding: 36px; color: #fff; margin-bottom: 28px;
+}
+.stat-card {
+    border: 2px solid #e9ecef; border-radius: 14px; padding: 24px;
+    height: 100%; transition: border-color .2s;
+}
+.stat-card:hover { border-color: #3498db; }
+.stat-card .label { font-size: .8rem; text-transform: uppercase;
+    letter-spacing: .6px; color: #6c757d; margin-bottom: 6px; }
+.stat-card .value { font-size: 1.5rem; font-weight: 700; color: #2c3e50; }
+.badge-plan { font-size: .85rem; padding: 6px 16px; border-radius: 20px; }
+.invoice-row:hover { background: #f8f9fa; }
+.invoice-row td { vertical-align: middle; }
+.btn-cancel { border: 2px solid #e74c3c; color: #e74c3c; background: transparent; }
+.btn-cancel:hover { background: #e74c3c; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  {# ── Hero ──────────────────────────────────────────────────────────────── #}
+  <div class="billing-hero d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="fs-5 fw-semibold mb-1 opacity-75">{{ _('Current Plan') }}</div>
+      {% if lic %}
+        <h2 class="mb-0 fw-bold">
+          {{ lic.plan | capitalize }}
+          {% if stripe_sub and stripe_sub.cancel_at_period_end %}
+            <span class="badge bg-warning text-dark ms-2" style="font-size:.65rem">{{ _('Cancels at period end') }}</span>
+          {% endif %}
+        </h2>
+      {% else %}
+        <h2 class="mb-0 fw-bold opacity-50">{{ _('No license') }}</h2>
+      {% endif %}
+    </div>
+    <div class="d-flex gap-2 flex-wrap" id="plan-actions">
+
+      {% if current_user.is_admin %}
+        {% set has_stripe_sub = lic and lic.stripe_subscription_id %}
+        {% set is_cancelling  = stripe_sub and stripe_sub.cancel_at_period_end %}
+        {% set plans = [('monthly', _('Monthly')), ('yearly', _('Yearly'))] %}
+
+        {% for plan_key, plan_label in plans %}
+          {% if not (lic and lic.plan == plan_key) %}  {# hide current plan button #}
+            {% if has_stripe_sub and not is_cancelling %}
+              {# ── Existing subscriber: modify in place ── #}
+              <form method="POST"
+                    action="{{ url_for('billing.change_plan', new_plan=plan_key) }}"
+                    onsubmit="return confirm('{{ _('Switch to') }} {{ plan_label }}?')">
+                <button type="submit"
+                        class="btn fw-semibold px-3 {{ 'btn-light' if plan_key == 'monthly' else 'btn-outline-light' }}">
+                  <i class="fas fa-credit-card me-1"></i>
+                  {{ plan_label }}
+                </button>
+              </form>
+            {% else %}
+              {# ── New subscriber: Stripe Checkout session ── #}
+              <a href="{{ url_for('payment.checkout', plan=plan_key) }}"
+                 class="btn fw-semibold px-3 {{ 'btn-light' if plan_key == 'monthly' else 'btn-outline-light' }}">
+                <i class="fas fa-credit-card me-1"></i>{{ plan_label }}
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {# ── Cancel button ── #}
+        {% if has_stripe_sub and not is_cancelling %}
+        <form method="POST" action="{{ url_for('billing.cancel_subscription') }}"
+              onsubmit="return confirm('{{ _('Are you sure you want to cancel?') }}')">
+          <button type="submit" class="btn btn-cancel fw-semibold px-4">
+            <i class="fas fa-times me-1"></i>{{ _('Cancel Subscription') }}
+          </button>
+        </form>
+        {% endif %}
+      {% endif %}
+
+    </div>
+  </div>
+
+  {# ── Stat Cards ──────────────────────────────────────────────────────────── #}
+  <div class="row g-4 mb-4">
+
+    {# Plan #}
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="label"><i class="fas fa-layer-group me-1"></i>{{ _('Plan') }}</div>
+        <div class="value">
+          {% if lic %}
+            {% if lic.plan == 'yearly' %}
+              <span class="badge badge-plan bg-primary">{{ _('Yearly') }}</span>
+            {% elif lic.plan == 'monthly' %}
+              <span class="badge badge-plan bg-info text-dark">{{ _('Monthly') }}</span>
+            {% else %}
+              <span class="badge badge-plan bg-secondary">{{ lic.plan | capitalize }}</span>
+            {% endif %}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Status #}
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="label"><i class="fas fa-circle me-1"></i>{{ _('Status') }}</div>
+        <div class="value">
+          {% if lic %}
+            {% if lic.status == 'active' %}
+              <span class="badge badge-plan bg-success">{{ _('Active') }}</span>
+            {% elif lic.status == 'suspended' %}
+              <span class="badge badge-plan bg-warning text-dark">{{ _('Suspended') }}</span>
+            {% else %}
+              <span class="badge badge-plan bg-danger">{{ _('Expired') }}</span>
+            {% endif %}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Next Renewal #}
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="label"><i class="fas fa-calendar-alt me-1"></i>{{ _('Next Renewal') }}</div>
+        <div class="value" style="font-size:1.1rem">
+          {% if stripe_sub and stripe_sub.current_period_end %}
+            {{ stripe_sub.current_period_end | strftime }}
+          {% elif lic and lic.end_date %}
+            {{ lic.end_date.strftime('%Y-%m-%d') }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Payment Method #}
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div class="label"><i class="fas fa-credit-card me-1"></i>{{ _('Payment Method') }}</div>
+        <div class="value" style="font-size:1rem">
+          {% if stripe_sub and stripe_sub.default_payment_method %}
+            {% set pm = stripe_sub.default_payment_method %}
+            <i class="fab fa-cc-{{ pm.card.brand | lower }} fa-lg me-1"></i>
+            **** {{ pm.card.last4 }}
+          {% else %}
+            <span class="text-muted" style="font-size:.9rem">{{ _('Not set') }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>{# /row #}
+
+  {# ── Invoices ────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom d-flex align-items-center">
+      <h5 class="mb-0"><i class="fas fa-file-invoice-dollar text-primary me-2"></i>{{ _('Invoices') }}</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if invoices %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{{ _('Invoice Number') }}</th>
+              <th>{{ _('Date') }}</th>
+              <th>{{ _('Amount') }}</th>
+              <th>{{ _('Status') }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {# invoices is already a list (route extracts .data before passing) #}
+            {% for inv in invoices %}
+            <tr class="invoice-row">
+              <td class="fw-semibold font-monospace">{{ inv.number or inv.id }}</td>
+              <td>{{ inv.created | strftime }}</td>
+              <td class="fw-semibold">
+                {{ '%.2f' | format(inv.amount_paid / 100) }}
+                <span class="text-muted" style="font-size:.8rem">{{ inv.currency | upper }}</span>
+              </td>
+              <td>
+                {% if inv.status == 'paid' %}
+                  <span class="badge bg-success">{{ _('Paid') }}</span>
+                {% elif inv.status == 'open' %}
+                  <span class="badge bg-warning text-dark">{{ _('Open') }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ inv.status }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                  {# View online (hosted_invoice_url) #}
+                  {% if inv.hosted_invoice_url %}
+                    <a href="{{ inv.hosted_invoice_url }}" target="_blank"
+                       class="btn btn-sm btn-outline-primary" title="{{ _('View Invoice') }}">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  {% endif %}
+                  {# Download PDF (invoice_pdf) #}
+                  {% if inv.invoice_pdf %}
+                    <a href="{{ inv.invoice_pdf }}" target="_blank"
+                       class="btn btn-sm btn-outline-secondary" title="{{ _('Download PDF') }}">
+                      <i class="fas fa-file-pdf"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="fas fa-file-invoice fa-3x mb-3 opacity-25"></i>
+        <p class="mb-0">{{ _('No invoices found') }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

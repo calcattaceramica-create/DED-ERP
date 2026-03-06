@@ -6,8 +6,71 @@ from app.auth import bp
 from app.models import User, SecurityLog, SessionLog, Company
 from app.models_license import License
 from app.models_tenant import Tenant
-from datetime import datetime, timedelta
+from datetime import timedelta
+import re
 import uuid
+
+from app.utils.datetime_helper import utcnow
+
+
+def _build_subdomain_base(company_name, company_name_en, fallback='company'):
+    """Build a DNS-safe ASCII subdomain, preferring the English company name."""
+    base_name = (company_name_en or '').strip() or (company_name or '').strip()
+    sanitized = re.sub(r'[^a-z0-9]', '', base_name.lower())[:20]
+    return sanitized or fallback.lower()[:20]
+
+
+def _generate_company_code():
+    """Generate the next available tenant code in the COMP### sequence."""
+    existing_codes = (
+        db.session.query(Tenant.code)
+        .execution_options(skip_tenant_filter=True)
+        .filter(Tenant.code.like('COMP%'))
+        .all()
+    )
+
+    max_suffix = 0
+    for code, in existing_codes:
+        match = re.fullmatch(r'COMP(\d+)', code or '')
+        if match:
+            max_suffix = max(max_suffix, int(match.group(1)))
+
+    while True:
+        max_suffix += 1
+        company_code = f'COMP{max_suffix:03d}'
+        exists = (
+            db.session.query(Tenant.id)
+            .execution_options(skip_tenant_filter=True)
+            .filter_by(code=company_code)
+            .first()
+        )
+        if not exists:
+            return company_code
+
+
+def _create_session_log_safely(user):
+    """Persist a login session record without blocking the actual login flow."""
+    session_id = str(uuid.uuid4())
+    session_log = SessionLog(
+        user_id=user.id,
+        session_id=session_id,
+        ip_address=get_client_ip(),
+        user_agent=get_user_agent(),
+        is_active=True
+    )
+
+    try:
+        db.session.add(session_log)
+        db.session.commit()
+        return session_log.id
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.warning(
+            'Session log creation failed for user_id=%s: %s',
+            user.id,
+            e,
+        )
+        return None
 
 def get_client_ip():
     """Get client IP address"""
@@ -106,26 +169,30 @@ def login():
             session['tenant_id'] = user.tenant_id
         # ────────────────────────────────────────────────────
 
-        # Create session log
-        session_id = str(uuid.uuid4())
-        session_log = SessionLog(
-            user_id=user.id,
-            session_id=session_id,
-            ip_address=get_client_ip(),
-            user_agent=get_user_agent(),
-            is_active=True
-        )
-        db.session.add(session_log)
-        db.session.commit()
+        # ── License check — redirect before session log creation ─────────────
+        # Super-admins are exempt; all other users must have a valid license.
+        # Exception: if next page is a checkout route, allow login so payment
+        # can be completed (new tenants come from registration with a trial).
+        next_page = request.args.get('next', '')
+        going_to_checkout = next_page.startswith('/payment/checkout/')
+        if not getattr(user, 'is_super_admin', False) and not going_to_checkout:
+            from app.models_license import check_license
+            if not check_license(user.tenant_id):
+                log_security_event(user.id, 'license_blocked',
+                                   'Login blocked: no valid license', 'warning')
+                flash('اشتراككم منتهٍ أو غير مفعّل. يرجى تجديد الاشتراك للمتابعة.', 'warning')
+                return redirect(url_for('billing.upgrade'))
+        # ─────────────────────────────────────────────────────────────────────
 
-        # Store session info
-        session['session_log_id'] = session_log.id
+        # Create session log (best effort only — should never block login)
+        session_log_id = _create_session_log_safely(user)
+        if session_log_id:
+            session['session_log_id'] = session_log_id
 
         log_security_event(user.id, 'successful_login', 'User logged in successfully', 'info')
 
         flash(f'مرحباً {user.username}!', 'success')
 
-        next_page = request.args.get('next')
         if next_page:
             return redirect(next_page)
         return redirect(url_for('main.index'))
@@ -143,7 +210,7 @@ def logout():
             session_log = SessionLog.query.get(session_log_id)
             if session_log:
                 session_log.is_active = False
-                session_log.logout_at = datetime.utcnow()
+                session_log.logout_at = utcnow()
                 db.session.commit()
     
     logout_user()
@@ -202,6 +269,9 @@ def register():
             tax_number = request.form.get('tax_number')
             commercial_register = request.form.get('commercial_register')
 
+            # Subscription plan chosen on the landing page (optional)
+            chosen_plan = request.form.get('plan', '').strip()
+
             # Admin User Information
             admin_username = request.form.get('admin_username')
             admin_email = request.form.get('admin_email')
@@ -219,15 +289,15 @@ def register():
             import string
 
             # Generate company code (e.g., COMP001)
-            last_tenant = Tenant.query.order_by(Tenant.id.desc()).first()
-            if last_tenant:
-                last_num = int(last_tenant.code.replace('COMP', '')) if last_tenant.code.startswith('COMP') else 0
-                company_code = f'COMP{(last_num + 1):03d}'
-            else:
-                company_code = 'COMP001'
+            company_code = _generate_company_code()
 
-            # Generate subdomain from company name (remove spaces and special chars)
-            subdomain_base = ''.join(c for c in company_name.lower() if c.isalnum())[:20]
+            # Generate a DNS-safe subdomain. Prefer English company name so the
+            # backend matches the frontend preview and public DNS expectations.
+            subdomain_base = _build_subdomain_base(
+                company_name=company_name,
+                company_name_en=company_name_en,
+                fallback=company_code.lower(),
+            )
             subdomain = subdomain_base
 
             # Check if subdomain exists, add random suffix if needed
@@ -259,7 +329,7 @@ def register():
                 max_invoices_per_month=50,
                 is_active=True,
                 is_trial=True,
-                trial_ends_at=datetime.utcnow() + timedelta(days=30),  # 30 days trial
+                trial_ends_at=utcnow() + timedelta(days=30),  # 30 days trial
                 currency='SAR',
                 tax_rate=15.0,
                 language='ar'
@@ -310,8 +380,8 @@ def register():
                 company_id=new_company.id,
                 plan="trial",
                 status="active",
-                start_date=datetime.utcnow(),
-                end_date=datetime.utcnow() + timedelta(days=14)
+                start_date=utcnow(),
+                end_date=utcnow() + timedelta(days=14)
             )
             db.session.add(trial_license)
 
@@ -371,7 +441,13 @@ def register():
 
             new_host = f"{subdomain}.{base_domain}{port_suffix}"
             scheme = 'https' if request.is_secure else request.scheme
-            new_url = f"{scheme}://{new_host}/"
+
+            # If the user chose a paid plan, redirect to checkout after login
+            if chosen_plan in ('monthly', 'yearly'):
+                next_path = f'/payment/checkout/{chosen_plan}'
+                new_url = f"{scheme}://{new_host}/auth/login?next={next_path}"
+            else:
+                new_url = f"{scheme}://{new_host}/"
             return redirect(new_url)
 
         except Exception as e:

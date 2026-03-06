@@ -6,7 +6,7 @@ This mixin adds tenant_id to models and provides automatic filtering.
 """
 
 from flask import g, has_request_context
-from sqlalchemy import event, true as sa_true
+from sqlalchemy import bindparam, event, true as sa_true
 from sqlalchemy.orm import Query, with_loader_criteria, Session
 from app import db
 
@@ -111,53 +111,68 @@ def register_tenant_events(model_class):
         event.listen(model_class, 'before_update', validate_tenant_on_update)
 
 
+# ---------------------------------------------------------------------------
+# Pre-computed list of (model_class, tenant_id_column) pairs populated in
+# setup_tenant_query_filter() once all mappers have been registered.
+# ---------------------------------------------------------------------------
+_tenant_aware_classes: list = []
+
+
 def setup_tenant_query_filter():
     """
     Register SQLAlchemy do_orm_execute event to automatically filter
     all SELECT queries by the current tenant_id.
     This is the core of multi-tenant data isolation.
+
+    SQLAlchemy 2.0 note
+    -------------------
+    with_loader_criteria() passes its *callable* argument through the lambda
+    caching system (lambdas.DeferredLambdaElement).  That system raises
+    InvalidRequestError when a closure variable is a plain Python scalar
+    (e.g. an integer tenant_id) rather than a SQLAlchemy SQL element.
+    It also instruments every function call inside the callable, so helper
+    calls such as has_request_context() or getattr(g, ...) also fail.
+
+    To avoid this entirely we pass a **direct SQL expression** (not a
+    callable) to with_loader_criteria(), one per model class that has a
+    tenant_id column.  A non-callable where_criteria bypasses the lambda
+    analysis path completely (see SQLAlchemy source LoaderCriteriaOption).
     """
 
     @event.listens_for(Session, 'do_orm_execute')
     def _add_tenant_filter(orm_execute_state):
-        # Only apply to SELECT statements, skip relationship loads
+        # Only apply to top-level SELECT statements.
+        # Relationship loads inherit the criteria automatically via
+        # propagate_to_loaders=True (the default for with_loader_criteria).
         if (not orm_execute_state.is_select
                 or orm_execute_state.is_relationship_load
                 or orm_execute_state.execution_options.get('skip_tenant_filter', False)):
             return
 
-        # Get current tenant from request context
-        tenant_id = None
-        if has_request_context():
-            tenant_id = getattr(g, 'current_tenant_id', None)
-
-        if tenant_id is None:
+        # No request context → no tenant filtering (scripts, CLI, tests)
+        if not has_request_context():
             return
 
-        # Build per-class criteria: filter by tenant_id only for models that have it,
-        # and never filter the Tenant table itself (to avoid recursion).
-        # track_closure_variables=True (default): SQLAlchemy includes the closure
-        # variable value (tenant_id) in the query cache key.  This means each unique
-        # tenant gets its own compiled-query cache entry, so workers that have
-        # previously served a different tenant never reuse the wrong WHERE clause.
-        # Using False here caused cross-tenant cache contamination in multi-worker
-        # Gunicorn setups: one worker's cached "WHERE tenant_id = X" was reused for
-        # a request where tenant_id = Y, making load_user() return None and forcing
-        # every navigation click to redirect back to the login page.
-        def _make_criteria(cls):
-            if (hasattr(cls, 'tenant_id')
-                    and getattr(cls, '__tablename__', None) != 'tenants'):
-                return cls.tenant_id == tenant_id
-            return sa_true()
+        tid = getattr(g, 'current_tenant_id', None)
+        if tid is None:
+            return
 
-        orm_execute_state.statement = orm_execute_state.statement.options(
+        # Build one non-callable with_loader_criteria per tenant-aware class.
+        # Passing a direct BinaryExpression (cls.tenant_id == tid) instead of a
+        # callable avoids SQLAlchemy's lambda caching system entirely, which is
+        # incompatible with Python scalar closure variables in SQLAlchemy 2.x.
+        if not _tenant_aware_classes:
+            return
+
+        options = [
             with_loader_criteria(
-                db.Model,
-                _make_criteria,
+                cls,
+                cls.tenant_id == bindparam(f'tenant_id_{index}', value=tid),
                 include_aliases=True,
-                track_closure_variables=True,
             )
-        )
+            for index, cls in enumerate(_tenant_aware_classes)
+        ]
+        orm_execute_state.statement = orm_execute_state.statement.options(*options)
 
 
 def init_tenant_support(app):
@@ -165,7 +180,17 @@ def init_tenant_support(app):
     Initialize tenant support for the application.
     This should be called after all models are defined.
     """
+    global _tenant_aware_classes
     from app import db
+
+    # Pre-compute the list of model classes that have a tenant_id column
+    # (excluding the Tenant table itself to avoid filtering recursion).
+    _tenant_aware_classes = [
+        mapper.class_
+        for mapper in db.Model.registry.mappers
+        if (hasattr(mapper.class_, 'tenant_id')
+            and getattr(mapper.class_, '__tablename__', None) != 'tenants')
+    ]
 
     # Register automatic query filtering (the main isolation mechanism)
     setup_tenant_query_filter()

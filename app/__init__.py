@@ -46,12 +46,23 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    # Initialize Stripe with secret key from environment variable when available
+    stripe_available = True
+    try:
+        import stripe
+    except ModuleNotFoundError:
+        stripe_available = False
+        app.logger.warning('Stripe package is not installed; payment features are disabled.')
+    else:
+        stripe.api_key = app.config.get('STRIPE_SECRET_KEY')
+
     # ProxyFix for Render.com (behind reverse proxy)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-    # Disable template caching for development
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    # Enable hot-reload only in development (ProductionConfig overrides these)
+    if app.debug:
+        app.config['TEMPLATES_AUTO_RELOAD'] = True
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
     # Initialize extensions
     db.init_app(app)
@@ -126,8 +137,15 @@ def create_app(config_name='default'):
     from app.backup import bp as backup_bp
     app.register_blueprint(backup_bp, url_prefix='/backup')
 
-    from app.billing import bp as billing_bp
-    app.register_blueprint(billing_bp, url_prefix='/billing')
+    if stripe_available:
+        from app.billing import bp as billing_bp
+        app.register_blueprint(billing_bp, url_prefix='/billing')
+
+        from app.payment import bp as payment_bp
+        app.register_blueprint(payment_bp, url_prefix='/payment')
+
+    from routes.super_admin import super_admin_bp
+    app.register_blueprint(super_admin_bp)
 
     # ─── Multi-Tenant: register middleware and automatic query filtering ───
     from app.tenant_middleware import TenantMiddleware
@@ -137,6 +155,35 @@ def create_app(config_name='default'):
     with app.app_context():
         init_tenant_support(app)
     # ──────────────────────────────────────────────────────────────────────
+
+    # ─── Admin Panel IP Restriction ──────────────────────────────────────
+    @app.before_request
+    def restrict_admin_by_ip():
+        """
+        If ADMIN_IP_WHITELIST is configured, only those IPs may access
+        settings/admin routes. Applies only when the list is non-empty.
+        """
+        from flask import request as req, abort as _abort
+        whitelist = app.config.get('ADMIN_IP_WHITELIST', [])
+        if not whitelist:
+            return None   # feature disabled — allow everyone
+
+        endpoint = req.endpoint or ''
+        protected = endpoint.startswith('settings.') or endpoint.startswith('admin.')
+        if not protected:
+            return None
+
+        # Support X-Forwarded-For (behind reverse proxy)
+        client_ip = (
+            req.headers.get('X-Forwarded-For', '').split(',')[0].strip()
+            or req.remote_addr
+            or ''
+        )
+        if client_ip not in whitelist:
+            app.logger.warning(
+                f'Admin IP blocked: {client_ip} → {endpoint}'
+            )
+            _abort(403)
 
     # ─── License Enforcement ──────────────────────────────────────────────
     @app.before_request
@@ -152,9 +199,13 @@ def create_app(config_name='default'):
         if getattr(current_user, 'is_super_admin', False):
             return None
 
-        # Allow static files, all auth routes, and billing routes (avoid redirect loops)
+        # Allow static files, auth, billing, and payment routes (avoid redirect loops
+        # and allow Stripe webhook / checkout flow to complete without a valid license)
         endpoint = req.endpoint or ''
-        if endpoint == 'static' or endpoint.startswith('auth.') or endpoint.startswith('billing.'):
+        if (endpoint == 'static'
+                or endpoint.startswith('auth.')
+                or endpoint.startswith('billing.')
+                or endpoint.startswith('payment.')):
             return None
 
         # Check license via tenant_id (direct query — avoids company intermediary)
@@ -276,6 +327,76 @@ def create_app(config_name='default'):
                 return f"{currency_symbol} 0.00"
             else:
                 return f"0.00 {currency_symbol}"
+
+    # Stripe Unix timestamp → readable date string
+    @app.template_filter('strftime')
+    def strftime_filter(timestamp, fmt='%Y-%m-%d'):
+        """Convert a Unix timestamp (int) to a formatted date string."""
+        from datetime import datetime, timezone
+        try:
+            return datetime.fromtimestamp(int(timestamp), tz=timezone.utc).strftime(fmt)
+        except (ValueError, TypeError, OSError):
+            return '—'
+
+    # ── Security Headers ──────────────────────────────────────────────────────
+    @app.after_request
+    def set_security_headers(response):
+        """Attach security headers to every response."""
+        # Prevent clickjacking
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        # Prevent MIME-type sniffing
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        # Control referrer information
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        # Restrict browser features
+        response.headers.setdefault(
+            'Permissions-Policy',
+            'geolocation=(), microphone=(), camera=()'
+        )
+        # Force HTTPS in production
+        if not app.debug:
+            response.headers.setdefault(
+                'Strict-Transport-Security',
+                'max-age=31536000; includeSubDomains'
+            )
+        return response
+
+    # ── Custom Error Handlers ─────────────────────────────────────────────────
+    @app.errorhandler(403)
+    def forbidden(_e):
+        from flask import render_template as rt
+        return rt('errors/403.html'), 403
+
+    @app.errorhandler(404)
+    def not_found(_e):
+        from flask import render_template as rt
+        return rt('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(_e):
+        from flask import render_template as rt
+        db.session.rollback()   # prevent broken transaction from polluting future queries
+        return rt('errors/500.html'), 500
+
+    # ── Health Check ──────────────────────────────────────────────────────────
+    @app.route('/health')
+    def health_check():
+        """Lightweight endpoint for uptime monitoring (no auth required)."""
+        from flask import jsonify
+        status = {'status': 'ok', 'checks': {}}
+        http_code = 200
+        try:
+            db.session.execute(db.text('SELECT 1'))
+            status['checks']['database'] = 'ok'
+        except Exception as ex:
+            status['checks']['database'] = f'error: {ex}'
+            status['status'] = 'degraded'
+            http_code = 503
+        stripe_key = app.config.get('STRIPE_SECRET_KEY', '')
+        status['checks']['stripe_configured'] = (
+            'ok' if stripe_key and not stripe_key.startswith('sk_test_your') else 'not configured'
+        )
+        return jsonify(status), http_code
 
     return app
 

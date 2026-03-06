@@ -18,8 +18,12 @@ class Currency(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    exchange_rates = db.relationship('ExchangeRate', backref='currency', lazy='dynamic', 
-                                    foreign_keys='ExchangeRate.from_currency_id')
+    exchange_rates = db.relationship(
+        'ExchangeRate',
+        back_populates='from_currency',
+        lazy='dynamic',
+        foreign_keys='ExchangeRate.from_currency_id',
+    )
     
     def __repr__(self):
         return f'<Currency {self.code}>'
@@ -52,7 +56,11 @@ class ExchangeRate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    from_currency = db.relationship('Currency', foreign_keys=[from_currency_id])
+    from_currency = db.relationship(
+        'Currency',
+        foreign_keys=[from_currency_id],
+        back_populates='exchange_rates',
+    )
     to_currency = db.relationship('Currency', foreign_keys=[to_currency_id])
     creator = db.relationship('User', foreign_keys=[created_by])
     

@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app import db, login_manager
+from app.utils.datetime_helper import utcnow
 
 # User and Authentication Models
 class User(UserMixin, db.Model):
@@ -24,7 +25,7 @@ class User(UserMixin, db.Model):
     language = db.Column(db.String(5), default='ar')
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
     last_login = db.Column(db.DateTime)
 
     # Unique constraint: username + tenant_id must be unique
@@ -90,11 +91,11 @@ class User(UserMixin, db.Model):
         """Check if account is currently locked"""
         if self.account_locked_until is None:
             return False
-        return datetime.utcnow() < self.account_locked_until
+        return utcnow() < self.account_locked_until
 
     def lock_account(self, minutes=30):
         """Lock account for specified minutes"""
-        self.account_locked_until = datetime.utcnow() + timedelta(minutes=minutes)
+        self.account_locked_until = utcnow() + timedelta(minutes=minutes)
         db.session.commit()
 
     def unlock_account(self):
@@ -106,7 +107,7 @@ class User(UserMixin, db.Model):
     def record_failed_login(self):
         """Record a failed login attempt"""
         self.failed_login_attempts += 1
-        self.last_failed_login = datetime.utcnow()
+        self.last_failed_login = utcnow()
 
         # Lock account after 5 failed attempts
         if self.failed_login_attempts >= 5:
@@ -116,7 +117,7 @@ class User(UserMixin, db.Model):
 
     def record_successful_login(self, ip_address=None):
         """Record a successful login"""
-        self.last_login = datetime.utcnow()
+        self.last_login = utcnow()
         self.failed_login_attempts = 0
         self.account_locked_until = None
         if ip_address:
@@ -169,7 +170,7 @@ class SecurityLog(db.Model):
     user_agent = db.Column(db.String(256))
     details = db.Column(db.Text)
     severity = db.Column(db.String(20), default='info')  # info, warning, critical
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=utcnow, index=True)
 
     # Relationships
     user = db.relationship('User', backref='security_logs')
@@ -186,7 +187,7 @@ class IPWhitelist(db.Model):
     description = db.Column(db.String(256))
     is_active = db.Column(db.Boolean, default=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
 
     def __repr__(self):
         return f'<IPWhitelist {self.ip_address}>'
@@ -200,8 +201,8 @@ class SessionLog(db.Model):
     session_id = db.Column(db.String(256), unique=True)
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.String(256))
-    login_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
+    login_at = db.Column(db.DateTime, default=utcnow)
+    last_activity = db.Column(db.DateTime, default=utcnow)
     logout_at = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
 
@@ -210,6 +211,29 @@ class SessionLog(db.Model):
 
     def __repr__(self):
         return f'<SessionLog {self.user_id} - {self.session_id}>'
+
+
+class SuperAdmin(db.Model):
+    """Global super admin accounts stored outside tenant-specific users."""
+    __tablename__ = 'super_admins'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.Text, nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=db.func.current_timestamp()
+    )
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<SuperAdmin {self.email}>'
 
 # Company and Branch Models
 class Company(db.Model):
@@ -234,7 +258,12 @@ class Company(db.Model):
     currency = db.Column(db.String(3), default='EUR')
     tax_rate = db.Column(db.Float, default=18.0)
     invoice_template = db.Column(db.String(50), default='modern')  # modern, classic, minimal, elegant
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    plan = db.Column(db.String(50), default='trial')
+    status = db.Column(db.String(50), default='trial')
+    subscription_end = db.Column(db.DateTime)
+    stripe_customer_id = db.Column(db.String(255))
+    stripe_subscription_id = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=utcnow)
 
     # Relationships
     tenant = db.relationship('Tenant', foreign_keys=[tenant_id], backref='companies')
@@ -260,7 +289,7 @@ class Branch(db.Model):
     phone = db.Column(db.String(20))
     manager_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
 
     # Unique constraint: code + tenant_id must be unique
     __table_args__ = (

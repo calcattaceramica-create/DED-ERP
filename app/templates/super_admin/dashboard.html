@@ -1,0 +1,25 @@
+<h2>Subscribers Management</h2>
+
+<table border="1">
+    <tr>
+        <th>Company</th>
+        <th>Plan</th>
+        <th>Status</th>
+        <th>Expiry</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for company in companies %}
+    <tr>
+        <td>{{ company.name }}</td>
+        <td>{{ company.plan }}</td>
+        <td>{{ company.status }}</td>
+        <td>{{ company.subscription_end }}</td>
+        <td>
+            <a href="{{ url_for('super_admin.activate', id=company.id) }}">Activate</a> |
+            <a href="{{ url_for('super_admin.cancel', id=company.id) }}">Cancel</a> |
+            <a href="{{ url_for('super_admin.extend', id=company.id) }}">Extend 30 Days</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
